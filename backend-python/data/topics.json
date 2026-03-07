@@ -1,0 +1,422 @@
+[
+  {
+    "id": "t1",
+    "title": "Can radical skepticism ever be decisively answered?",
+    "tag": "Epistemology",
+    "difficulty": "Medium",
+    "description": "Tests whether humans can justify certainty, or only workable confidence.",
+    "sideA": {
+      "position": "Skepticism can be answered",
+      "args": [
+        "Some beliefs are self-justifying, like basic logic or immediate experience.",
+        "Best explanation arguments support common sense beliefs better than skepticism does."
+      ]
+    },
+    "sideB": {
+      "position": "Skepticism cannot be fully answered",
+      "args": [
+        "Any justification can be questioned without circularity.",
+        "Certainty requires a foundation that humans cannot access."
+      ]
+    }
+  },
+  {
+    "id": "t2",
+    "title": "Does teleportation preserve personal identity?",
+    "tag": "Metaphysics",
+    "difficulty": "Medium",
+    "description": "Tests whether being the same person depends on continuity or pattern.",
+    "sideA": {
+      "position": "Identity is preserved",
+      "args": [
+        "What matters is psychological continuity: memories, values, intentions.",
+        "A perfect copy with the same mind continues the same person in practice."
+      ]
+    },
+    "sideB": {
+      "position": "Identity is not preserved",
+      "args": [
+        "Destruction and copying creates a new individual with borrowed memories.",
+        "Continuity of the original body or brain matters for being the same person."
+      ]
+    }
+  },
+  {
+    "id": "t3",
+    "title": "Should people keep beliefs while no strong evidence disproves them?",
+    "tag": "Epistemology",
+    "difficulty": "Medium",
+    "description": "Tests whether belief is default or must be earned.",
+    "sideA": {
+      "position": "Keep beliefs until disproved",
+      "args": [
+        "Most everyday knowledge works because trust and default assumptions are practical.",
+        "Demanding proof for every belief leads to paralysis."
+      ]
+    },
+    "sideB": {
+      "position": "Beliefs must be earned",
+      "args": [
+        "Default belief encourages superstition and misinformation.",
+        "The burden of proof should sit with the person making the claim."
+      ]
+    }
+  },
+  {
+    "id": "t4",
+    "title": "Is online infidelity morally comparable to physical infidelity?",
+    "tag": "Ethics",
+    "difficulty": "Easy",
+    "description": "Tests whether betrayal is about action, intention, or harm.",
+    "sideA": {
+      "position": "Comparable",
+      "args": [
+        "Emotional betrayal and secrecy can harm trust the same way.",
+        "Intent and commitment violation matter more than physical contact."
+      ]
+    },
+    "sideB": {
+      "position": "Not comparable",
+      "args": [
+        "Physical intimacy adds a distinct level of violation and risk.",
+        "Some online behavior can be fantasy without real-world betrayal."
+      ]
+    }
+  },
+  {
+    "id": "t5",
+    "title": "Can committing a smaller wrong be morally justified to prevent a greater harm?",
+    "tag": "Ethics",
+    "difficulty": "Hard",
+    "description": "Tests whether outcomes can justify morally troubling actions.",
+    "sideA": {
+      "position": "Sometimes justified",
+      "args": [
+        "Preventing large-scale harm can outweigh a smaller violation.",
+        "Moral rules exist to protect well-being, so exceptions can be rational."
+      ]
+    },
+    "sideB": {
+      "position": "Never justified",
+      "args": [
+        "Allowing exceptions creates a slippery path to abuse.",
+        "Some acts violate human dignity and should be forbidden regardless of outcome."
+      ]
+    }
+  },
+  {
+    "id": "t6",
+    "title": "Does morality depend on God's commands?",
+    "tag": "Theology",
+    "difficulty": "Hard",
+    "description": "Tests whether right and wrong come from divine authority or independent reasons.",
+    "sideA": {
+      "position": "Depends on God's commands",
+      "args": [
+        "God is the ultimate authority, so moral obligation requires divine grounding.",
+        "Objective morality fits better with a moral lawgiver than with human opinion."
+      ]
+    },
+    "sideB": {
+      "position": "Independent of God's commands",
+      "args": [
+        "If God commands it because it is good, goodness exists independently.",
+        "If goodness is only what God commands, morality can seem arbitrary."
+      ]
+    }
+  },
+  {
+    "id": "t7",
+    "title": "Can free will exist if the future is predictable in principle?",
+    "tag": "Free Will",
+    "difficulty": "Hard",
+    "description": "Tests whether choice requires indeterminism or only internal control.",
+    "sideA": {
+      "position": "Free will can exist",
+      "args": [
+        "Freedom can mean acting from one's reasons without coercion.",
+        "Predictability does not remove authorship of decisions."
+      ]
+    },
+    "sideB": {
+      "position": "Free will cannot exist",
+      "args": [
+        "If actions are fixed in advance, alternatives are not genuinely possible.",
+        "Responsibility seems unfair if choices could never have been different."
+      ]
+    }
+  },
+  {
+    "id": "t8",
+    "title": "Is the veil of ignorance the best method for designing a just society?",
+    "tag": "Political Philosophy",
+    "difficulty": "Medium",
+    "description": "Tests whether fairness requires ignorance of personal advantage.",
+    "sideA": {
+      "position": "Best method",
+      "args": [
+        "It reduces bias and forces rules that protect everyone.",
+        "It promotes fair institutions by removing self-interest from design."
+      ]
+    },
+    "sideB": {
+      "position": "Not the best method",
+      "args": [
+        "Real justice needs concrete knowledge of history and inequality.",
+        "People behind the veil may still choose risk-averse rules that limit freedom."
+      ]
+    }
+  },
+  {
+    "id": "t9",
+    "title": "If every part of a ship is replaced over time, is it still the same ship?",
+    "tag": "Metaphysics",
+    "difficulty": "Medium",
+    "description": "Tests identity through change, continuity, and definition.",
+    "sideA": {
+      "position": "Still the same ship",
+      "args": [
+        "Identity can track continuity of function, ownership, and history.",
+        "Gradual change preserves sameness better than sudden replacement."
+      ]
+    },
+    "sideB": {
+      "position": "Not the same ship",
+      "args": [
+        "If all original material is gone, the original object no longer exists.",
+        "'Same ship' becomes a naming convention, not a fact about identity."
+      ]
+    }
+  },
+  {
+    "id": "t10",
+    "title": "Would immortality make a meaningful life harder to sustain?",
+    "tag": "Existentialism",
+    "difficulty": "Medium",
+    "description": "Tests whether meaning depends on finitude.",
+    "sideA": {
+      "position": "Harder to sustain meaning",
+      "args": [
+        "Endless time can erode urgency and commitment.",
+        "Goals lose weight if they can always be postponed."
+      ]
+    },
+    "sideB": {
+      "position": "Meaning can persist or deepen",
+      "args": [
+        "Meaning can come from relationships, creativity, and ongoing growth.",
+        "More time can allow deeper mastery and long-term projects."
+      ]
+    }
+  },
+  {
+    "id": "t11",
+    "title": "Can harming one innocent person ever be justified to save many?",
+    "tag": "Ethics",
+    "difficulty": "Hard",
+    "description": "Tests the limits of utilitarian tradeoffs versus rights.",
+    "sideA": {
+      "position": "Sometimes justified",
+      "args": [
+        "Extreme cases make outcome-based ethics compelling.",
+        "Refusing may cause preventable catastrophe and greater suffering."
+      ]
+    },
+    "sideB": {
+      "position": "Not justified",
+      "args": [
+        "Innocent people should not be used as tools.",
+        "Allowing it institutionalizes abuse and destroys trust."
+      ]
+    }
+  },
+  {
+    "id": "t12",
+    "title": "Do people in wealthy countries have strong duties to sacrifice comfort to help distant strangers?",
+    "tag": "Ethics",
+    "difficulty": "Medium",
+    "description": "Tests whether distance reduces obligation.",
+    "sideA": {
+      "position": "Strong duties exist",
+      "args": [
+        "Preventing serious harm matters regardless of geography.",
+        "Modest sacrifice can save lives, so it is morally required."
+      ]
+    },
+    "sideB": {
+      "position": "Duties are limited",
+      "args": [
+        "Special obligations to family and community can take priority.",
+        "Unlimited duty becomes unworkable and may reduce long-term help."
+      ]
+    }
+  },
+  {
+    "id": "t13",
+    "title": "If someone could act with guaranteed anonymity, would morality mostly collapse?",
+    "tag": "Ethics",
+    "difficulty": "Easy",
+    "description": "Tests whether morality depends on enforcement or character.",
+    "sideA": {
+      "position": "Morality would collapse",
+      "args": [
+        "Many people behave morally because of consequences and reputation.",
+        "Without enforcement, self-interest dominates."
+      ]
+    },
+    "sideB": {
+      "position": "Morality would not collapse",
+      "args": [
+        "Many people act from conscience, empathy, and internal principles.",
+        "Moral identity and relationships still matter even without external punishment."
+      ]
+    }
+  },
+  {
+    "id": "t14",
+    "title": "Should human rights be grounded in personhood rather than species membership?",
+    "tag": "Ethics",
+    "difficulty": "Hard",
+    "description": "Tests what qualifies a being for rights.",
+    "sideA": {
+      "position": "Ground rights in personhood",
+      "args": [
+        "Rights track capacities like consciousness, interests, and agency.",
+        "It explains why some nonhumans might deserve protections."
+      ]
+    },
+    "sideB": {
+      "position": "Ground rights in being human",
+      "args": [
+        "Human rights protect all humans equally, including those with limited capacities.",
+        "Personhood standards can exclude vulnerable humans and invite abuse."
+      ]
+    }
+  },
+  {
+    "id": "t15",
+    "title": "Can something count as art without being intentionally created as art?",
+    "tag": "Aesthetics",
+    "difficulty": "Medium",
+    "description": "Tests whether art requires intention or can be discovered.",
+    "sideA": {
+      "position": "Yes, it can",
+      "args": [
+        "Context and interpretation can transform objects into art.",
+        "Found art and natural beauty can produce artistic experience."
+      ]
+    },
+    "sideB": {
+      "position": "No, it cannot",
+      "args": [
+        "Art requires an artist's intention and communicative act.",
+        "Without intention, it is aesthetic appreciation, not art."
+      ]
+    }
+  },
+  {
+    "id": "t16",
+    "title": "If prediction were reliable, would pre-emptive punishment be justified?",
+    "tag": "Political Philosophy",
+    "difficulty": "Hard",
+    "description": "Tests justice, prevention, and due process.",
+    "sideA": {
+      "position": "Could be justified",
+      "args": [
+        "Preventing serious harm can outweigh punishing after the fact.",
+        "If prediction is nearly certain, it resembles evidence of intent."
+      ]
+    },
+    "sideB": {
+      "position": "Not justified",
+      "args": [
+        "Punishment requires an act, not a forecast.",
+        "Systems will be abused, and errors destroy legitimacy."
+      ]
+    }
+  },
+  {
+    "id": "t17",
+    "title": "Does religious pluralism weaken rational religious commitment?",
+    "tag": "Theology",
+    "difficulty": "Medium",
+    "description": "Tests how disagreement affects justified belief.",
+    "sideA": {
+      "position": "It weakens commitment",
+      "args": [
+        "Many incompatible claims reduce confidence that any one is uniquely true.",
+        "Geography and culture predict belief, suggesting contingency."
+      ]
+    },
+    "sideB": {
+      "position": "It does not",
+      "args": [
+        "Disagreement exists in science and politics, yet commitment can be rational.",
+        "Personal experience and tradition can justify commitment without certainty."
+      ]
+    }
+  },
+  {
+    "id": "t18",
+    "title": "Is suffering still morally significant if it is later forgotten?",
+    "tag": "Ethics",
+    "difficulty": "Medium",
+    "description": "Tests whether harm depends on memory or moment.",
+    "sideA": {
+      "position": "Still significant",
+      "args": [
+        "Suffering is bad in itself, even if not remembered later.",
+        "Forgetting does not erase the fact that a conscious being experienced pain."
+      ]
+    },
+    "sideB": {
+      "position": "Less significant or context dependent",
+      "args": [
+        "If it leaves no lasting effect, the total harm may be smaller.",
+        "Some moral weight comes from long-term trauma and consequences."
+      ]
+    }
+  },
+  {
+    "id": "t19",
+    "title": "If a person's psychology splits into two successors, does identity survive?",
+    "tag": "Metaphysics",
+    "difficulty": "Hard",
+    "description": "Tests whether identity can branch.",
+    "sideA": {
+      "position": "Identity does not survive as one person",
+      "args": [
+        "One identity cannot equal two distinct future persons.",
+        "Identity requires a unique continuation, not branching."
+      ]
+    },
+    "sideB": {
+      "position": "Identity can survive in a different sense",
+      "args": [
+        "What matters is psychological continuity, which both successors share.",
+        "Identity might be a practical concept, not an absolute fact."
+      ]
+    }
+  },
+  {
+    "id": "t20",
+    "title": "Should dream skepticism affect everyday belief and action?",
+    "tag": "Epistemology",
+    "difficulty": "Easy",
+    "description": "Tests whether unsolved skepticism should change daily life.",
+    "sideA": {
+      "position": "It should not",
+      "args": [
+        "Daily life relies on practical certainty, not philosophical certainty.",
+        "Skeptic scenarios do not improve decisions in ordinary contexts."
+      ]
+    },
+    "sideB": {
+      "position": "It should",
+      "args": [
+        "If knowledge foundations are shaky, confidence should drop.",
+        "It encourages humility and better standards of evidence."
+      ]
+    }
+  }
+]

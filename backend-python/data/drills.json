@@ -1,0 +1,193 @@
+[
+  {
+    "id": "d1",
+    "name": "One-Sentence Answer Drill",
+    "tag": "Precision",
+    "linkedCharacter": "c4",
+    "linkedWeakness": "Wordy answers that avoid commitment",
+    "description": "Practice answering under pressure with maximum economy. Every answer must be one sentence.",
+    "instructions": "You will be given 6 cross-examination questions. Answer each in exactly one sentence. No qualifications, no preamble. If you need to qualify, fold it into the sentence.",
+    "questions": [
+      "Does your position apply universally or only in specific conditions?",
+      "What is the single most important word in your core claim?",
+      "If you could only keep one argument, which one would it be and why?",
+      "What is the one thing your opponent must concede for you to win?",
+      "Name one real-world case where your position clearly holds.",
+      "What is the fastest way someone could refute your entire position?"
+    ],
+    "rubric": "Each answer is scored: 0 if more than one sentence, 1 if one sentence but evasive, 2 if one sentence and directly responsive.",
+    "maxScore": 12,
+    "completionPrompt": "Review your answers. For any that were evasive, rewrite them with a direct commitment."
+  },
+  {
+    "id": "d2",
+    "name": "Impact Weighing Drill",
+    "tag": "Impact Calculus",
+    "linkedCharacter": "c3",
+    "linkedWeakness": "Vague weighing without magnitude or timeframe",
+    "description": "Practice comparing two competing impacts using a structured template. Forces you to assign magnitude, probability, and timeframe.",
+    "instructions": "For each scenario, write one impact for each side. Then compare them using: (1) Magnitude — how severe, (2) Probability — how likely, (3) Timeframe — how soon, (4) Reversibility — can it be undone. End with a one-sentence verdict.",
+    "questions": [
+      "Policy A saves 100 lives immediately. Policy B prevents 10,000 deaths over 20 years but may not work. Which do you fund?",
+      "Rule X protects individual rights but makes collective coordination 30% harder. Rule Y does the reverse. Which do you implement?",
+      "Certain harm to one person vs. uncertain harm to many. What probability threshold changes your answer?",
+      "A policy has a 90% chance of modest improvement and a 10% chance of catastrophic failure. Do you implement it?"
+    ],
+    "rubric": "Score 0-3 per scenario: 0 = no weighing, 1 = one dimension only, 2 = two dimensions, 3 = all four dimensions with verdict.",
+    "maxScore": 12,
+    "completionPrompt": "Go back to your weakest comparison. Add the missing dimensions and rewrite the verdict."
+  },
+  {
+    "id": "d3",
+    "name": "Definition Stress Test",
+    "tag": "Definitions",
+    "linkedCharacter": "c4",
+    "linkedWeakness": "Definitions that shift under pressure",
+    "description": "Build a definition that survives edge cases. You will define a term, then test it against five hard cases.",
+    "instructions": "Write a definition of the key term in your chosen position. It must be one sentence with a clear boundary rule. Then for each edge case below, answer: does your definition include or exclude this case, and why?",
+    "questions": [
+      "Write your definition here.",
+      "Edge case 1: A case that seems clearly inside your definition.",
+      "Edge case 2: A case that seems clearly outside your definition.",
+      "Edge case 3: A borderline case — which side of the line does it fall on?",
+      "Edge case 4: A case your opponent would use to break your definition.",
+      "Edge case 5: Rewrite your definition if any edge case revealed a flaw."
+    ],
+    "rubric": "3 points if the final definition handles all five cases without contradiction. Deduct 1 point per case where the boundary is unclear.",
+    "maxScore": 10,
+    "completionPrompt": "Show your final definition to someone and ask them to find one more case that breaks it."
+  },
+  {
+    "id": "d4",
+    "name": "Concession Control Drill",
+    "tag": "Concession",
+    "linkedCharacter": "c2",
+    "linkedWeakness": "Refusing to concede anything, or conceding too much",
+    "description": "Practice the art of the strategic concession: give up what you cannot defend while keeping what you need to win.",
+    "instructions": "For each attack on your position, decide whether to (A) concede fully, (B) concede partially with a condition, or (C) reject entirely. Write your response and explain what you protected.",
+    "questions": [
+      "Your opponent says: 'Your position has exceptions. Name one and I will concede everything else.'",
+      "Your opponent says: 'Even your own examples show this does not always work.'",
+      "Your opponent says: 'The evidence for your strongest claim is disputed. Admit it.'",
+      "Your opponent says: 'Your definition includes a case you clearly do not want to defend.'",
+      "Your opponent says: 'You have not addressed the strongest version of my argument.'"
+    ],
+    "rubric": "2 points per response: 1 for making a clear choice (A/B/C), 1 for successfully protecting the core claim.",
+    "maxScore": 10,
+    "completionPrompt": "Find the response where you gave up the most. Rewrite it as a partial concession that keeps your position intact."
+  },
+  {
+    "id": "d5",
+    "name": "Incentive Check Drill",
+    "tag": "Systems Thinking",
+    "linkedCharacter": "c1",
+    "linkedWeakness": "Plans that ignore how real people will respond",
+    "description": "Take any policy position and stress-test it against real human incentives. The goal is to find what breaks it before your opponent does.",
+    "instructions": "For the policy you are defending, answer each question as concretely as possible. Avoid 'people should' reasoning.",
+    "questions": [
+      "Who benefits from this policy succeeding? What will they do to ensure it does?",
+      "Who is harmed by this policy? What will they do to resist or work around it?",
+      "What does the average person, acting in self-interest, do under this policy?",
+      "What happens when a bad actor gets access to this policy's mechanisms?",
+      "What is the single most likely unintended consequence?"
+    ],
+    "rubric": "2 points per answer: 1 for naming a specific actor, 1 for describing a specific behavior (not just an intention).",
+    "maxScore": 10,
+    "completionPrompt": "Take your worst-case answer and build a safeguard into your position that addresses it."
+  },
+  {
+    "id": "d6",
+    "name": "Warrant Bridge Drill",
+    "tag": "Logic",
+    "linkedCharacter": "c2",
+    "linkedWeakness": "Claims with reasons but no logical bridge",
+    "description": "Every argument has three parts: a claim, a reason, and a warrant (the bridge that connects them). This drill forces you to make all three explicit.",
+    "instructions": "For each incomplete argument below, write the missing warrant. The warrant explains WHY the reason makes the claim more likely — not just that it does.",
+    "questions": [
+      "Claim: We should implement this policy. Reason: Other countries have done it. Warrant: ???",
+      "Claim: This is morally wrong. Reason: Most people would disapprove. Warrant: ???",
+      "Claim: The plan will fail. Reason: It has been tried before. Warrant: ???",
+      "Claim: Rights should be protected absolutely. Reason: Rights are fundamental. Warrant: ???",
+      "Now write a complete three-part argument for your own position in this format: Claim / Reason / Warrant."
+    ],
+    "rubric": "2 points per warrant: 1 if it connects reason to claim, 1 if it is non-circular (does not repeat the claim).",
+    "maxScore": 10,
+    "completionPrompt": "Go back to your first three warrants. Can any of them be attacked? Write one line rebutting each."
+  },
+  {
+    "id": "d7",
+    "name": "Burden of Proof Drill",
+    "tag": "Framing",
+    "linkedCharacter": "c4",
+    "linkedWeakness": "Unclear about what must be proved to win",
+    "description": "Winning a debate often comes down to who sets the burden of proof and how high they set it. This drill trains you to control that frame.",
+    "instructions": "Answer each question for your position in one to two sentences. Be precise about what you must prove and what you do not have to prove.",
+    "questions": [
+      "State exactly what you need to demonstrate to win this debate.",
+      "State what you do NOT need to prove (and why the opponent cannot require it).",
+      "What is the minimum standard of evidence required for your core claim?",
+      "What would count as a loss for your side — name the exact condition.",
+      "Rewrite your burden of proof statement so your opponent cannot shift it."
+    ],
+    "rubric": "2 points per answer: 1 for specificity, 1 for correctly scoping the burden (not too wide, not too narrow).",
+    "maxScore": 10,
+    "completionPrompt": "Read your burden statement to someone. Ask them: 'Does this feel too easy to meet or too hard?' Adjust based on their answer."
+  },
+  {
+    "id": "d8",
+    "name": "Second-Order Consequences Drill",
+    "tag": "Systems Thinking",
+    "linkedCharacter": "c1",
+    "linkedWeakness": "First-order thinking that misses downstream effects",
+    "description": "Good debaters think one move ahead. Great debaters think three. This drill trains second and third-order consequence mapping.",
+    "instructions": "Start with your policy. For each level, describe what happens next. Be specific — name who acts, what they do, and what changes as a result.",
+    "questions": [
+      "First-order: What is the direct, intended effect of this policy?",
+      "Second-order: What do affected parties do in response to that first effect?",
+      "Third-order: What happens to the system after those responses?",
+      "Negative path: Walk the chain to the worst plausible outcome.",
+      "Positive path: Walk the chain to the best realistic outcome."
+    ],
+    "rubric": "2 points per level: 1 for naming a specific actor or mechanism, 1 for describing a plausible causal chain.",
+    "maxScore": 10,
+    "completionPrompt": "Use your third-order analysis to add one safeguard or caveat to your original position."
+  },
+  {
+    "id": "d9",
+    "name": "Steelman Drill",
+    "tag": "Charity",
+    "linkedCharacter": "c2",
+    "linkedWeakness": "Attacking weak versions of opponent arguments",
+    "description": "You cannot beat an argument you have not understood. This drill forces you to build the strongest version of the opposing view — stronger than your opponent built it.",
+    "instructions": "Build the strongest possible version of the position you are arguing against. Do not include any weaknesses. Then explain why you still disagree.",
+    "questions": [
+      "Write the opposing position's single best argument in two sentences.",
+      "What evidence would most strongly support that argument?",
+      "What moral intuition does that argument appeal to?",
+      "Write the version of this argument that would be hardest for you to answer.",
+      "Now explain, in two sentences, why you still disagree with this steelmanned version."
+    ],
+    "rubric": "2 points per answer: 1 for genuine engagement with the opposing view, 1 for accuracy (would the opponent recognize their argument?).",
+    "maxScore": 10,
+    "completionPrompt": "Show your steelman to someone who holds the opposing view. Ask: 'Is this a fair representation?' Revise if not."
+  },
+  {
+    "id": "d10",
+    "name": "Summary Crystallization Drill",
+    "tag": "Summary",
+    "linkedCharacter": "c1",
+    "linkedWeakness": "Weak summary speeches that do not collapse to clear voters",
+    "description": "A summary speech should do three things: collapse the debate to two voters, explain why you win each one, and tell the judge why it matters. This drill builds that skill.",
+    "instructions": "After completing a debate session, write a summary speech using exactly this structure. Each section has a strict word limit.",
+    "questions": [
+      "Voter 1 (name it in 5 words or fewer): Why does this argument matter most?",
+      "Why do you win Voter 1? (2 sentences max)",
+      "Voter 2 (name it in 5 words or fewer): Why does this argument matter second?",
+      "Why do you win Voter 2? (2 sentences max)",
+      "Decision rule: Complete this sentence — 'If you believe X, vote for my side because Y.'"
+    ],
+    "rubric": "3 points per voter (name + win explanation + connection to evidence), 4 points for a decision rule that is clear and non-circular.",
+    "maxScore": 10,
+    "completionPrompt": "Read your summary aloud. If it takes more than 60 seconds, cut it until it fits."
+  }
+]
