@@ -3,7 +3,7 @@
 A full-stack debate practice app with AI opponents, rubric scoring, and structured drills.
 
 ## Stack
-
+sdff
 - **Backend**: Node.js + Express, Anthropic SDK
 - **Frontend**: React + Vite
 - **Data**: JSON files in `backend/data/`
