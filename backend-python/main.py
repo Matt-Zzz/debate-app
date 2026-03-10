@@ -10,10 +10,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import AsyncIterator
 
-import anthropic
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from google import genai
+from google.genai import types
 from pydantic import BaseModel
 
 # ── App setup ─────────────────────────────────────────────────────────────────
@@ -27,7 +28,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "").strip()
+GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash-lite").strip()
+client: genai.Client | None = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 
 DATA = Path(__file__).parent / "data"
 
@@ -157,6 +160,10 @@ def get_or_404(collection: list[dict], item_id: str, label: str) -> dict:
     return obj
 
 
+def get_gemini_client() -> genai.Client | None:
+    return client
+
+
 def build_opponent_system(character: dict, topic: dict, side: str) -> str:
     opp = topic["sideB"] if side == "A" else topic["sideA"]
     nl  = "\n"
@@ -242,6 +249,7 @@ async def post_opponent_speech(req: OpponentRequest):
 
     character = get_or_404(CHARACTERS, req.characterId, "Character")
     topic     = get_or_404(TOPICS,     req.topicId,     "Topic")
+    g_client  = get_gemini_client()
     system    = build_opponent_system(character, topic, req.side)
     user_msg  = (
         f'Stage: {req.stageName}. The student said: "{req.userSpeech}". '
@@ -252,14 +260,20 @@ async def post_opponent_speech(req: OpponentRequest):
 
     async def stream() -> AsyncIterator[str]:
         try:
-            with client.messages.stream(
-                model="claude-opus-4-5",
-                max_tokens=400,
-                system=system,
-                messages=[{"role": "user", "content": user_msg}],
-            ) as s:
-                for chunk in s.text_stream:
-                    safe = chunk.replace("\\", "\\\\").replace("\n", "\\n")
+            if g_client is None:
+                raise RuntimeError("Missing GEMINI_API_KEY. Set it before calling AI endpoints.")
+            response = g_client.models.generate_content_stream(
+                model=GEMINI_MODEL,
+                contents=user_msg,
+                config=types.GenerateContentConfig(
+                    system_instruction=system,
+                    max_output_tokens=400,
+                ),
+            )
+            for chunk in response:
+                text = getattr(chunk, "text", "") or ""
+                if text:
+                    safe = text.replace("\\", "\\\\").replace("\n", "\\n")
                     yield f"data: {safe}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as exc:
@@ -284,6 +298,7 @@ def post_coach_report(req: ReportRequest):
     """
     character = get_or_404(CHARACTERS, req.characterId, "Character")
     topic     = get_or_404(TOPICS,     req.topicId,     "Topic")
+    g_client  = get_gemini_client()
     rubric    = compute_rubric(req.transcript)
     side_data = topic["sideA"] if req.side == "A" else topic["sideB"]
 
@@ -315,11 +330,17 @@ def post_coach_report(req: ReportRequest):
     )
 
     try:
-        resp    = client.messages.create(
-            model="claude-opus-4-5", max_tokens=800,
-            system=system, messages=[{"role": "user", "content": prompt}],
+        if g_client is None:
+            raise RuntimeError("Missing GEMINI_API_KEY. Set it before calling AI endpoints.")
+        resp    = g_client.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                system_instruction=system,
+                max_output_tokens=800,
+            ),
         )
-        ai_text = "".join(getattr(b, "text", "") for b in resp.content)
+        ai_text = getattr(resp, "text", "") or ""
     except Exception:
         ai_text = ""
 
