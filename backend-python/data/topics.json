@@ -418,5 +418,215 @@
         "It encourages humility and better standards of evidence."
       ]
     }
+  },
+  {
+    "id": "t21",
+    "title": "Is it better to be the funniest person in the room or the smartest?",
+    "tag": "Social Philosophy",
+    "difficulty": "Easy",
+    "description": "Tests whether social influence or raw reasoning matters more in real life.",
+    "sideA": {
+      "position": "Funniest is better",
+      "args": [
+        "Humor builds trust, lowers tension, and makes people more open to ideas.",
+        "Social influence often matters more than having the best argument."
+      ]
+    },
+    "sideB": {
+      "position": "Smartest is better",
+      "args": [
+        "Better judgment leads to better decisions over time.",
+        "Charm can win moments, but intelligence handles complex problems."
+      ]
+    }
+  },
+  {
+    "id": "t22",
+    "title": "Would having a pause button for life make people less happy overall?",
+    "tag": "Existentialism",
+    "difficulty": "Easy",
+    "description": "Tests whether convenience improves life or drains urgency from it.",
+    "sideA": {
+      "position": "Yes, less happy overall",
+      "args": [
+        "Too much control can remove spontaneity and urgency.",
+        "People may overuse the pause and avoid discomfort instead of growing through it."
+      ]
+    },
+    "sideB": {
+      "position": "No, more happy overall",
+      "args": [
+        "Extra time would reduce stress and prevent rushed mistakes.",
+        "People could rest, reflect, and handle life with more intention."
+      ]
+    }
+  },
+  {
+    "id": "t23",
+    "title": "Should embarrassing stories about you expire after a certain number of years?",
+    "tag": "Ethics",
+    "difficulty": "Easy",
+    "description": "Tests whether social memory should have moral limits.",
+    "sideA": {
+      "position": "Yes, they should expire",
+      "args": [
+        "People should not be trapped forever by minor past mistakes.",
+        "Forgiveness becomes meaningless if social punishment never ends."
+      ]
+    },
+    "sideB": {
+      "position": "No, they should not expire",
+      "args": [
+        "Shared memories are part of real relationships and social accountability.",
+        "Trying to set an expiry date on stories can feel artificial and dishonest."
+      ]
+    }
+  },
+  {
+    "id": "t24",
+    "title": "Is stealing credit for a good idea worse than having no ideas at all?",
+    "tag": "Ethics",
+    "difficulty": "Easy",
+    "description": "Tests whether dishonesty is worse than incompetence.",
+    "sideA": {
+      "position": "Yes, it is worse",
+      "args": [
+        "Dishonesty damages trust and punishes the person who actually contributed.",
+        "Lack of ideas is a weakness, but theft is a deliberate wrong."
+      ]
+    },
+    "sideB": {
+      "position": "No, having no ideas can be worse",
+      "args": [
+        "A person with no ideas may still block progress or depend fully on others.",
+        "In some settings, results matter more than who first had the idea."
+      ]
+    }
+  },
+  {
+    "id": "t25",
+    "title": "Would a world with no awkwardness be a worse world?",
+    "tag": "Social Philosophy",
+    "difficulty": "Easy",
+    "description": "Tests whether discomfort plays a useful role in human connection.",
+    "sideA": {
+      "position": "Yes, it would be worse",
+      "args": [
+        "Awkwardness can create humility, humor, and memorable bonding moments.",
+        "Social friction helps people learn tact and self-awareness."
+      ]
+    },
+    "sideB": {
+      "position": "No, it would be better",
+      "args": [
+        "Less awkwardness would make relationships smoother and reduce unnecessary stress.",
+        "People could be honest without wasting energy on social discomfort."
+      ]
+    }
+  },
+  {
+    "id": "t26",
+    "title": "Should you judge a person for the music they play on speaker in public?",
+    "tag": "Ethics",
+    "difficulty": "Easy",
+    "description": "Tests whether public taste reveals character or just bad manners.",
+    "sideA": {
+      "position": "Yes, some judgment is fair",
+      "args": [
+        "Forcing strangers to hear your choices shows disregard for shared space.",
+        "Public behavior can reveal how much a person respects others."
+      ]
+    },
+    "sideB": {
+      "position": "No, that judgment goes too far",
+      "args": [
+        "Annoying behavior does not necessarily reveal deep moral character.",
+        "People can be inconsiderate in one setting and decent overall."
+      ]
+    }
+  },
+  {
+    "id": "t27",
+    "title": "Is being chronically late a moral flaw or just poor self-management?",
+    "tag": "Ethics",
+    "difficulty": "Easy",
+    "description": "Tests whether disrespect and disorganization should be morally separated.",
+    "sideA": {
+      "position": "It is a moral flaw",
+      "args": [
+        "Repeated lateness shows disrespect for other people's time.",
+        "Knowing the harm and doing it anyway makes it partly moral."
+      ]
+    },
+    "sideB": {
+      "position": "It is mainly poor self-management",
+      "args": [
+        "Some people struggle with planning, time estimation, or attention, not respect.",
+        "The problem can be real and harmful without being a deep character failure."
+      ]
+    }
+  },
+  {
+    "id": "t28",
+    "title": "Would people be kinder if everyone had a visible battery level above their head?",
+    "tag": "Social Philosophy",
+    "difficulty": "Easy",
+    "description": "Tests whether hidden struggle is a major cause of social harshness.",
+    "sideA": {
+      "position": "Yes, people would be kinder",
+      "args": [
+        "Visible exhaustion would make mood and mistakes easier to understand.",
+        "People are often harsher because they cannot see what others are carrying."
+      ]
+    },
+    "sideB": {
+      "position": "No, not by much",
+      "args": [
+        "Some people would still prioritize convenience over empathy.",
+        "Information alone does not guarantee patience or kindness."
+      ]
+    }
+  },
+  {
+    "id": "t29",
+    "title": "Is it more important to be interesting than to be reliable?",
+    "tag": "Social Philosophy",
+    "difficulty": "Medium",
+    "description": "Tests whether memorable impact matters more than steady trust.",
+    "sideA": {
+      "position": "Interesting matters more",
+      "args": [
+        "Interesting people expand perspectives and make life richer.",
+        "Reliability without depth can make relationships functional but forgettable."
+      ]
+    },
+    "sideB": {
+      "position": "Reliable matters more",
+      "args": [
+        "Trust is the foundation of friendship, work, and love.",
+        "Interesting people can attract attention, but reliable people sustain real bonds."
+      ]
+    }
+  },
+  {
+    "id": "t30",
+    "title": "Should minor lies that keep conversations smooth be socially accepted?",
+    "tag": "Ethics",
+    "difficulty": "Easy",
+    "description": "Tests whether politeness sometimes outweighs strict honesty.",
+    "sideA": {
+      "position": "Yes, they should be accepted",
+      "args": [
+        "Small lies can protect feelings and avoid pointless conflict.",
+        "Social life often depends on tact rather than total honesty."
+      ]
+    },
+    "sideB": {
+      "position": "No, they should not",
+      "args": [
+        "Normalizing small lies weakens trust and blurs moral lines.",
+        "People deserve respectful honesty, not false comfort."
+      ]
+    }
   }
 ]
