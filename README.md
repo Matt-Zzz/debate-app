@@ -2,7 +2,7 @@
 
 A full-stack debate practice app with AI opponents, deterministic rubric scoring, and structured drills.
 
-## Current Implementation (Pre-User Management)
+## Current Implementation 
 
 - Topic + opponent setup flow
 - Timed multi-stage debate rounds

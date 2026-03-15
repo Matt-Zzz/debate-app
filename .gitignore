@@ -16,9 +16,11 @@ __pycache__/
 venv/
 backend-python/.venv/
 backend-python/__pycache__/
+backend-python/*.db
+backend-python/*.db-shm
+backend-python/*.db-wal
 
 # Environment and local config
 .env
 .env.*
 backend-python/.env
-
