@@ -2,16 +2,46 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 // ─── CONFIG ────────────────────────────────────────────────────────────────────
 const API = "http://localhost:3001/api";
+const AUTH_TOKEN_KEY = "debate_auth_token";
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+function getAuthToken() {
+  return localStorage.getItem(AUTH_TOKEN_KEY) || "";
+}
+
+function setAuthToken(token) {
+  if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+  else localStorage.removeItem(AUTH_TOKEN_KEY);
+}
+
+function authHeader() {
+  const token = getAuthToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
+function extractErrorMessage(err) {
+  return (
+    err?.message ||
+    err?.detail?.message ||
+    err?.detail ||
+    "API error"
+  );
+}
 
 // ─── API HELPERS ───────────────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
+  const headers = {
+    "Content-Type": "application/json",
+    ...authHeader(),
+    ...(opts.headers || {}),
+  };
   const res = await fetch(`${API}${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers,
     ...opts,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw Object.assign(new Error(err.message || "API error"), { status: res.status, data: err });
+    throw Object.assign(new Error(extractErrorMessage(err)), { status: res.status, data: err });
   }
   return res.json();
 }
@@ -22,12 +52,12 @@ async function apiFetch(path, opts = {}) {
 async function streamOpponentSpeech(payload, onChunk) {
   const res = await fetch(`${API}/opponent-speech`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(payload),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw Object.assign(new Error(err.message || "Stream error"), { data: err });
+    throw Object.assign(new Error(extractErrorMessage(err) || "Stream error"), { data: err });
   }
   const reader  = res.body.getReader();
   const decoder = new TextDecoder();
@@ -224,6 +254,306 @@ function DrillPanel({ drill, sessionId, onComplete }) {
   );
 }
 
+// ─── AUTH SCREEN ───────────────────────────────────────────────────────────────
+function AuthScreen({ onAuth }) {
+  const [mode, setMode] = useState("signin");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const googleBtnRef = useRef(null);
+
+  const isSignIn = mode === "signin";
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID || !isSignIn || !googleBtnRef.current) return;
+    let cancelled = false;
+
+    const renderButton = () => {
+      if (cancelled || !window.google?.accounts?.id || !googleBtnRef.current) return;
+      googleBtnRef.current.innerHTML = "";
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: async (resp) => {
+          if (!resp?.credential) return;
+          setBusy(true);
+          setError("");
+          try {
+            const auth = await apiFetch("/auth/google", {
+              method: "POST",
+              body: JSON.stringify({ idToken: resp.credential }),
+            });
+            onAuth(auth);
+          } catch (e) {
+            setError(e.message || "Google sign-in failed");
+          } finally {
+            setBusy(false);
+          }
+        },
+      });
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        width: 300,
+        text: "signin_with",
+      });
+    };
+
+    if (window.google?.accounts?.id) {
+      renderButton();
+      return () => { cancelled = true; };
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = renderButton;
+    document.head.appendChild(script);
+
+    return () => { cancelled = true; };
+  }, [isSignIn, onAuth]);
+
+  const submit = async () => {
+    setBusy(true);
+    setError("");
+    try {
+      const payload = isSignIn
+        ? { email, password }
+        : { name, email, password };
+      const auth = await apiFetch(isSignIn ? "/auth/login" : "/auth/register", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      onAuth(auth);
+    } catch (e) {
+      setError(e.message || "Authentication failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div style={pageWrap}>
+      <div style={{ maxWidth: "460px", margin: "0 auto" }}>
+        <div style={{ marginBottom: "28px" }}>
+          <div style={eyebrow}>Debate Simulator</div>
+          <h1 style={headline}>{isSignIn ? "Sign in" : "Create account"}</h1>
+        </div>
+
+        <div style={{ background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "18px 20px" }}>
+          {!isSignIn && (
+            <div style={{ marginBottom: "10px" }}>
+              <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>Name</div>
+              <input
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder="Your name"
+                style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }}
+              />
+            </div>
+          )}
+
+          <div style={{ marginBottom: "10px" }}>
+            <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>Email</div>
+            <input
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              type="email"
+              style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }}
+            />
+          </div>
+
+          <div style={{ marginBottom: "12px" }}>
+            <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>Password</div>
+            <input
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder={isSignIn ? "Your password" : "At least 8 characters"}
+              type="password"
+              style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }}
+            />
+          </div>
+
+          {error && (
+            <div style={{ fontSize: "12px", color: "#c62828", marginBottom: "12px" }}>
+              {error}
+            </div>
+          )}
+
+          <button onClick={submit} disabled={busy} style={{ ...solidBtn, width: "100%", opacity: busy ? 0.7 : 1 }}>
+            {busy ? "Please wait…" : (isSignIn ? "Sign in" : "Create account")}
+          </button>
+
+          {isSignIn && GOOGLE_CLIENT_ID && (
+            <>
+              <div style={{ fontSize: "11px", color: "#aaa", textAlign: "center", margin: "12px 0 8px" }}>or</div>
+              <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center" }} />
+            </>
+          )}
+
+          <div style={{ marginTop: "12px", fontSize: "12px", color: "#666" }}>
+            {isSignIn ? "No account yet?" : "Already have an account?"}{" "}
+            <button
+              onClick={() => { setMode(isSignIn ? "signup" : "signin"); setError(""); }}
+              style={{ border: "none", background: "none", color: "#1a1a1a", cursor: "pointer", fontWeight: 600, padding: 0 }}
+            >
+              {isSignIn ? "Create one" : "Sign in"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── PROFILE SCREEN ────────────────────────────────────────────────────────────
+function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }) {
+  const [name, setName] = useState(user.name || "");
+  const [email, setEmail] = useState(user.email || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(true);
+
+  useEffect(() => {
+    setLoadingHistory(true);
+    apiFetch("/profile/history")
+      .then(setHistory)
+      .catch(() => setHistory([]))
+      .finally(() => setLoadingHistory(false));
+  }, []);
+
+  const saveAccount = async () => {
+    setSaving(true);
+    setMessage("");
+    setError("");
+    try {
+      const body = {};
+      if (name.trim() && name.trim() !== user.name) body.name = name.trim();
+      if (email.trim().toLowerCase() && email.trim().toLowerCase() !== user.email.toLowerCase()) body.email = email.trim().toLowerCase();
+      if (newPassword) {
+        body.currentPassword = currentPassword;
+        body.newPassword = newPassword;
+      }
+      if (Object.keys(body).length === 0) {
+        setMessage("No account changes.");
+        return;
+      }
+      const res = await apiFetch("/auth/me", { method: "PUT", body: JSON.stringify(body) });
+      onUserUpdated(res.user);
+      setCurrentPassword("");
+      setNewPassword("");
+      setMessage("Account updated.");
+    } catch (e) {
+      setError(e.message || "Could not update account");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const deleteAccount = async () => {
+    const pw = window.prompt("Enter your password to delete your account (leave blank for Google-only accounts).");
+    if (pw === null) return;
+    try {
+      await apiFetch("/auth/me", {
+        method: "DELETE",
+        body: JSON.stringify({ password: pw }),
+      });
+      setAuthToken("");
+      onSignOut();
+    } catch (e) {
+      setError(e.message || "Could not delete account");
+    }
+  };
+
+  return (
+    <div style={pageWrap}>
+      <div style={{ marginBottom: "28px" }}>
+        <div style={eyebrow}>Account</div>
+        <h1 style={headline}>Profile</h1>
+      </div>
+
+      <div style={{ background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "18px 20px", marginBottom: "20px" }}>
+        <div style={{ display: "grid", gap: "10px" }}>
+          <div>
+            <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>Name</div>
+            <input value={name} onChange={e => setName(e.target.value)} style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }} />
+          </div>
+          <div>
+            <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>Email</div>
+            <input value={email} onChange={e => setEmail(e.target.value)} type="email" style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }} />
+          </div>
+          <div>
+            <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>Current password (only for changing password)</div>
+            <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} type="password" style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }} />
+          </div>
+          <div>
+            <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>New password</div>
+            <input value={newPassword} onChange={e => setNewPassword(e.target.value)} type="password" style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }} />
+          </div>
+        </div>
+
+        {(message || error) && (
+          <div style={{ fontSize: "12px", color: error ? "#c62828" : "#2e7d32", marginTop: "10px" }}>
+            {error || message}
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: "8px", marginTop: "12px", flexWrap: "wrap" }}>
+          <button onClick={saveAccount} disabled={saving} style={{ ...solidBtn, opacity: saving ? 0.7 : 1 }}>
+            {saving ? "Saving…" : "Save account"}
+          </button>
+          <button onClick={deleteAccount} style={{ ...solidBtn, background: "#8b0000" }}>Delete account</button>
+        </div>
+      </div>
+
+      <div style={{ marginBottom: "20px" }}>
+        <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Training History</div>
+        {loadingHistory && <div style={{ color: "#999", fontSize: "13px" }}>Loading history…</div>}
+        {!loadingHistory && history.length === 0 && (
+          <div style={{ color: "#888", fontSize: "13px" }}>No training sessions saved yet.</div>
+        )}
+        {!loadingHistory && history.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {history.map(item => (
+              <div key={item.id} style={{ padding: "12px 14px", background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", marginBottom: "4px" }}>
+                  <div style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'Playfair Display', serif" }}>
+                    {item.topicTitle}
+                  </div>
+                  <div style={{ fontSize: "13px", fontFamily: "'DM Mono', monospace" }}>
+                    {item.rubric?.total ?? 0}/100
+                  </div>
+                </div>
+                <div style={{ fontSize: "12px", color: "#666", marginBottom: "6px" }}>
+                  {item.characterName} · Side {item.side} · {new Date(item.createdAt).toLocaleString()}
+                </div>
+                <details>
+                  <summary style={{ cursor: "pointer", fontSize: "12px", color: "#444" }}>View feedback</summary>
+                  <div style={{ fontSize: "12px", color: "#444", whiteSpace: "pre-wrap", marginTop: "6px" }}>
+                    {item.feedback?.strengths ? `STRENGTHS:\n${item.feedback.strengths}\n\n` : ""}
+                    {item.feedback?.gaps ? `GAPS:\n${item.feedback.gaps}\n\n` : ""}
+                    {item.feedback?.nextDrill ? `NEXT DRILL:\n${item.feedback.nextDrill}` : ""}
+                  </div>
+                </details>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <button onClick={onBack} style={solidBtn}>← Back to sessions</button>
+    </div>
+  );
+}
+
 // ─── SETUP SCREEN ──────────────────────────────────────────────────────────────
 const DIFF_COLOR = { Easy: "#2e7d32", Medium: "#e65100", Hard: "#c62828" };
 
@@ -398,7 +728,8 @@ function DebateScreen({ config, onComplete }) {
         (token) => setStreamedText(prev => prev + token),
       );
     } catch (e) {
-      if (e.data?.safe === false) setSafetyWarning(e.data.message);
+      const detail = e.data?.detail || e.data;
+      if (detail?.safe === false) setSafetyWarning(detail.message);
       else setStreamedText(prev => prev || "There was an error generating a response. Please continue.");
     }
     setStreaming(false);
@@ -568,6 +899,7 @@ function ReportScreen({ config, transcript, onNew }) {
   const [selectedDrill, setSelectedDrill] = useState(null);
   const [drillDone, setDrillDone] = useState(false);
   const [fetchError, setFetchError] = useState(false);
+  const [savedToProfile, setSavedToProfile] = useState(false);
 
   useEffect(() => {
     // Drills load independently — don't block the report
@@ -580,6 +912,7 @@ function ReportScreen({ config, transcript, onNew }) {
       // Set rubric first — it renders immediately while the page is still loading
       setRubric(r.rubric);
       setFeedback(r.feedback);
+      setSavedToProfile(!!r.savedToProfile);
 
       // Pick drill for weakest rubric category
       if (r.rubric?.breakdown) {
@@ -610,6 +943,12 @@ function ReportScreen({ config, transcript, onNew }) {
       {fetchError && (
         <div style={{ color: "#c62828", fontSize: "13px", marginBottom: "16px" }}>
           Could not generate report. Check your backend connection.
+        </div>
+      )}
+
+      {!fetchError && savedToProfile && (
+        <div style={{ color: "#2e7d32", fontSize: "13px", marginBottom: "14px" }}>
+          Saved to your profile history.
         </div>
       )}
 
@@ -693,23 +1032,102 @@ const cardBtn = (active) => ({ padding: "16px 20px", background: active ? "#1a1a
 
 // ─── ROOT ──────────────────────────────────────────────────────────────────────
 export default function App() {
+  const [authLoading, setAuthLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const [screen, setScreen] = useState("setup");
   const [config, setConfig] = useState(null);
   const [transcript, setTranscript] = useState([]);
+
+  useEffect(() => {
+    const token = getAuthToken();
+    if (!token) {
+      setAuthLoading(false);
+      return;
+    }
+    apiFetch("/auth/me")
+      .then(r => setUser(r.user))
+      .catch(() => {
+        setAuthToken("");
+        setUser(null);
+      })
+      .finally(() => setAuthLoading(false));
+  }, []);
+
+  const finishSignOut = () => {
+    setAuthToken("");
+    setUser(null);
+    setScreen("setup");
+    setConfig(null);
+    setTranscript([]);
+  };
+
+  const signOut = async () => {
+    try {
+      await apiFetch("/auth/logout", { method: "POST" });
+    } catch (_) {
+      // no-op
+    }
+    finishSignOut();
+  };
+
+  const handleAuth = ({ token, user: nextUser }) => {
+    setAuthToken(token);
+    setUser(nextUser);
+    setScreen("setup");
+    setConfig(null);
+    setTranscript([]);
+  };
+
+  const baseStyles = `
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=DM+Mono:wght@300;400&family=Playfair+Display:wght@400;600&display=swap');
+    * { box-sizing: border-box; } textarea { outline: none !important; } textarea:focus { border-color: #1a1a1a !important; }
+    input { outline: none !important; } input:focus { border-color: #1a1a1a !important; }
+    button:hover { opacity: 0.82; transition: opacity 0.15s; }
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+    .stream-cursor::after { content:"▎"; animation:blink 1s infinite; margin-left:1px; font-size:.85em; color:#aaa; }
+  `;
+
+  if (authLoading) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'DM Sans', sans-serif", display: "grid", placeItems: "center", color: "#999", fontSize: "14px" }}>
+        <style>{baseStyles}</style>
+        Loading…
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
+        <style>{baseStyles}</style>
+        <AuthScreen onAuth={handleAuth} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&family=DM+Mono:wght@300;400&family=Playfair+Display:wght@400;600&display=swap');
-        * { box-sizing: border-box; } textarea { outline: none !important; } textarea:focus { border-color: #1a1a1a !important; }
-        button:hover { opacity: 0.82; transition: opacity 0.15s; }
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-        @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-        .stream-cursor::after { content:"▎"; animation:blink 1s infinite; margin-left:1px; font-size:.85em; color:#aaa; }
-      `}</style>
+      <style>{baseStyles}</style>
+
+      <div style={{ borderBottom: "1px solid #eee", background: "#fff", position: "sticky", top: 0, zIndex: 20 }}>
+        <div style={{ maxWidth: "700px", margin: "0 auto", padding: "10px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ fontSize: "12px", color: "#666" }}>
+            Signed in as <span style={{ fontWeight: 600 }}>{user.name}</span>
+          </div>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button onClick={() => setScreen("setup")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "setup" ? "#1a1a1a" : "#555" }}>Sessions</button>
+            <button onClick={() => setScreen("profile")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "profile" ? "#1a1a1a" : "#555" }}>Profile</button>
+            <button onClick={signOut} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: "#8b0000" }}>Sign out</button>
+          </div>
+        </div>
+      </div>
+
       {screen === "setup" && <SetupScreen onStart={c => { setConfig(c); setScreen("debate"); }} />}
       {screen === "debate" && config && <DebateScreen config={config} onComplete={t => { setTranscript(t); setScreen("report"); }} />}
       {screen === "report" && config && <ReportScreen config={config} transcript={transcript} onNew={() => { setConfig(null); setTranscript([]); setScreen("setup"); }} />}
+      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("setup")} onSignOut={finishSignOut} />}
     </div>
   );
 }
