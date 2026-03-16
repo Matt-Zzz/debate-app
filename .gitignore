@@ -16,6 +16,12 @@ __pycache__/
 venv/
 backend-python/.venv/
 backend-python/__pycache__/
+# Ignore extra local virtualenvs created under backend-python with arbitrary names.
+backend-python/*/bin/
+backend-python/*/include/
+backend-python/*/lib/
+backend-python/*/lib64/
+backend-python/*/pyvenv.cfg
 backend-python/*.db
 backend-python/*.db-shm
 backend-python/*.db-wal
