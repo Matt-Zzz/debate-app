@@ -1,0 +1,122 @@
+[
+  {
+    "id": "c1",
+    "topic": "A city is deciding whether to ban private cars from its downtown core.",
+    "category": "Urban policy",
+    "clashPoint": "Is the main goal reducing emissions, or preserving access and economic flexibility?",
+    "explanation": "Both sides agree congestion and pollution are problems. The real disagreement is what to prioritize when values collide: environmental gain vs. mobility, business access, and personal freedom.",
+    "distractors": [
+      "Should the ban apply to electric cars as well as petrol cars?",
+      "Should the ban be enforced by cameras or physical barriers?",
+      "Would the ban generate more revenue than parking fees currently do?"
+    ]
+  },
+  {
+    "id": "c2",
+    "topic": "A school wants to replace most textbooks with AI tutoring systems.",
+    "category": "Education technology",
+    "clashPoint": "Does personalization improve learning more than it risks weakening shared standards and human teaching judgment?",
+    "explanation": "The deep disagreement is whether individualized instruction is worth the loss of common classroom structure, teacher authority, and possible overreliance on automated feedback.",
+    "distractors": [
+      "Which AI platform is the most affordable for schools?",
+      "Should students be allowed to opt out of the AI system?",
+      "How many hours per day should students spend with the AI tutor?"
+    ]
+  },
+  {
+    "id": "c3",
+    "topic": "A government plans to use facial recognition in airports.",
+    "category": "Surveillance and security",
+    "clashPoint": "Should public safety justify routine loss of anonymity in shared spaces?",
+    "explanation": "The core issue is not whether the tool works sometimes. It is whether security gains are enough to justify a permanent expansion of monitoring power.",
+    "distractors": [
+      "How accurate is the facial recognition technology currently?",
+      "Should the data be stored for one year or five years?",
+      "Which airports should receive the technology first?"
+    ]
+  },
+  {
+    "id": "c4",
+    "topic": "A hospital must decide whether to prioritize younger patients when resources are limited.",
+    "category": "Bioethics",
+    "clashPoint": "Should fairness mean equal treatment, or maximizing total life years saved?",
+    "explanation": "Both sides care about human life. The real clash is what fairness means under scarcity: each life as equal in the moment, or outcome maximization as the more defensible rule.",
+    "distractors": [
+      "Should doctors make these decisions or hospital administrators?",
+      "How should the hospital communicate these decisions to families?",
+      "Should private hospitals follow the same rules as public ones?"
+    ]
+  },
+  {
+    "id": "c5",
+    "topic": "A museum is considering returning contested artifacts to their country of origin.",
+    "category": "Culture and restitution",
+    "clashPoint": "Does cultural justice outweigh the museum's claim to preserve and share heritage globally?",
+    "explanation": "The disagreement is about whether moral repair and historical justice should outweigh the argument that museums preserve and display artifacts for humanity at large.",
+    "distractors": [
+      "Should the museum receive financial compensation for returning items?",
+      "How long should the repatriation process take?",
+      "Which museum should set the precedent for others to follow?"
+    ]
+  },
+  {
+    "id": "c6",
+    "topic": "A company wants to track employee keystrokes to measure productivity.",
+    "category": "Workplace ethics",
+    "clashPoint": "Is productivity measurement a fair management tool, or an invasion that damages trust and autonomy?",
+    "explanation": "The key issue is whether this method crosses a line by treating workers like monitored machinery rather than responsible professionals.",
+    "distractors": [
+      "Should employees be told exactly which keystrokes are recorded?",
+      "What software should the company use for tracking?",
+      "Should managers be exempt from the same tracking?"
+    ]
+  },
+  {
+    "id": "c7",
+    "topic": "A country is considering mandatory national service for all young adults.",
+    "category": "Citizenship and duty",
+    "clashPoint": "Should civic cohesion and shared obligation override personal freedom of life planning?",
+    "explanation": "Both sides may value social contribution. The real conflict is whether the state may require that contribution, or whether duty loses legitimacy when it is forced.",
+    "distractors": [
+      "Should national service be military or include civilian options?",
+      "What age range should the service requirement cover?",
+      "How long should the mandatory service period last?"
+    ]
+  },
+  {
+    "id": "c8",
+    "topic": "Parents want to genetically select embryos for lower disease risk and higher intelligence.",
+    "category": "Genetic ethics",
+    "clashPoint": "Is this responsible prevention, or the start of treating children as designed products?",
+    "explanation": "The main disagreement is whether selection is an extension of good parenting or whether it changes the parent-child relationship into one based on optimization and control.",
+    "distractors": [
+      "Which genetic conditions should be included on the selection list?",
+      "How expensive should genetic selection services be allowed to become?",
+      "Should genetic selection be regulated by doctors or by governments?"
+    ]
+  },
+  {
+    "id": "c9",
+    "topic": "A platform considers removing anonymous posting.",
+    "category": "Online culture",
+    "clashPoint": "Does accountability improve discourse more than anonymity protects vulnerable speech?",
+    "explanation": "Anonymity has two very different effects: it can enable abuse, but it also protects whistleblowers, dissidents, and socially vulnerable users. The debate is about which effect matters more.",
+    "distractors": [
+      "Should users be verified by government ID or just a phone number?",
+      "Should the rule apply to comments but not direct messages?",
+      "How should the platform handle accounts created before the rule changes?"
+    ]
+  },
+  {
+    "id": "c10",
+    "topic": "A coastal town is debating whether to relocate because of long-term sea level rise.",
+    "category": "Climate adaptation",
+    "clashPoint": "Should policy prioritize long-term survival even when the present costs feel socially unbearable?",
+    "explanation": "The deep disagreement is about time horizon: delayed but severe risk vs. immediate loss of identity, place, and economic stability.",
+    "distractors": [
+      "Which government agency should fund the relocation?",
+      "How far inland should the new town be built?",
+      "Should residents be compensated based on property value or household size?"
+    ]
+  }
+]

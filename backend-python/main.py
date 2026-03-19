@@ -53,6 +53,7 @@ client: Optional[genai.Client] = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_
 TOPICS: list[dict] = json.loads((DATA / "topics.json").read_text())
 CHARACTERS: list[dict] = json.loads((DATA / "characters.json").read_text())
 DRILLS: list[dict] = json.loads((DATA / "drills.json").read_text())
+CLASH_TOPICS: list[dict] = json.loads((DATA / "clash_topics.json").read_text())
 
 
 # ── Database ──────────────────────────────────────────────────────────────────
@@ -127,7 +128,7 @@ def init_db() -> None:
 
 init_db()
 
-print(f"✓ {len(TOPICS)} topics · {len(CHARACTERS)} characters · {len(DRILLS)} drills")
+print(f"✓ {len(TOPICS)} topics · {len(CHARACTERS)} characters · {len(DRILLS)} drills · {len(CLASH_TOPICS)} clash topics")
 
 
 # ── Auth helpers ──────────────────────────────────────────────────────────────
@@ -734,6 +735,11 @@ def get_characters():
 @app.get("/api/drills")
 def get_drills():
     return DRILLS
+
+
+@app.get("/api/clash-topics")
+def get_clash_topics():
+    return CLASH_TOPICS
 
 
 @app.get("/api/health")
