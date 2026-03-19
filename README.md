@@ -2,14 +2,7 @@
 
 A full-stack debate practice app with AI opponents, deterministic rubric scoring, and structured drills.
 
-<<<<<<< HEAD
-## Stack
-
-- **Backend**: Node.js + Express, Anthropic SDK
-- **Frontend**: React + Vite
-- **Data**: JSON files in `backend/data/`
-=======
-## Current Implementation 
+## Current Implementation
 
 - Topic + opponent setup flow
 - Timed multi-stage debate rounds
@@ -18,6 +11,8 @@ A full-stack debate practice app with AI opponents, deterministic rubric scoring
 - Coach feedback generation
 - Drill assignment based on weakest rubric category
 - Safety checks for user speech
+- User registration, login, logout, and session auth
+- Profile management and per-user training history
 
 ## Tech Stack
 
@@ -25,7 +20,6 @@ A full-stack debate practice app with AI opponents, deterministic rubric scoring
 - Frontend: React + Vite
 - Storage: SQLite (backend runtime data)
 - Data files: JSON in `backend-python/data/`
->>>>>>> refs/remotes/origin/main
 
 ## Project Structure
 
@@ -65,6 +59,8 @@ Create `backend-python/.env` (or `../.env`) and set:
 GEMINI_API_KEY=your_key_here
 # optional
 GEMINI_MODEL=gemini-2.5-flash-lite
+# required for Google sign-in
+GOOGLE_CLIENT_ID=your_google_client_id
 ```
 
 Run backend:
@@ -94,6 +90,14 @@ Open: `http://localhost:5173`
 | Method | Path | Description |
 |---|---|---|
 | GET | `/api/health` | Health check |
+| POST | `/api/auth/register` | Create a new user account |
+| POST | `/api/auth/login` | Sign in with email and password |
+| POST | `/api/auth/google` | Sign in with Google |
+| POST | `/api/auth/logout` | Invalidate current auth token |
+| GET | `/api/auth/me` | Return the current signed-in user |
+| PUT | `/api/auth/me` | Update current user profile or password |
+| DELETE | `/api/auth/me` | Delete current user account |
+| GET | `/api/profile/history` | Return current user's saved debate history |
 | GET | `/api/topics` | List debate topics |
 | GET | `/api/characters` | List opponent personas |
 | GET | `/api/drills` | List drills |
@@ -115,8 +119,7 @@ Open: `http://localhost:5173`
 
 1. Voice to text / text to voice
 2. More casual topics
-3. User management
-4. Mini games / warm up
-5. Attitude modifier
-6. Multi-player
-7. Changing the UI
+3. Mini games / warm up
+4. Attitude modifier
+5. Multi-player
+6. Changing the UI
