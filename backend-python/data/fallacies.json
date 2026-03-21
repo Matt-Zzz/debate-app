@@ -1,0 +1,115 @@
+[
+  {
+    "id": 1,
+    "argument": "My grandfather smoked every day and lived to ninety, so smoking risks are obviously exaggerated. Doctors keep changing their minds anyway, and plenty of healthy people die young without ever touching cigarettes. People just repeat anti-smoking propaganda because they want to control others, not because the evidence is actually that strong.",
+    "category": "Health",
+    "fallacies": [
+      "Hasty generalization",
+      "Anecdotal fallacy",
+      "Cherry picking",
+      "Ad hominem"
+    ],
+    "explanation": "The argument relies on one lucky personal example and treats it as stronger than large-scale medical evidence. It also selects rare cases that support the claim, ignores broader data, and attacks critics' motives instead of answering the evidence."
+  },
+  {
+    "id": 2,
+    "argument": "Either we ban smartphones in schools entirely, or students will never learn discipline. Teachers already have enough problems, and every minute a phone stays in a classroom, attention gets destroyed. Anyone who supports limited use is basically admitting they care more about screens than about students learning self-control.",
+    "category": "Education",
+    "fallacies": [
+      "False dilemma",
+      "Slippery slope",
+      "Strawman"
+    ],
+    "explanation": "The argument pretends there are only two choices, total ban or no discipline, while ignoring middle-ground policies. It also assumes limited phone use will inevitably ruin attention, and it misrepresents opponents as people who care more about devices than learning."
+  },
+  {
+    "id": 3,
+    "argument": "That professor’s argument about tax reform is worthless because he has been divorced twice. If he cannot even manage his own household, there is no reason to trust his views on national finances. Peop like him hide behind academic language because they know their personal judgment is weak.",
+    "category": "Public policy",
+    "fallacies": [
+      "Ad hominem",
+      "Genetic fallacy",
+      "Non sequitur"
+    ],
+    "explanation": "The claim attacks the professor’s private life rather than his reasoning. It judges the argument based on its source instead of its content, and it makes a weak leap from personal relationships to public economic analysis without a valid logical conneion."
+  },
+  {
+    "id": 4,
+    "argument": "If we allow students to retake one exam, soon grades will mean nothing and the entire education system will collapse. Parents will demand endless retries, teachers will stop enforcing standards, diplomas will lose value, and eventually hard work itself will become pointless because nobody will accept failure anymore.",
+    "category": "School policy",
+    "fallacies": [
+      "Slippery slope",
+      "False cause",
+      "Exaggeration"
+    ],
+    "explanation": "The argument jumps from one limited retake policy to the collapse of the whole system without proving the chain of events. It assumes the small change will cause each later disaster, and it inflates the likely consequences far beyond what the evidence supports."
+  },
+  {
+    "id": 5,
+    "argument": "This economic policy must be correct because a Nobel Prize winner supports it. Someone with that level of recognition clearly understands the economy better than ordinary critics do. If you disagree, you are basically claiming you know more than one of the smartest people in the world.",
+    "category": "Economics",
+    "fallacies": [
+      "Appeal to authority",
+      "Ad hominem",
+      "False dilemma"
+    ],
+    "explanation": "Expert opinion can matter, but it cannot settle a policy question by itself. The argument treats disagreement as arrogance rather than addressing evidence, and it frames the issue as either accepting the expert or pretending to be smarter than them."
+  },
+  {
+    "id": 6,
+    "argument": "After the city installed more bike lanes, traffic got worse, so the bike lanes caused the problem. The timing is obvious. Commuters were moving fine before planners interfered. This is what happens when officials chase trendy ideas instead of listening to drivers who actually understand how roads are supposed to work.",
+    "category": "Transportation",
+    "fallacies": [
+      "Post hoc",
+      "False cause",
+      "Appeal to tradition",
+      "Ad hominem"
+    ],
+    "explanation": "The argument assumes that because traffic worsened after bike lanes were added, the lanes must be the cause. It ignores other possible factors, leans on the idea that older road patterns were better just because they came first, and insults planners instead of analyzing evidence."
+  },
+  {
+    "id": 7,
+    "argument": "Free speech advocates just want people to be allowed to say anything hateful with no consequences. They hide behind noble language, but what they really defend is cruelty. Anyone serious about protecting society should reject that position, because unlimited speech only helps extremists and people who enjoy harming others.",
+    "category": "Political philosophy",
+    "fallacies": [
+      "Strawman",
+      "Ad hominem",
+      "Hasty generalization"
+    ],
+    "explanation": "The argument distorts free speech defenders into supporters of hate without limits, which avoids their real position. It attacks their character and motives, and it generalizes too broadly about everyone who supports strong speech protections."
+  },
+  {
+    "id": 8,
+    "argument": "Democracy is the best system because democratic societies choose democracy, and people would not keep choosing it unless it were best. That repeated choice proves its superiority. The very fact that voters support democracy shows that democracy works better than every alternative, otherwise they would not support it.",
+    "category": "Political theory",
+    "fallacies": [
+      "Circular reasoning",
+      "Bandwagon fallacy"
+    ],
+    "explanation": "The argument uses democratic choice as proof that democracy is best, which simply assumes what it is trying to prove. It also leans on popularity as evidence of truth, even though broad support does not by itself establish superiority."
+  },
+  {
+    "id": 9,
+    "argument": "Natural foods are healthier, so this herbal treatment is better than medicine. Humans lived with plants long before drug companies existed, and nature would not provide remedies that harm us. Modern medicine is full of chemicals and profit motives, while herbs are pure, traditional, and therefore safer and more effective.",
+    "category": "Consumer health",
+    "fallacies": [
+      "Appeal to nature",
+      "Appeal to tradition",
+      "False dilemma",
+      "Genetic fallacy"
+    ],
+    "explanation": "The argument treats natural and traditional as proof of safety and effectiveness, which they are not. It creates a misleading choice between herbs and medicine, and it dismisses modern treatment partly because of its commercial source rather than its actual evidence."
+  },
+  {
+    "id": 10,
+    "argument": "Crime in this neighborhood proves that immigrants are dangerous. Ever since more immigrants arrived, people have felt less safe, and that cannot be a coincidence. You never hear officials admit it because they are afraid of being criticized, but ordinary residents can see who is really causing the problem.",
+    "category": "Social reasoning",
+    "fallacies": [
+      "Scapegoating",
+      "Hasty generalization",
+      "Post hoc",
+      "Appeal to ignorance"
+    ],
+    "explanation": "The argument blames a broad group for a social problem without sufficient evidence. It generalizes from weak impressions, assumes timing proves causation, and treats the lack of official confirmation as support for the accusation."
+  }
+]

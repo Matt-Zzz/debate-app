@@ -54,6 +54,8 @@ TOPICS: list[dict] = json.loads((DATA / "topics.json").read_text())
 CHARACTERS: list[dict] = json.loads((DATA / "characters.json").read_text())
 DRILLS: list[dict] = json.loads((DATA / "drills.json").read_text())
 CLASH_TOPICS: list[dict] = json.loads((DATA / "clash_topics.json").read_text())
+FALLACIES:     list[dict] = json.loads((DATA / "fallacies.json").read_text())
+
 
 
 # ── Database ──────────────────────────────────────────────────────────────────
@@ -741,7 +743,10 @@ def get_drills():
 def get_clash_topics():
     return CLASH_TOPICS
 
-
+@app.get("/api/fallacies")
+def get_fallacies(): 
+    return FALLACIES
+ 
 @app.get("/api/health")
 def health():
     with db_conn() as conn:
