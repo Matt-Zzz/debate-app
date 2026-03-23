@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import ClashGame from "./ClashGame";
+import FallacyHunt from "./FallacyHunt";
+
 
 // ─── CONFIG ────────────────────────────────────────────────────────────────────
 const API = "http://localhost:3001/api";
@@ -1204,7 +1206,7 @@ const cardBtn     = (active) => ({ padding: "16px 20px", background: active ? "#
 export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [screen, setScreen] = useState("clash");
+  const [screen, setScreen] = useState("fallacy");
   const [config, setConfig] = useState(null);
   const [transcript, setTranscript] = useState([]);
 
@@ -1270,7 +1272,6 @@ export default function App() {
       </div>
     );
   }
-
   if (!user) {
     return (
       <div style={{ minHeight: "100vh", background: "#fff", fontFamily: "'DM Sans', sans-serif" }}>
@@ -1291,6 +1292,7 @@ export default function App() {
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
             <button onClick={() => setScreen("clash")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "clash" ? "#1a1a1a" : "#555" }}>Clash</button>
+            <button onClick={() => setScreen("fallacy")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "fallacy" ? "#1a1a1a" : "#555" }}>Fallacy</button>
             <button onClick={() => setScreen("setup")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "setup" ? "#1a1a1a" : "#555" }}>Sessions</button>
             <button onClick={() => setScreen("profile")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "profile" ? "#1a1a1a" : "#555" }}>Profile</button>
             <button onClick={signOut} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: "#8b0000" }}>Sign out</button>
@@ -1298,7 +1300,8 @@ export default function App() {
         </div>
       </div>
 
-      {screen === "clash" && <ClashGame onFinish={() => setScreen("setup")} />}
+      {screen === "clash"  && <ClashGame   onFinish={() => setScreen("fallacy")} />}
+      {screen === "fallacy" && <FallacyHunt onFinish={() => setScreen("setup")} />}
       {screen === "setup" && <SetupScreen onStart={c => { setConfig(c); setScreen("debate"); }} />}
       {screen === "debate" && config && <DebateScreen config={config} onComplete={t => { setTranscript(t); setScreen("report"); }} />}
       {screen === "report" && config && <ReportScreen config={config} transcript={transcript} onNew={() => { setConfig(null); setTranscript([]); setScreen("clash"); }} />}
