@@ -12,8 +12,7 @@ import secrets
 import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, AsyncIterator
-from typing import Optional
+from typing import Any, AsyncIterator, Optional, Union
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -387,6 +386,7 @@ def build_opponent_system(character: dict, topic: dict, side: str) -> str:
         f"SIGNATURE STRUCTURE: {character['signatureStructure']}\n\n"
         f"EXAMPLE PHRASES:\n{nl.join(chr(34) + p + chr(34) for p in character['examplePhrases'])}\n\n"
         f"FALLACIES YOU FLAG: {', '.join(character['fallaciesDetected'])}\n\n"
+        f"CROSS EXAMINATION QUESTIONS YOU USE:\n{nl.join('- ' + q for q in character['crossExamQuestions'])}\n\n"
         f"TOPIC: \"{topic['title']}\"\n"
         f"YOUR POSITION: {opp['position']}\n"
         f"YOUR ARGUMENTS: {' | '.join(opp['args'])}\n"
