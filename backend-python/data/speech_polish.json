@@ -1,0 +1,249 @@
+{
+  "level1": [
+    {
+      "id": "l1_1",
+      "prompt": "Which sentence makes the clearest, sharpest argument?",
+      "context": "Topic: Should cities invest in public transport?",
+      "options": [
+        "Public transport is kind of important and there are a lot of reasons why cities should maybe think about investing in it more.",
+        "Cities that invest in public transport reduce congestion, cut emissions, and give residents a reliable alternative to car ownership.",
+        "Transport is a big issue and public transport can help with various things that matter to people in cities.",
+        "It seems like public transport investment could be beneficial in multiple ways for urban areas and their residents."
+      ],
+      "correct": 1,
+      "explanation": "Option B names three concrete outcomes, identifies who benefits, and makes a direct claim. The others hedge, repeat themselves, or stay vague about what the benefit actually is."
+    },
+    {
+      "id": "l1_2",
+      "prompt": "Which sentence makes the clearest, sharpest argument?",
+      "context": "Topic: Should schools teach financial literacy?",
+      "options": [
+        "Financial literacy is a skill that can be useful for students to learn at some point.",
+        "Teaching financial literacy in schools helps students manage debt, build savings, and make informed decisions as adults.",
+        "Money is something everyone deals with, so learning about it in school could be a good thing.",
+        "There are arguments to be made that financial education might have some benefits for young people."
+      ],
+      "correct": 1,
+      "explanation": "Option B specifies what financial literacy produces: debt management, savings, and informed decisions, and ties it to a concrete life stage. The others are circular or noncommittal."
+    },
+    {
+      "id": "l1_3",
+      "prompt": "Which sentence makes the clearest, sharpest argument?",
+      "context": "Topic: Should social media platforms be regulated?",
+      "options": [
+        "Social media has issues and regulation might be something worth considering for various reasons.",
+        "Unregulated social media platforms have demonstrably amplified misinformation, harassment, and political manipulation at scale.",
+        "Social media can sometimes cause problems and many people feel that something should probably be done about it.",
+        "There are concerns about social media that suggest some form of oversight could potentially be appropriate."
+      ],
+      "correct": 1,
+      "explanation": "Option B names three specific harms, and the word \"demonstrably\" signals evidence. \"At scale\" adds urgency. The others admit no specific harm and commit to nothing."
+    },
+    {
+      "id": "l1_4",
+      "prompt": "Which sentence makes the clearest, sharpest argument?",
+      "context": "Topic: Should universities be free?",
+      "options": [
+        "Free universities would mean that everyone could go, and that would probably be a good thing for society.",
+        "Making universities free removes the financial barrier that currently prevents talented students from low-income backgrounds from reaching their potential.",
+        "University costs are high and this affects some people negatively, which is something that could perhaps be changed.",
+        "There is a case to be made that university fees may have some impact on access to higher education."
+      ],
+      "correct": 1,
+      "explanation": "Option B identifies the specific mechanism, the financial barrier, the specific group harmed, talented low-income students, and the specific cost, unrealised potential. Every other option avoids all three."
+    },
+    {
+      "id": "l1_5",
+      "prompt": "Which sentence makes the clearest, sharpest argument?",
+      "context": "Topic: Should voting be mandatory?",
+      "options": [
+        "Mandatory voting could help with participation and make elections better in some ways.",
+        "Mandatory voting compels citizens to engage with the democratic process even when they are disengaged, which can distort results with low-information ballots.",
+        "Voting is important and maybe more people should do it, though making it mandatory raises questions.",
+        "There are pros and cons to mandatory voting that would need to be weighed carefully."
+      ],
+      "correct": 1,
+      "explanation": "Option B makes an argument that contains both a claim and a built-in counterweight. It is honest about the tradeoff rather than pretending it is simple, which makes it stronger."
+    }
+  ],
+  "level2": [
+    {
+      "id": "l2_1",
+      "prompt": "Rewrite this vague claim to make it specific, direct, and persuasive.",
+      "weak": "Privacy is important and technology companies should probably do more to protect it.",
+      "model": "Technology companies collect and monetise personal data without meaningful consent, and users deserve binding legal protections against that practice.",
+      "rubric": [
+        "Names the specific harm, collecting and monetising data",
+        "Identifies who is responsible, technology companies",
+        "States a concrete remedy, binding legal protections",
+        "Removes hedging words like 'probably' and 'should do more'"
+      ],
+      "tip": "Replace 'should probably do more' with the specific action. Replace 'privacy is important' with the specific way it is being violated."
+    },
+    {
+      "id": "l2_2",
+      "prompt": "Rewrite this vague claim to make it specific, direct, and persuasive.",
+      "weak": "Social media has some negative effects on young people that are worth thinking about.",
+      "model": "Social media platforms expose adolescents to body image comparison and targeted harassment during a period when identity and self-esteem are most fragile.",
+      "rubric": [
+        "Names the specific harms, body image comparison and targeted harassment",
+        "Names the specific group and why they are vulnerable, adolescents during a key developmental period",
+        "Removes filler phrases like 'worth thinking about'",
+        "Creates urgency through timing, most fragile"
+      ],
+      "tip": "Ask: which young people? Which negative effects? Why does the timing matter? Answer all three in one sentence."
+    },
+    {
+      "id": "l2_3",
+      "prompt": "Rewrite this vague claim to make it specific, direct, and persuasive.",
+      "weak": "The criminal justice system has problems and needs to change in various ways.",
+      "model": "The criminal justice system incarcerates people for non-violent offences at a rate that increases recidivism and costs more than rehabilitation would.",
+      "rubric": [
+        "Identifies a specific problem, incarcerating non-violent offenders",
+        "Attaches a measurable consequence, increased recidivism",
+        "Adds a cost comparison that strengthens the case, costs more than rehabilitation",
+        "Removes the empty phrase 'needs to change in various ways'"
+      ],
+      "tip": "Name one specific problem with one specific consequence. Then add one comparison that proves your solution is better."
+    },
+    {
+      "id": "l2_4",
+      "prompt": "Rewrite this vague claim to make it specific, direct, and persuasive.",
+      "weak": "Education funding is an issue and more resources would be beneficial for students.",
+      "model": "Schools in low-income districts receive less funding per pupil than wealthy districts, a gap that directly limits teacher quality, class sizes, and student outcomes.",
+      "rubric": [
+        "Specifies which schools are affected, low-income districts",
+        "Names the mechanism, less funding per pupil",
+        "Identifies the downstream consequences, teacher quality, class sizes, and outcomes",
+        "Removes the circular phrase 'more resources would be beneficial'"
+      ],
+      "tip": "Specify which students, how the funding gap works mechanically, and what it prevents them from having."
+    },
+    {
+      "id": "l2_5",
+      "prompt": "Rewrite this vague claim to make it specific, direct, and persuasive.",
+      "weak": "Climate change is serious and governments should take stronger action on it.",
+      "model": "Governments that delay emissions targets past 2030 will lock in warming that makes coastal cities uninhabitable and disrupts food supply chains for decades.",
+      "rubric": [
+        "Sets a specific deadline that creates urgency, 2030",
+        "Names concrete consequences, uninhabitable coastal cities and disrupted food supply chains",
+        "Ties inaction to a specific irreversible outcome, locked-in warming",
+        "Replaces the generic 'take stronger action' with a specific policy lever, emissions targets"
+      ],
+      "tip": "Replace 'stronger action' with a specific policy. Replace 'serious' with a specific consequence that has a timeframe."
+    }
+  ],
+  "level3": [
+    {
+      "id": "l3_1",
+      "prompt": "Improve this mini-argument. Make it clearer, sharper, and more persuasive.",
+      "weak": "Animal testing is a controversial topic. Some people think it is necessary for medical progress, while others believe it causes unnecessary suffering. There are arguments on both sides. We should probably think carefully about this issue and consider whether there are better ways to do things.",
+      "model": "Animal testing causes measurable suffering yet remains the legal baseline for drug approval in most countries. That requirement is not medically necessary. Validated alternatives, including organ-on-chip models and computer simulations, already predict human toxicity more accurately than rodent trials. The real barrier is regulatory inertia, not scientific need, and that is the argument worth making.",
+      "rubric": [
+        "Opens with a specific claim instead of 'this is controversial'",
+        "Addresses both sides but does not treat them as equal, it argues for one",
+        "Names specific alternatives rather than saying 'better ways'",
+        "Ends with a pointed crystallisation that shows what the argument is actually for"
+      ],
+      "tip": "Eliminate 'there are arguments on both sides'. That is not an argument. Pick a side and give it the stronger evidence."
+    },
+    {
+      "id": "l3_2",
+      "prompt": "Improve this mini-argument. Make it clearer, sharper, and more persuasive.",
+      "weak": "The four-day work week is something that some companies have tried. There are benefits to it, like people being happier and more rested. But there are also concerns about productivity. It is hard to know whether it is the right choice for every industry and more research is probably needed.",
+      "model": "Trials across Iceland, Japan, and Microsoft's New Zealand office found that a four-day work week maintained or increased output while reducing burnout by a third. The productivity concern is real but backward. It assumes longer hours produce more, when the evidence consistently shows that rested workers make fewer errors. Resistance to the four-day work week is a management habit, not an economic argument.",
+      "rubric": [
+        "Replaces vague trial references with specific named examples",
+        "Directly addresses the counter-argument, productivity, instead of avoiding it",
+        "Flips the counter-argument using evidence rather than just asserting",
+        "Ends with a sharp diagnostic claim that reframes what the debate is really about"
+      ],
+      "tip": "Use specific named examples. Then find the opponent's strongest objection and use evidence to turn it against them."
+    },
+    {
+      "id": "l3_3",
+      "prompt": "Improve this mini-argument. Make it clearer, sharper, and more persuasive.",
+      "weak": "Zoos are places where animals are kept. Some people like zoos because they can educate the public and help with conservation. Others think it is cruel to keep animals in captivity. There are valid points on both sides and it is a complex issue.",
+      "model": "Modern zoos justify captivity with two claims: public education and species conservation. The education claim is largely marketing, studies show visitor behaviour changes minimally after zoo visits. The conservation claim has more weight: breeding programmes have preserved species that would otherwise be extinct. The honest argument for zoos is narrow and specific. They are defensible only where they fund active wild habitat protection, not as general entertainment.",
+      "rubric": [
+        "Identifies the two specific justifications zoos use, rather than speaking vaguely about 'valid points'",
+        "Engages with and rebuts one claim using evidence",
+        "Concedes genuine value in the conservation argument rather than dismissing it",
+        "Ends with a specific, narrow conclusion rather than 'it is complex'"
+      ],
+      "tip": "When both sides have merit, your job is to be specific about where each side is right and arrive at a precise conclusion."
+    }
+  ],
+  "level4": [
+    {
+      "id": "l4_1",
+      "prompt": "Cut the filler without losing the meaning. Make every word earn its place.",
+      "weak": "It is worth noting that there are a number of reasons why it could be argued that the current approach to education is potentially not as effective as it could be in terms of preparing students for the modern world.",
+      "model": "The current approach to education fails to prepare students for the modern world.",
+      "rubric": [
+        "Removes 'it is worth noting that', throat-clearing that adds nothing",
+        "Removes 'there are a number of reasons why', padding before the actual claim",
+        "Removes 'could be argued', hedging that weakens a claim you are making yourself",
+        "Removes 'potentially not as effective as it could be', circular and vague",
+        "Removes 'in terms of', almost always replaceable with a direct phrase"
+      ],
+      "tip": "Find the actual claim buried inside the sentence. Delete everything that came before it started saying something real."
+    },
+    {
+      "id": "l4_2",
+      "prompt": "Cut the filler without losing the meaning. Make every word earn its place.",
+      "weak": "At the end of the day, the fact of the matter is that when all is said and done, people basically just want to feel safe and secure in their own communities, and that is something that is really quite important.",
+      "model": "People want to feel safe in their communities.",
+      "rubric": [
+        "Removes 'at the end of the day', empty rhetorical throat-clearing",
+        "Removes 'the fact of the matter is', never actually introduces a fact",
+        "Removes 'when all is said and done', a second redundant framing phrase in the same sentence",
+        "Removes 'basically just', hedging adverbs that dilute the claim",
+        "Removes 'that is something that is really quite important', restating the claim adds nothing"
+      ],
+      "tip": "Stack four filler openers in a row and most listeners stop paying attention. Cut to the claim in the first words."
+    },
+    {
+      "id": "l4_3",
+      "prompt": "Cut the filler without losing the meaning. Make every word earn its place.",
+      "weak": "In my personal opinion, I personally feel that free speech, while obviously important in many respects, does nevertheless have certain limitations that arguably need to be recognised and possibly addressed by society as a whole in various ways.",
+      "model": "Free speech is important, but it requires limits that society must define and enforce.",
+      "rubric": [
+        "Removes 'in my personal opinion, I personally feel', double attribution of the same thing",
+        "Removes 'while obviously important in many respects', the concession is real but overwritten",
+        "Removes 'nevertheless', the contrast is clear without it",
+        "Removes 'arguably need to be recognised and possibly addressed', stacked hedges on one obligation",
+        "Removes 'as a whole in various ways', adds no information"
+      ],
+      "tip": "Never say 'in my personal opinion' and 'I personally feel' in the same sentence. Pick one attribution or cut both. Then remove every 'arguably', 'possibly', and 'in various ways'."
+    },
+    {
+      "id": "l4_4",
+      "prompt": "Cut the filler without losing the meaning. Make every word earn its place.",
+      "weak": "It seems as though there may be a possibility that the introduction of automation into the workforce could potentially have some sort of impact on employment levels in certain sectors of the economy.",
+      "model": "Automation will reduce employment in certain sectors.",
+      "rubric": [
+        "Removes 'it seems as though', distances you from your own claim",
+        "Removes 'there may be a possibility that', double hedging before the claim begins",
+        "Removes 'could potentially', triple hedging of the same uncertainty",
+        "Removes 'some sort of impact', vague to the point of meaninglessness",
+        "Removes 'of the economy' from 'in certain sectors of the economy', because 'of the economy' is obvious padding"
+      ],
+      "tip": "Count your hedges. One hedge is honest. Three hedges in a row means you have buried your claim under a refusal to commit."
+    },
+    {
+      "id": "l4_5",
+      "prompt": "Cut the filler without losing the meaning. Make every word earn its place.",
+      "weak": "Due to the fact that there has been a significant increase in the level of awareness around the issue of climate change in recent times, it could be said that the general public is now perhaps more engaged with environmental questions than was previously the case.",
+      "model": "Growing climate awareness has made the public more engaged with environmental questions.",
+      "rubric": [
+        "Replaces 'due to the fact that' with 'because', or restructures the sentence",
+        "Removes 'there has been a significant increase in the level of', and replaces it with the verb 'growing'",
+        "Removes 'in recent times', either specify the timeframe or cut it",
+        "Removes 'it could be said that', you are saying it",
+        "Removes 'than was previously the case', because increase already implies comparison"
+      ],
+      "tip": "'Due to the fact that' should be replaced with 'because'. 'There has been a significant increase in' should be replaced with a verb."
+    }
+  ]
+}

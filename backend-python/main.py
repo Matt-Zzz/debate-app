@@ -55,6 +55,7 @@ CHARACTERS: list[dict] = json.loads((DATA / "characters.json").read_text())
 DRILLS: list[dict] = json.loads((DATA / "drills.json").read_text())
 CLASH_TOPICS: list[dict] = json.loads((DATA / "clash_topics.json").read_text())
 FALLACIES:     list[dict] = json.loads((DATA / "fallacies.json").read_text())
+SPEECH_POLISH: dict = json.loads((DATA / "speech_polish.json").read_text())
 
 
 
@@ -746,6 +747,11 @@ def get_clash_topics():
 @app.get("/api/fallacies")
 def get_fallacies(): 
     return FALLACIES
+
+@app.get("/api/speech-polish")
+def get_speech_polish():
+    return SPEECH_POLISH
+
  
 @app.get("/api/health")
 def health():

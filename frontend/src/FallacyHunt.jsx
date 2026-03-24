@@ -6,7 +6,7 @@ const API = "http://localhost:3001/api";
 // Every fallacy that can appear as a chip option.
 // "definition" is shown on hover/tap.
 const FALLACY_DICT = {
-  "Ad hominem":                  "Attacking the person instead of the argument.",
+  "Ad hominem":                  "Attacking the person instead of the argument.", 
   "Straw man":                   "Misrepresenting someone's position to make it easier to attack.",
   "Strawman":                    "Misrepresenting someone's position to make it easier to attack.",
   "False dilemma":               "Presenting only two options when more exist.",
