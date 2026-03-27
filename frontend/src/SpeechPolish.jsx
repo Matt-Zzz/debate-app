@@ -845,7 +845,7 @@ function Result({ total, onReplay, onFinish }) {
         <button onClick={onReplay} style={S.outlineBtn}>
           Play again
         </button>
-        <button onClick={onFinish} style={S.solidBtn}>
+        <button onClick={() => onFinish?.(total)} style={S.solidBtn}>
           Start a debate session →
         </button>
       </div>

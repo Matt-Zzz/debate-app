@@ -1,19 +1,18 @@
 import { useEffect, useState } from "react";
-import ClashGame from "./ClashGame";
-import FallacyHunt from "./FallacyHunt";
-import SpeechPolish from "./SpeechPolish";
 import AuthScreen from "./components/auth/AuthScreen";
 import DebateScreen from "./components/debate/DebateScreen";
 import ProfileScreen from "./components/profile/ProfileScreen";
+import PvPScreen from "./components/pvp/PvPScreen";
 import ReportScreen from "./components/report/ReportScreen";
 import SetupScreen from "./components/setup/SetupScreen";
+import TutorialPlacementScreen from "./components/tutorial/TutorialPlacementScreen";
 import { apiFetch, getAuthToken, setAuthToken } from "./lib/api";
 import { appSurface, baseStyles, loadingSurface, solidBtn } from "./styles/ui";
 
 export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [screen, setScreen] = useState("fallacy");
+  const [screen, setScreen] = useState("setup");
   const [config, setConfig] = useState(null);
   const [transcript, setTranscript] = useState([]);
 
@@ -35,7 +34,7 @@ export default function App() {
   const finishSignOut = () => {
     setAuthToken("");
     setUser(null);
-    setScreen("clash");
+    setScreen("setup");
     setConfig(null);
     setTranscript([]);
   };
@@ -50,7 +49,7 @@ export default function App() {
   const handleAuth = ({ token, user: nextUser }) => {
     setAuthToken(token);
     setUser(nextUser);
-    setScreen("clash");
+    setScreen("setup");
     setConfig(null);
     setTranscript([]);
   };
@@ -73,19 +72,28 @@ export default function App() {
     );
   }
 
+  if (!user.tutorialCompleted) {
+    return (
+      <div style={appSurface}>
+        <style>{baseStyles}</style>
+        <TutorialPlacementScreen onComplete={(nextUser) => { setUser(nextUser); setScreen("setup"); }} />
+      </div>
+    );
+  }
+
   return (
     <div style={appSurface}>
       <style>{baseStyles}</style>
 
       <div style={{ borderBottom: "1px solid #eee", background: "#fff", position: "sticky", top: 0, zIndex: 20 }}>
-        <div style={{ maxWidth: "700px", margin: "0 auto", padding: "10px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-          <div style={{ fontSize: "12px", color: "#666" }}>
+        <div style={{ maxWidth: "760px", margin: "0 auto", padding: "10px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+          <div style={{ fontSize: "12px", color: "#666", lineHeight: 1.6 }}>
             Signed in as <span style={{ fontWeight: 600 }}>{user.name}</span>
+            <br />
+            Level {user.currentLevel}: {user.levelName} · {user.totalXP} XP
           </div>
           <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button onClick={() => setScreen("clash")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "clash" ? "#1a1a1a" : "#555" }}>Clash</button>
-            <button onClick={() => setScreen("fallacy")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "fallacy" ? "#1a1a1a" : "#555" }}>Fallacy</button>
-            <button onClick={() => setScreen("polish")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "polish" ? "#1a1a1a" : "#555" }}>Polish</button>
+            <button onClick={() => setScreen("pvp")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "pvp" ? "#1a1a1a" : "#555" }}>PvP</button>
             <button onClick={() => setScreen("setup")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "setup" ? "#1a1a1a" : "#555" }}>Sessions</button>
             <button onClick={() => setScreen("profile")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "profile" ? "#1a1a1a" : "#555" }}>Profile</button>
             <button onClick={signOut} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: "#8b0000" }}>Sign out</button>
@@ -93,13 +101,18 @@ export default function App() {
         </div>
       </div>
 
-      {screen === "clash" && <ClashGame onFinish={() => setScreen("fallacy")} />}
-      {screen === "fallacy" && <FallacyHunt onFinish={() => setScreen("polish")} />}
-      {screen === "polish" && <SpeechPolish onFinish={() => setScreen("setup")} />}
-      {screen === "setup" && <SetupScreen onStart={(nextConfig) => { setConfig(nextConfig); setScreen("debate"); }} />}
+      {screen === "pvp" && <PvPScreen user={user} onUserUpdated={setUser} />}
+      {screen === "setup" && <SetupScreen user={user} onStart={(nextConfig) => { setConfig(nextConfig); setScreen("debate"); }} />}
       {screen === "debate" && config && <DebateScreen config={config} onComplete={(nextTranscript) => { setTranscript(nextTranscript); setScreen("report"); }} />}
-      {screen === "report" && config && <ReportScreen config={config} transcript={transcript} onNew={() => { setConfig(null); setTranscript([]); setScreen("clash"); }} />}
-      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("clash")} onSignOut={finishSignOut} />}
+      {screen === "report" && config && (
+        <ReportScreen
+          config={config}
+          transcript={transcript}
+          onNew={() => { setConfig(null); setTranscript([]); setScreen("setup"); }}
+          onUserUpdated={setUser}
+        />
+      )}
+      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("setup")} onSignOut={finishSignOut} />}
     </div>
   );
 }

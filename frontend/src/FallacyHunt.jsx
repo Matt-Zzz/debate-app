@@ -430,7 +430,7 @@ function Result({ score, maxScore, onReplay, onFinish }) {
       <div style={S.resultMsg}>{getResultMessage(score, maxScore)}</div>
       <div style={{ ...S.btnRow, justifyContent: "center" }}>
         <button onClick={onReplay} style={S.outlineBtn}>Play again</button>
-        <button onClick={onFinish} style={S.solidBtn}>Start a debate session →</button>
+        <button onClick={() => onFinish?.(score, maxScore)} style={S.solidBtn}>Start a debate session →</button>
       </div>
     </div>
   );

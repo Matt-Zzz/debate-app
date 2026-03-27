@@ -11,3 +11,5 @@ export const DIFF_COLOR = {
   Medium: "#e65100",
   Hard: "#c62828",
 };
+
+export const TRAINING_TOPIC_REFRESH_LIMIT = 3;

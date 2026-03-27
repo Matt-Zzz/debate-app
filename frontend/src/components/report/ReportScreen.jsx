@@ -140,7 +140,7 @@ function DrillPanel({ drill, sessionId, onComplete }) {
   );
 }
 
-export default function ReportScreen({ config, transcript, onNew }) {
+export default function ReportScreen({ config, transcript, onNew, onUserUpdated }) {
   const { topic, character, side, sessionId } = config;
   const [rubric, setRubric] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -149,17 +149,20 @@ export default function ReportScreen({ config, transcript, onNew }) {
   const [drillDone, setDrillDone] = useState(false);
   const [fetchError, setFetchError] = useState(false);
   const [savedToProfile, setSavedToProfile] = useState(false);
+  const [earnedXP, setEarnedXP] = useState(0);
 
   useEffect(() => {
     apiFetch("/drills").then(setDrills).catch(() => {});
     apiFetch("/coach-report", {
       method: "POST",
-      body: JSON.stringify({ topicId: topic.id, characterId: character.id, side, transcript }),
+      body: JSON.stringify({ topicId: topic.id, characterId: character.id, side, sessionId, transcript }),
     })
       .then((response) => {
         setRubric(response.rubric);
         setFeedback(response.feedback);
         setSavedToProfile(!!response.savedToProfile);
+        setEarnedXP(response.earnedXP || 0);
+        if (response.user && onUserUpdated) onUserUpdated(response.user);
         if (response.rubric?.breakdown) {
           const drillMap = { structure: "d10", argQuality: "d6", clash: "d9", impact: "d2", precision: "d1" };
           const weakestKey = Object.entries(response.rubric.breakdown).sort((a, b) => (a[1].score / a[1].max) - (b[1].score / b[1].max))[0]?.[0];
@@ -190,7 +193,9 @@ export default function ReportScreen({ config, transcript, onNew }) {
       {fetchError && <div style={{ color: "#c62828", fontSize: "13px", marginBottom: "16px" }}>Could not generate report. Check your backend connection.</div>}
       {!fetchError && savedToProfile && (
         <div style={{ color: "#2e7d32", fontSize: "13px", marginBottom: "14px" }}>
-          Saved to your profile history.
+          {earnedXP
+            ? `Saved to your profile history · +${earnedXP} XP.`
+            : "Saved to your profile history · session grades below 50 do not earn XP."}
         </div>
       )}
 

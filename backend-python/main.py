@@ -7,6 +7,7 @@ import hashlib
 import hmac
 import json
 import os
+import random
 import re
 import secrets
 import sqlite3
@@ -22,6 +23,19 @@ from google.auth.transport import requests as google_requests
 from google.genai import types
 from google.oauth2 import id_token as google_id_token
 from pydantic import BaseModel
+from progression import (
+    MINI_GAMES,
+    baseline_xp_for_level,
+    calculate_training_xp,
+    level_name,
+    pvp_xp_for_outcome,
+    progression_config,
+    progression_snapshot,
+    allowed_difficulties_for_level,
+    allowed_levels_for_difficulty,
+    level_from_xp,
+)
+from tutorials import score_tutorial, tutorial_question_bundle
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -56,6 +70,10 @@ CLASH_TOPICS: list[dict] = json.loads((DATA / "clash_topics.json").read_text())
 FALLACIES:     list[dict] = json.loads((DATA / "fallacies.json").read_text())
 SPEECH_POLISH: dict = json.loads((DATA / "speech_polish.json").read_text())
 
+CLASH_TOPIC_LOOKUP = {item["id"]: item for item in CLASH_TOPICS}
+FALLACY_LOOKUP = {str(item["id"]): item for item in FALLACIES}
+SPEECH_LEVEL1_LOOKUP = {item["id"]: item for item in SPEECH_POLISH["level1"]}
+
 
 
 # ── Database ──────────────────────────────────────────────────────────────────
@@ -69,6 +87,17 @@ def db_conn() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
+
+
+def table_columns(conn: sqlite3.Connection, table_name: str) -> set[str]:
+    rows = conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+    return {str(row["name"]) for row in rows}
+
+
+def ensure_column(conn: sqlite3.Connection, table_name: str, column_name: str, definition: str) -> None:
+    if column_name in table_columns(conn, table_name):
+        return
+    conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {definition}")
 
 
 def init_db() -> None:
@@ -96,6 +125,7 @@ def init_db() -> None:
             CREATE TABLE IF NOT EXISTS training_history (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
+                session_id TEXT,
                 topic_id TEXT NOT NULL,
                 topic_title TEXT NOT NULL,
                 topic_tag TEXT,
@@ -122,9 +152,66 @@ def init_db() -> None:
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE SET NULL
             );
 
+            CREATE TABLE IF NOT EXISTS tutorial_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                question_ids_json TEXT NOT NULL,
+                questions_json TEXT NOT NULL,
+                answers_json TEXT,
+                scores_json TEXT,
+                total_score INTEGER,
+                assigned_level INTEGER,
+                status TEXT NOT NULL DEFAULT 'started',
+                completed_at TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS training_sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                type TEXT NOT NULL,
+                earned_xp INTEGER NOT NULL,
+                result_json TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS pvp_sessions (
+                id TEXT PRIMARY KEY,
+                player1_id INTEGER NOT NULL,
+                player2_id INTEGER,
+                topic_id TEXT,
+                topic_title TEXT,
+                topic_difficulty TEXT,
+                player1_side TEXT,
+                player2_side TEXT,
+                status TEXT NOT NULL,
+                scores_json TEXT,
+                result_json TEXT,
+                winner_id INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(player1_id) REFERENCES users(id) ON DELETE CASCADE,
+                FOREIGN KEY(player2_id) REFERENCES users(id) ON DELETE SET NULL,
+                FOREIGN KEY(winner_id) REFERENCES users(id) ON DELETE SET NULL
+            );
+
             CREATE INDEX IF NOT EXISTS idx_auth_tokens_user ON auth_tokens(user_id);
             CREATE INDEX IF NOT EXISTS idx_training_history_user_created ON training_history(user_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_tutorial_sessions_user_created ON tutorial_sessions(user_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_training_sessions_user_created ON training_sessions(user_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_pvp_sessions_status_updated ON pvp_sessions(status, updated_at DESC);
             """
+        )
+
+        ensure_column(conn, "users", "current_level", "INTEGER NOT NULL DEFAULT 1")
+        ensure_column(conn, "users", "total_xp", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "users", "tutorial_completed", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "users", "placement_score", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "training_history", "session_id", "TEXT")
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_training_history_user_session ON training_history(user_id, session_id)"
         )
 
 
@@ -192,10 +279,96 @@ def parse_bearer_token(authorization: str | None) -> str | None:
 
 
 def public_user(row: sqlite3.Row | dict) -> dict:
+    current_level = int(row["current_level"] or 1)
+    total_xp = int(row["total_xp"] or 0)
+    snapshot = progression_snapshot(current_level, total_xp)
     return {
         "id": row["id"],
         "email": row["email"],
         "name": row["name"],
+        "currentLevel": snapshot["currentLevel"],
+        "levelName": snapshot["levelName"],
+        "totalXP": snapshot["totalXP"],
+        "tutorialCompleted": bool(row["tutorial_completed"]),
+        "placementScore": int(row["placement_score"] or 0),
+        "unlockedDifficulties": snapshot["unlockedDifficulties"],
+        "nextLevel": snapshot["nextLevel"],
+        "nextLevelName": snapshot["nextLevelName"],
+        "nextLevelXP": snapshot["nextLevelXP"],
+        "xpToNextLevel": snapshot["xpToNextLevel"],
+        "createdAt": row["created_at"],
+        "updatedAt": row["updated_at"],
+    }
+
+
+def fetch_user_row(conn: sqlite3.Connection, user_id: int) -> sqlite3.Row:
+    row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    if row is None:
+        api_error(404, "User not found")
+    return row
+
+
+def require_tutorial_completed(user: dict) -> None:
+    if not user.get("tutorialCompleted"):
+        api_error(403, "Complete tutorial placement before starting training sessions")
+
+
+def award_user_xp(conn: sqlite3.Connection, user_id: int, earned_xp: int) -> tuple[sqlite3.Row, bool]:
+    row = fetch_user_row(conn, user_id)
+    previous_level = int(row["current_level"] or 1)
+    total_xp = max(0, int(row["total_xp"] or 0) + max(0, earned_xp))
+    next_level = max(previous_level, level_from_xp(total_xp))
+    conn.execute(
+        "UPDATE users SET total_xp = ?, current_level = ?, updated_at = ? WHERE id = ?",
+        (total_xp, next_level, now_iso(), user_id),
+    )
+    fresh = fetch_user_row(conn, user_id)
+    return fresh, next_level > previous_level
+
+
+def save_training_session(conn: sqlite3.Connection, user_id: int, session_type: str, earned_xp: int, result: dict[str, Any]) -> dict[str, Any]:
+    created_at = now_iso()
+    cursor = conn.execute(
+        """
+        INSERT INTO training_sessions(user_id, type, earned_xp, result_json, created_at)
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (user_id, session_type, earned_xp, json.dumps(result), created_at),
+    )
+    return {
+        "id": int(cursor.lastrowid),
+        "userId": user_id,
+        "type": session_type,
+        "earnedXP": earned_xp,
+        "result": result,
+        "createdAt": created_at,
+    }
+
+
+def topic_payload(topic: dict, user: dict | None = None) -> dict[str, Any]:
+    payload = dict(topic)
+    payload["allowedLevels"] = allowed_levels_for_difficulty(topic["difficulty"])
+    if user is not None:
+        payload["unlocked"] = topic["difficulty"] in set(user.get("unlockedDifficulties") or [])
+    return payload
+
+
+def serialize_pvp_session(row: sqlite3.Row) -> dict[str, Any]:
+    return {
+        "id": row["id"],
+        "player1Id": row["player1_id"],
+        "player1Name": row["player1_name"],
+        "player2Id": row["player2_id"],
+        "player2Name": row["player2_name"],
+        "topicId": row["topic_id"],
+        "topicTitle": row["topic_title"],
+        "topicDifficulty": row["topic_difficulty"],
+        "player1Side": row["player1_side"],
+        "player2Side": row["player2_side"],
+        "status": row["status"],
+        "scores": json.loads(row["scores_json"]) if row["scores_json"] else None,
+        "result": json.loads(row["result_json"]) if row["result_json"] else None,
+        "winnerId": row["winner_id"],
         "createdAt": row["created_at"],
         "updatedAt": row["updated_at"],
     }
@@ -400,18 +573,28 @@ def build_opponent_system(character: dict, topic: dict, side: str) -> str:
 
 def persist_training_history(
     user_id: int,
+    session_id: str | None,
     topic: dict,
     character: dict,
     side: str,
     transcript: list[dict],
     rubric: dict,
     feedback: dict[str, Any],
-) -> None:
+) -> bool:
     with db_conn() as conn:
+        if session_id:
+            existing = conn.execute(
+                "SELECT id FROM training_history WHERE user_id = ? AND session_id = ?",
+                (user_id, session_id),
+            ).fetchone()
+            if existing is not None:
+                return False
+
         conn.execute(
             """
             INSERT INTO training_history(
                 user_id,
+                session_id,
                 topic_id,
                 topic_title,
                 topic_tag,
@@ -424,10 +607,11 @@ def persist_training_history(
                 transcript_json,
                 created_at
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 user_id,
+                session_id,
                 topic["id"],
                 topic["title"],
                 topic.get("tag"),
@@ -441,6 +625,17 @@ def persist_training_history(
                 now_iso(),
             ),
         )
+    return True
+
+
+def select_pvp_topic(player1: dict, player2: dict) -> dict:
+    shared = set(allowed_difficulties_for_level(player1["currentLevel"])) & set(
+        allowed_difficulties_for_level(player2["currentLevel"])
+    )
+    if not shared:
+        shared = set(allowed_difficulties_for_level(player1["currentLevel"]))
+    candidates = [topic for topic in TOPICS if topic["difficulty"] in shared]
+    return random.choice(candidates or TOPICS)
 
 
 # ── Request models ────────────────────────────────────────────────────────────
@@ -483,6 +678,7 @@ class ReportRequest(BaseModel):
     topicId: str
     characterId: str
     side: str
+    sessionId: str | None = None
     transcript: list[dict]
 
 
@@ -494,6 +690,34 @@ class DrillCompleteRequest(BaseModel):
     sessionId: str
     answers: dict
     score: int
+
+
+class TutorialAnswerRequest(BaseModel):
+    miniGame: str
+    questionId: str
+    selectedOption: str | None = None
+    selectedOptions: list[str] = []
+    selectedIndex: int | None = None
+    explanation: str = ""
+
+
+class TutorialCompleteRequest(BaseModel):
+    sessionId: int
+    answers: list[TutorialAnswerRequest]
+
+
+class TrainingSessionRequest(BaseModel):
+    type: str
+    score: float | None = None
+    maxScore: float | None = None
+    completedQuestions: int | None = None
+    result: dict[str, Any] = {}
+
+
+class PvPResultRequest(BaseModel):
+    player1Score: int
+    player2Score: int
+    notes: str = ""
 
 
 # ── Auth routes ───────────────────────────────────────────────────────────────
@@ -723,11 +947,395 @@ def get_training_history(user: dict = Depends(get_current_user)):
     return result
 
 
+# ── Progression routes ────────────────────────────────────────────────────────
+
+@app.get("/api/progression/config")
+def get_progression_config():
+    return progression_config()
+
+
+@app.get("/api/tutorial/session")
+def get_tutorial_session(user: dict = Depends(get_current_user)):
+    if user["tutorialCompleted"]:
+        api_error(400, "Tutorial placement is already complete")
+
+    with db_conn() as conn:
+        row = conn.execute(
+            """
+            SELECT *
+            FROM tutorial_sessions
+            WHERE user_id = ? AND status = 'started'
+            ORDER BY created_at DESC
+            LIMIT 1
+            """,
+            (user["id"],),
+        ).fetchone()
+
+        if row is None:
+            questions = tutorial_question_bundle(CLASH_TOPICS, FALLACIES, SPEECH_POLISH)
+            question_ids = {item["miniGame"]: item["questionId"] for item in questions}
+            created_at = now_iso()
+            cursor = conn.execute(
+                """
+                INSERT INTO tutorial_sessions(user_id, question_ids_json, questions_json, created_at)
+                VALUES (?, ?, ?, ?)
+                """,
+                (user["id"], json.dumps(question_ids), json.dumps(questions), created_at),
+            )
+            row = conn.execute(
+                "SELECT * FROM tutorial_sessions WHERE id = ?",
+                (int(cursor.lastrowid),),
+            ).fetchone()
+
+    return {
+        "session": {
+            "id": row["id"],
+            "status": row["status"],
+            "miniGames": MINI_GAMES,
+            "questions": json.loads(row["questions_json"]),
+        }
+    }
+
+
+@app.post("/api/tutorial/complete")
+def complete_tutorial(req: TutorialCompleteRequest, user: dict = Depends(get_current_user)):
+    if user["tutorialCompleted"]:
+        api_error(400, "Tutorial placement is already complete")
+
+    answers_by_game = {answer.miniGame: answer.model_dump() for answer in req.answers}
+
+    with db_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM tutorial_sessions WHERE id = ? AND user_id = ?",
+            (req.sessionId, user["id"]),
+        ).fetchone()
+        if row is None:
+            api_error(404, "Tutorial session not found")
+        if row["status"] == "completed":
+            api_error(409, "Tutorial session already completed")
+
+        questions = json.loads(row["questions_json"])
+        expected_ids = json.loads(row["question_ids_json"])
+        if set(expected_ids.keys()) != set(answers_by_game.keys()):
+            api_error(400, "All tutorial questions must be answered")
+
+        for mini_game, question_id in expected_ids.items():
+            if str(answers_by_game[mini_game].get("questionId")) != str(question_id):
+                api_error(400, f"Tutorial answer mismatch for {mini_game}")
+
+        placement = score_tutorial(
+            questions,
+            answers_by_game,
+            FALLACY_LOOKUP,
+            CLASH_TOPIC_LOOKUP,
+            SPEECH_LEVEL1_LOOKUP,
+        )
+        assigned_level = int(placement["assignedLevel"])
+        user_row = fetch_user_row(conn, user["id"])
+        placed_xp = max(int(user_row["total_xp"] or 0), baseline_xp_for_level(assigned_level))
+
+        completed_at = now_iso()
+        conn.execute(
+            """
+            UPDATE tutorial_sessions
+            SET answers_json = ?, scores_json = ?, total_score = ?, assigned_level = ?, status = 'completed', completed_at = ?
+            WHERE id = ?
+            """,
+            (
+                json.dumps(answers_by_game),
+                json.dumps(placement["scores"]),
+                placement["totalScore"],
+                assigned_level,
+                completed_at,
+                req.sessionId,
+            ),
+        )
+        conn.execute(
+            """
+            UPDATE users
+            SET tutorial_completed = 1,
+                placement_score = ?,
+                current_level = ?,
+                total_xp = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (placement["totalScore"], assigned_level, placed_xp, completed_at, user["id"]),
+        )
+        fresh = fetch_user_row(conn, user["id"])
+
+    return {
+        "session": {
+            "id": req.sessionId,
+            "status": "completed",
+            "questionIds": expected_ids,
+            "scores": placement["scores"],
+            "totalScore": placement["totalScore"],
+            "assignedLevel": placement["assignedLevel"],
+            "assignedLevelName": placement["assignedLevelName"],
+        },
+        "placement": placement,
+        "user": public_user(fresh),
+    }
+
+
+@app.post("/api/training-sessions")
+def complete_training_session(req: TrainingSessionRequest, user: dict = Depends(get_current_user)):
+    require_tutorial_completed(user)
+
+    session_type = req.type.strip().lower().replace("speech_polish", "speech")
+    if session_type not in {"clash", "fallacy", "speech"}:
+        api_error(400, "Unsupported training session type")
+
+    result = dict(req.result or {})
+    if req.completedQuestions is not None:
+        result["completedQuestions"] = req.completedQuestions
+    if req.score is not None:
+        result["score"] = req.score
+    if req.maxScore is not None:
+        result["maxScore"] = req.maxScore
+
+    earned_xp = calculate_training_xp(
+        session_type,
+        score=req.score,
+        max_score=req.maxScore,
+        result=result,
+    )
+
+    with db_conn() as conn:
+        training_session = save_training_session(conn, user["id"], session_type, earned_xp, result)
+        fresh, leveled_up = award_user_xp(conn, user["id"], earned_xp)
+
+    return {
+        "trainingSession": training_session,
+        "earnedXP": earned_xp,
+        "leveledUp": leveled_up,
+        "user": public_user(fresh),
+    }
+
+
+# ── PvP routes ────────────────────────────────────────────────────────────────
+
+@app.post("/api/pvp/match")
+def match_pvp_session(user: dict = Depends(get_current_user)):
+    require_tutorial_completed(user)
+
+    with db_conn() as conn:
+        existing = conn.execute(
+            """
+            SELECT p.*, u1.name AS player1_name, u2.name AS player2_name
+            FROM pvp_sessions p
+            JOIN users u1 ON u1.id = p.player1_id
+            LEFT JOIN users u2 ON u2.id = p.player2_id
+            WHERE (p.player1_id = ? OR p.player2_id = ?)
+              AND p.status IN ('waiting', 'matched')
+            ORDER BY p.updated_at DESC
+            LIMIT 1
+            """,
+            (user["id"], user["id"]),
+        ).fetchone()
+        if existing is not None:
+            return {"session": serialize_pvp_session(existing)}
+
+        candidate = conn.execute(
+            """
+            SELECT p.*, u.name AS player1_name, u.current_level, u.placement_score
+            FROM pvp_sessions p
+            JOIN users u ON u.id = p.player1_id
+            WHERE p.status = 'waiting' AND p.player1_id != ?
+            ORDER BY ABS(u.current_level - ?) ASC, ABS(u.placement_score - ?) ASC, p.created_at ASC
+            LIMIT 1
+            """,
+            (user["id"], user["currentLevel"], user["placementScore"]),
+        ).fetchone()
+
+        if candidate is None:
+            session_id = f"pvp_{secrets.token_hex(8)}"
+            created_at = now_iso()
+            conn.execute(
+                """
+                INSERT INTO pvp_sessions(id, player1_id, status, created_at, updated_at)
+                VALUES (?, ?, 'waiting', ?, ?)
+                """,
+                (session_id, user["id"], created_at, created_at),
+            )
+            row = conn.execute(
+                """
+                SELECT p.*, u1.name AS player1_name, u2.name AS player2_name
+                FROM pvp_sessions p
+                JOIN users u1 ON u1.id = p.player1_id
+                LEFT JOIN users u2 ON u2.id = p.player2_id
+                WHERE p.id = ?
+                """,
+                (session_id,),
+            ).fetchone()
+            return {"session": serialize_pvp_session(row)}
+
+        opponent_row = fetch_user_row(conn, int(candidate["player1_id"]))
+        opponent = public_user(opponent_row)
+        topic = select_pvp_topic(user, opponent)
+        player1_side, player2_side = random.choice([("A", "B"), ("B", "A")])
+        updated_at = now_iso()
+        conn.execute(
+            """
+            UPDATE pvp_sessions
+            SET player2_id = ?,
+                topic_id = ?,
+                topic_title = ?,
+                topic_difficulty = ?,
+                player1_side = ?,
+                player2_side = ?,
+                status = 'matched',
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (
+                user["id"],
+                topic["id"],
+                topic["title"],
+                topic["difficulty"],
+                player1_side,
+                player2_side,
+                updated_at,
+                candidate["id"],
+            ),
+        )
+        row = conn.execute(
+            """
+            SELECT p.*, u1.name AS player1_name, u2.name AS player2_name
+            FROM pvp_sessions p
+            JOIN users u1 ON u1.id = p.player1_id
+            LEFT JOIN users u2 ON u2.id = p.player2_id
+            WHERE p.id = ?
+            """,
+            (candidate["id"],),
+        ).fetchone()
+
+    return {"session": serialize_pvp_session(row)}
+
+
+@app.get("/api/pvp/sessions")
+def get_pvp_sessions(user: dict = Depends(get_current_user)):
+    require_tutorial_completed(user)
+
+    with db_conn() as conn:
+        rows = conn.execute(
+            """
+            SELECT p.*, u1.name AS player1_name, u2.name AS player2_name
+            FROM pvp_sessions p
+            JOIN users u1 ON u1.id = p.player1_id
+            LEFT JOIN users u2 ON u2.id = p.player2_id
+            WHERE p.player1_id = ? OR p.player2_id = ?
+            ORDER BY p.updated_at DESC
+            LIMIT 20
+            """,
+            (user["id"], user["id"]),
+        ).fetchall()
+
+    return [serialize_pvp_session(row) for row in rows]
+
+
+@app.post("/api/pvp/sessions/{session_id}/complete")
+def complete_pvp_session(session_id: str, req: PvPResultRequest, user: dict = Depends(get_current_user)):
+    require_tutorial_completed(user)
+
+    with db_conn() as conn:
+        row = conn.execute(
+            """
+            SELECT p.*, u1.name AS player1_name, u2.name AS player2_name
+            FROM pvp_sessions p
+            JOIN users u1 ON u1.id = p.player1_id
+            LEFT JOIN users u2 ON u2.id = p.player2_id
+            WHERE p.id = ?
+            """,
+            (session_id,),
+        ).fetchone()
+        if row is None:
+            api_error(404, "PvP session not found")
+        if user["id"] not in {row["player1_id"], row["player2_id"]}:
+            api_error(403, "You are not a player in this session")
+        if row["status"] == "waiting":
+            api_error(400, "The session is still waiting for an opponent")
+        if row["status"] == "completed":
+            return {"session": serialize_pvp_session(row), "user": user}
+
+        player1_id = int(row["player1_id"])
+        player2_id = int(row["player2_id"])
+        scores = {"player1": req.player1Score, "player2": req.player2Score}
+
+        if req.player1Score > req.player2Score:
+            winner_id = player1_id
+            outcome_1, outcome_2 = "win", "loss"
+        elif req.player2Score > req.player1Score:
+            winner_id = player2_id
+            outcome_1, outcome_2 = "loss", "win"
+        else:
+            winner_id = None
+            outcome_1 = outcome_2 = "draw"
+
+        result = {
+            "notes": req.notes,
+            "submittedBy": user["id"],
+            "player1Outcome": outcome_1,
+            "player2Outcome": outcome_2,
+        }
+        updated_at = now_iso()
+
+        conn.execute(
+            """
+            UPDATE pvp_sessions
+            SET status = 'completed',
+                scores_json = ?,
+                result_json = ?,
+                winner_id = ?,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (json.dumps(scores), json.dumps(result), winner_id, updated_at, session_id),
+        )
+
+        player1_xp = pvp_xp_for_outcome(outcome_1)
+        player2_xp = pvp_xp_for_outcome(outcome_2)
+        save_training_session(
+            conn,
+            player1_id,
+            "pvp",
+            player1_xp,
+            {"sessionId": session_id, "topicId": row["topic_id"], "opponentId": player2_id, "outcome": outcome_1},
+        )
+        save_training_session(
+            conn,
+            player2_id,
+            "pvp",
+            player2_xp,
+            {"sessionId": session_id, "topicId": row["topic_id"], "opponentId": player1_id, "outcome": outcome_2},
+        )
+        player1_row, _ = award_user_xp(conn, player1_id, player1_xp)
+        player2_row, _ = award_user_xp(conn, player2_id, player2_xp)
+        current_user_row = player1_row if user["id"] == player1_id else player2_row
+
+        fresh = conn.execute(
+            """
+            SELECT p.*, u1.name AS player1_name, u2.name AS player2_name
+            FROM pvp_sessions p
+            JOIN users u1 ON u1.id = p.player1_id
+            LEFT JOIN users u2 ON u2.id = p.player2_id
+            WHERE p.id = ?
+            """,
+            (session_id,),
+        ).fetchone()
+
+    return {"session": serialize_pvp_session(fresh), "user": public_user(current_user_row)}
+
+
 # ── Data routes ───────────────────────────────────────────────────────────────
 
 @app.get("/api/topics")
-def get_topics():
-    return TOPICS
+def get_topics(user: dict | None = Depends(get_optional_user)):
+    topics = [topic_payload(topic, user) for topic in TOPICS]
+    if user is not None and user.get("tutorialCompleted"):
+        return [topic for topic in topics if topic.get("unlocked")]
+    return topics
 
 
 @app.get("/api/characters")
@@ -757,12 +1365,16 @@ def get_speech_polish():
 def health():
     with db_conn() as conn:
         users = conn.execute("SELECT COUNT(*) AS c FROM users").fetchone()["c"]
+        tutorials = conn.execute("SELECT COUNT(*) AS c FROM tutorial_sessions").fetchone()["c"]
+        pvp_sessions = conn.execute("SELECT COUNT(*) AS c FROM pvp_sessions").fetchone()["c"]
     return {
         "status": "ok",
         "topics": len(TOPICS),
         "characters": len(CHARACTERS),
         "drills": len(DRILLS),
         "users": users,
+        "tutorialSessions": tutorials,
+        "pvpSessions": pvp_sessions,
     }
 
 
@@ -837,6 +1449,9 @@ def post_coach_report(req: ReportRequest, user: dict | None = Depends(get_option
     Both are returned together so the frontend can animate the rubric bars
     the moment the response arrives, before the user reads the feedback.
     """
+    if user is not None:
+        require_tutorial_completed(user)
+
     character = get_or_404(CHARACTERS, req.characterId, "Character")
     topic = get_or_404(TOPICS, req.topicId, "Topic")
     g_client = get_gemini_client()
@@ -896,9 +1511,12 @@ def post_coach_report(req: ReportRequest, user: dict | None = Depends(get_option
         "nextDrill": section("NEXT DRILL", None, ai_text),
     }
 
+    updated_user = None
+    earned_xp = 0
     if user is not None:
-        persist_training_history(
+        saved_history = persist_training_history(
             user_id=user["id"],
+            session_id=req.sessionId,
             topic=topic,
             character=character,
             side=req.side,
@@ -906,11 +1524,28 @@ def post_coach_report(req: ReportRequest, user: dict | None = Depends(get_option
             rubric=rubric,
             feedback=feedback,
         )
+        if saved_history:
+            training_result = {
+                "sessionId": req.sessionId or "",
+                "topicId": topic["id"],
+                "topicDifficulty": topic["difficulty"],
+                "rubricTotal": rubric["total"],
+            }
+            earned_xp = calculate_training_xp("debate", result=training_result)
+            with db_conn() as conn:
+                save_training_session(conn, user["id"], "debate", earned_xp, training_result)
+                fresh, _ = award_user_xp(conn, user["id"], earned_xp)
+                updated_user = public_user(fresh)
+        else:
+            with db_conn() as conn:
+                updated_user = public_user(fetch_user_row(conn, user["id"]))
 
     return {
         "rubric": rubric,
         "feedback": feedback,
         "savedToProfile": user is not None,
+        "earnedXP": earned_xp,
+        "user": updated_user,
     }
 
 

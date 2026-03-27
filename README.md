@@ -10,9 +10,14 @@ A full-stack debate practice app with AI opponents, deterministic rubric scoring
 - Deterministic rubric scoring (0-100)
 - Coach feedback generation
 - Drill assignment based on weakest rubric category
+- Three backend question banks used by tutorial placement
+- Mandatory first-time tutorial + placement flow
+- Five-level progression system with XP and topic unlocks
+- Random level-based training topic assignment with a 3-refresh limit
+- PvP matchmaking, session storage, and result reporting
 - Safety checks for user speech
 - User registration, login, logout, and session auth
-- Profile management and per-user training history
+- Profile management, per-user training history, and progression state
 
 ## Tech Stack
 
@@ -29,12 +34,23 @@ debate-app/
 │   ├── data/
 │   │   ├── topics.json
 │   │   ├── characters.json
-│   │   └── drills.json
+│   │   ├── drills.json
+│   │   ├── clash_topics.json
+│   │   ├── fallacies.json
+│   │   └── speech_polish.json
 │   ├── main.py
+│   ├── progression.py
+│   ├── tutorials.py
+│   ├── schemas.py
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
 │   │   ├── App.jsx
+│   │   ├── components/
+│   │   ├── constants/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   └── styles/
 │   │   └── main.jsx
 │   ├── index.html
 │   └── package.json
@@ -101,6 +117,13 @@ Open: `http://localhost:5173`
 | GET | `/api/topics` | List debate topics |
 | GET | `/api/characters` | List opponent personas |
 | GET | `/api/drills` | List drills |
+| GET | `/api/progression/config` | Return level, XP, and unlock configuration |
+| GET | `/api/tutorial/session` | Return or create the user's tutorial placement session |
+| POST | `/api/tutorial/complete` | Score tutorial answers and assign starting level |
+| POST | `/api/training-sessions` | Save a training result and award XP |
+| POST | `/api/pvp/match` | Create or join a PvP matchmaking session |
+| GET | `/api/pvp/sessions` | List the current user's PvP sessions |
+| POST | `/api/pvp/sessions/{id}/complete` | Save PvP result and award progression XP |
 | POST | `/api/safety-check` | Safety validation for text |
 | POST | `/api/opponent-speech` | Stream opponent response |
 | POST | `/api/coach-report` | Return rubric + coach feedback |
@@ -115,11 +138,106 @@ Open: `http://localhost:5173`
 4. Impact & Weighing
 5. Precision & Commitment
 
+## Progression System
+
+### Tutorial Placement Flow
+
+Every new user is routed into a required tutorial before normal training is unlocked.
+
+- The tutorial includes exactly one randomly selected question from each backend question bank:
+  - clash analysis
+  - fallacy identification
+  - speech quality / clarity
+- These question banks are used by the backend tutorial flow and are not exposed as standalone frontend screens.
+- Each tutorial answer is scored on:
+  - correctness
+  - reasoning quality
+  - clarity
+  - response quality
+- The three question scores are combined into a single placement score out of 100.
+- That placement score assigns the user's starting level.
+- On completion, the backend stores a `tutorial_sessions` record and updates the user with:
+  - `tutorialCompleted`
+  - `placementScore`
+  - `currentLevel`
+  - baseline XP for the assigned level
+
+### User Levels
+
+| Level | Name | XP Threshold | Topic Access |
+|---|---|---:|---|
+| 1 | Novice | 0 | Easy |
+| 2 | Speaker | 120 | Easy + Medium |
+| 3 | Debater | 300 | Medium |
+| 4 | Advocate | 550 | Medium + Hard |
+| 5 | Champion | 850 | Hard |
+
+### Topic Difficulty Unlock Rules
+
+Topic availability is enforced through progression-aware topic filtering.
+
+- Level 1: Easy only
+- Level 2: Easy and Medium
+- Level 3: Medium only
+- Level 4: Medium and Hard
+- Level 5: Hard only
+
+Each topic response also includes `allowedLevels`, so the UI can show or extend unlock logic without duplicating the backend rules.
+
+### Training and XP Progression
+
+After the tutorial, users can enter normal training.
+
+- Debate training topics are assigned randomly from the user's unlocked difficulty pool
+- Users can refresh the assigned training topic up to 3 times before locking it in
+- Full debate reports award XP through `/api/coach-report`
+- Debate-session XP uses the session grade `x` from the 0-100 rubric total:
+  - if `x < 50`, earned XP is `0`
+  - if `x >= 50`, earned XP is `y = 5(x - 50) + 10`
+- PvP results award XP when a match is completed
+- The backend also keeps a generic `/api/training-sessions` endpoint for extensible non-debate training flows
+- XP is stored per user in SQLite
+- Level promotion happens automatically when total XP crosses the configured threshold
+
+The backend stores training results in `training_sessions`, while full debate rounds still persist detailed transcript history in `training_history`.
+
+### PvP Debate Mode
+
+PvP is implemented as a progression-aware matchmaking flow.
+
+- Users join or create a waiting PvP session through `/api/pvp/match`
+- Matchmaking prefers nearby level and placement score
+- Once matched, the backend assigns:
+  - opponent
+  - topic
+  - difficulty
+  - side / position
+  - session status
+- Completed PvP rounds store:
+  - scores
+  - winner
+  - result metadata
+  - XP rewards for both players
+
+The current implementation is intentionally modular so ranking, ladders, or deeper live debate flows can be added without replacing the core session model.
+
+### Data Model Summary
+
+The backend now includes models / schemas and storage for:
+
+- `User`
+- `MiniGame`
+- `TutorialSession`
+- `TrainingSession`
+- `DebateTopic`
+- `PvPSession`
+
+SQLite tables and response payloads cover the required fields for progression, placement, topic gating, and PvP result tracking.
+
 ## Upcoming Tasks
 
 1. Voice to text / text to voice
 2. More casual topics
-3. Mini games / warm up
-4. Attitude modifier
-5. Multi-player
-6. Changing the UI
+3. Attitude modifier
+4. Live / richer multiplayer experience
+5. Changing the UI

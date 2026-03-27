@@ -71,6 +71,16 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
         <h1 style={headline}>Profile</h1>
       </div>
 
+      <div style={{ background: "#f5f5f0", borderRadius: "10px", padding: "14px 16px", marginBottom: "20px" }}>
+        <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>Progression</div>
+        <div style={{ fontSize: "15px", fontWeight: 600, color: "#1a1a1a", marginBottom: "4px" }}>
+          Level {user.currentLevel}: {user.levelName}
+        </div>
+        <div style={{ fontSize: "13px", color: "#555", lineHeight: 1.6 }}>
+          {user.totalXP} XP total · unlocked difficulties: {user.unlockedDifficulties.join(" + ")}
+        </div>
+      </div>
+
       <div style={{ background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "18px 20px", marginBottom: "20px" }}>
         <div style={{ display: "grid", gap: "10px" }}>
           <div>
