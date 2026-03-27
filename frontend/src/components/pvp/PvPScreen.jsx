@@ -1,29 +1,52 @@
 import { useEffect, useState } from "react";
+import DifficultyChip from "../common/DifficultyChip";
+import LevelBadge from "../common/LevelBadge";
 import { apiFetch } from "../../lib/api";
-import { eyebrow, eyebrowSmall, headline, pageWrap, solidBtn } from "../../styles/ui";
+import {
+  eyebrow,
+  eyebrowSmall,
+  heroCard,
+  inputStyle,
+  pageWrap,
+  sectionCard,
+  solidBtn,
+  subheadline,
+  textareaStyle,
+} from "../../styles/ui";
+
+function statusLabel(status) {
+  if (status === "matched") return { text: "Matched", bg: "#dcfce7", color: "#166534" };
+  if (status === "completed") return { text: "Completed", bg: "#eef2ff", color: "#4338ca" };
+  return { text: "Searching", bg: "#fef3c7", color: "#a16207" };
+}
 
 function SessionCard({ session, user }) {
   const mySide = session.player1Id === user.id ? session.player1Side : session.player2Side;
   const opponent = session.player1Id === user.id ? session.player2Name : session.player1Name;
+  const status = statusLabel(session.status);
 
   return (
-    <div style={{ background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "18px 20px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", marginBottom: "8px" }}>
+    <div style={{ ...sectionCard, padding: "18px 20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", marginBottom: "10px" }}>
         <div>
-          <div style={eyebrowSmall}>Session {session.status}</div>
-          <div style={{ fontSize: "16px", fontWeight: 600, color: "#1a1a1a" }}>{session.topicTitle || "Waiting for opponent…"}</div>
+          <div style={eyebrowSmall}>PvP Session</div>
+          <div style={{ fontSize: "20px", fontWeight: 800, marginTop: "6px", color: "#111827" }}>{session.topicTitle || "Waiting for opponent…"}</div>
         </div>
-        <div style={{ fontSize: "12px", color: "#666", textAlign: "right" }}>
-          {session.topicDifficulty || "Queue"}
-          <br />
-          {mySide ? `Side ${mySide}` : "Unassigned"}
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          <div style={{ padding: "7px 11px", borderRadius: "999px", background: status.bg, color: status.color, fontSize: "11px", fontWeight: 700 }}>
+            {status.text}
+          </div>
+          {session.topicDifficulty && <DifficultyChip difficulty={session.topicDifficulty} size="sm" />}
         </div>
       </div>
-      <div style={{ fontSize: "13px", color: "#555", lineHeight: 1.6 }}>
+      <div style={{ fontSize: "13px", color: "#475467", lineHeight: 1.7 }}>
         Opponent: {opponent || "Searching…"}
       </div>
+      <div style={{ fontSize: "13px", color: "#475467", lineHeight: 1.7 }}>
+        Assigned side: {mySide ? `Side ${mySide}` : "Pending"}
+      </div>
       {session.scores && (
-        <div style={{ fontSize: "13px", color: "#555", lineHeight: 1.6, marginTop: "8px" }}>
+        <div style={{ fontSize: "13px", color: "#475467", lineHeight: 1.7 }}>
           Score: {session.scores.player1} - {session.scores.player2}
         </div>
       )}
@@ -99,46 +122,87 @@ export default function PvPScreen({ user, onUserUpdated }) {
 
   return (
     <div style={pageWrap}>
-      <div style={{ marginBottom: "28px" }}>
-        <div style={eyebrow}>PvP Debate</div>
-        <h1 style={headline}>Match Against Similar Players</h1>
-        <div style={{ fontSize: "13px", color: "#666", marginTop: "8px", lineHeight: 1.6 }}>
-          Matchmaking uses your current level and placement score. Completed PvP sessions award progression XP.
+      <div style={{ ...heroCard, marginBottom: "18px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>PvP Arena</div>
+            <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
+              Challenge a nearby skill band.
+            </div>
+            <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
+              Matchmaking uses your level and placement score, then assigns a topic and side automatically.
+            </p>
+          </div>
+          <LevelBadge level={user.currentLevel} size="lg" />
         </div>
       </div>
 
-      <div style={{ background: "#f5f5f0", borderRadius: "10px", padding: "14px 16px", marginBottom: "18px", fontSize: "13px", color: "#555", lineHeight: 1.6 }}>
-        Level {user.currentLevel}: {user.levelName} · {user.totalXP} XP
+      {error && <div style={{ color: "#dc2626", fontSize: "12px", marginBottom: "12px" }}>{error}</div>}
+
+      <div style={{ ...sectionCard, padding: "22px", marginBottom: "14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", marginBottom: "16px" }}>
+          <div style={{ background: "#eef2ff", borderRadius: "18px", padding: "14px" }}>
+            <div style={eyebrowSmall}>Level</div>
+            <div style={{ fontSize: "22px", fontWeight: 800, marginTop: "8px" }}>{user.currentLevel}</div>
+          </div>
+          <div style={{ background: "#fdf2f8", borderRadius: "18px", padding: "14px" }}>
+            <div style={eyebrowSmall}>Placement</div>
+            <div style={{ fontSize: "22px", fontWeight: 800, marginTop: "8px" }}>{user.placementScore}</div>
+          </div>
+          <div style={{ background: "#ecfdf3", borderRadius: "18px", padding: "14px" }}>
+            <div style={eyebrowSmall}>Sessions</div>
+            <div style={{ fontSize: "22px", fontWeight: 800, marginTop: "8px" }}>{sessions.length}</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+          <button onClick={findMatch} disabled={busy} style={{ ...solidBtn, opacity: busy ? 0.6 : 1 }}>
+            {busy ? "Matching…" : activeSession ? "Refresh Match" : "Find Opponent"}
+          </button>
+          <button onClick={loadSessions} style={{ ...solidBtn, background: "linear-gradient(135deg, #64748b 0%, #475569 100%)", boxShadow: "0 12px 24px rgba(71, 85, 105, 0.20)" }}>
+            Refresh Sessions
+          </button>
+        </div>
       </div>
 
-      {error && <div style={{ color: "#c62828", fontSize: "12px", marginBottom: "12px" }}>{error}</div>}
-
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "18px" }}>
-        <button onClick={findMatch} disabled={busy} style={{ ...solidBtn, opacity: busy ? 0.6 : 1 }}>
-          {busy ? "Working…" : activeSession ? "Refresh Match" : "Find Match"}
-        </button>
-        <button onClick={loadSessions} style={{ ...solidBtn, background: "#555" }}>Refresh Sessions</button>
+      <div style={{ ...sectionCard, padding: "22px", marginBottom: "14px" }}>
+        <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>How PvP works</div>
+        <div style={{ display: "grid", gap: "10px" }}>
+          {[
+            "Get matched with a user near your level and placement score.",
+            "Receive a topic, difficulty, and assigned side.",
+            "Report the round result after the debate finishes.",
+            "PvP outcomes can contribute XP to progression.",
+          ].map((item, index) => (
+            <div key={item} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
+              <div style={{ width: "24px", height: "24px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", display: "grid", placeItems: "center", fontSize: "12px", fontWeight: 800, flexShrink: 0 }}>
+                {index + 1}
+              </div>
+              <div style={{ fontSize: "13px", color: "#475467", lineHeight: 1.65 }}>{item}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {loading ? (
-        <div style={{ color: "#999", fontSize: "13px" }}>Loading PvP sessions…</div>
+        <div style={{ color: "#667085", fontSize: "13px" }}>Loading PvP sessions…</div>
       ) : (
         <>
           {activeSession && (
-            <div style={{ marginBottom: "18px" }}>
+            <div style={{ marginBottom: "14px" }}>
               <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Active Session</div>
               <SessionCard session={activeSession} user={user} />
             </div>
           )}
 
           {activeSession?.status === "matched" && (
-            <div style={{ background: "#fff", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "18px 20px", marginBottom: "18px" }}>
-              <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Report Result</div>
+            <div style={{ ...sectionCard, padding: "22px", marginBottom: "14px" }}>
+              <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Report Result</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-                <input value={player1Score} onChange={(e) => setPlayer1Score(e.target.value)} placeholder="Player 1 score" type="number" style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }} />
-                <input value={player2Score} onChange={(e) => setPlayer2Score(e.target.value)} placeholder="Player 2 score" type="number" style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }} />
+                <input value={player1Score} onChange={(e) => setPlayer1Score(e.target.value)} placeholder="Player 1 score" type="number" style={inputStyle} />
+                <input value={player2Score} onChange={(e) => setPlayer2Score(e.target.value)} placeholder="Player 2 score" type="number" style={inputStyle} />
               </div>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional round notes" style={{ width: "100%", minHeight: "84px", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px", lineHeight: 1.6, resize: "vertical", boxSizing: "border-box", marginBottom: "12px" }} />
+              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional round notes" style={{ ...textareaStyle, minHeight: "92px", marginBottom: "12px" }} />
               <button onClick={submitResult} disabled={busy || player1Score === "" || player2Score === ""} style={{ ...solidBtn, opacity: busy || player1Score === "" || player2Score === "" ? 0.5 : 1 }}>
                 Submit PvP Result
               </button>
@@ -148,7 +212,7 @@ export default function PvPScreen({ user, onUserUpdated }) {
           <div>
             <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Recent Sessions</div>
             <div style={{ display: "grid", gap: "10px" }}>
-              {sessions.length === 0 && <div style={{ color: "#888", fontSize: "13px" }}>No PvP sessions yet.</div>}
+              {sessions.length === 0 && <div style={{ color: "#667085", fontSize: "13px" }}>No PvP sessions yet.</div>}
               {sessions.map((session) => (
                 <SessionCard key={session.id} session={session} user={user} />
               ))}

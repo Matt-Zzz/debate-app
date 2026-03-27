@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DIFF_COLOR } from "../../constants/debate";
 import { apiFetch } from "../../lib/api";
-import { cardBtn, eyebrow, eyebrowSmall, headline, pageWrap, solidBtn } from "../../styles/ui";
+import { cardBtn, eyebrow, eyebrowSmall, heroCard, pageWrap, sectionCard, solidBtn, textareaStyle } from "../../styles/ui";
 
 function Skeleton({ width = "100%", height = "14px", style = {} }) {
   return (
@@ -21,7 +21,7 @@ function Skeleton({ width = "100%", height = "14px", style = {} }) {
 
 function RubricSkeleton() {
   return (
-    <div style={{ background: "#fafafa", border: "1px solid #eee", borderRadius: "10px", padding: "20px 24px", marginBottom: "16px" }}>
+    <div style={{ ...sectionCard, padding: "20px 24px", marginBottom: "16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "18px" }}>
         <Skeleton width="80px" height="11px" />
         <Skeleton width="64px" height="36px" style={{ borderRadius: "6px" }} />
@@ -60,10 +60,10 @@ function RubricDisplay({ rubric }) {
   const scoreColor = total >= 80 ? "#2e7d32" : total >= 60 ? "#e65100" : total >= 40 ? "#b8860b" : "#c62828";
 
   return (
-    <div style={{ background: "#fafafa", border: "1px solid #eee", borderRadius: "10px", padding: "20px 24px", marginBottom: "16px" }}>
+    <div style={{ ...sectionCard, padding: "20px 24px", marginBottom: "16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
         <div style={eyebrowSmall}>Rubric Score</div>
-        <div style={{ fontSize: "2.2rem", fontFamily: "'DM Mono', monospace", fontWeight: 300, color: scoreColor }}>
+        <div style={{ fontSize: "2.2rem", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, color: scoreColor }}>
           {total}
           <span style={{ fontSize: "1rem", color: "#aaa" }}>/100</span>
         </div>
@@ -117,18 +117,18 @@ function DrillPanel({ drill, sessionId, onComplete }) {
   }
 
   return (
-    <div style={{ background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "20px 24px" }}>
+    <div style={{ ...sectionCard, padding: "20px 24px" }}>
       <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>{drill.tag} · Next Drill</div>
-      <div style={{ fontSize: "17px", fontWeight: 600, fontFamily: "'Playfair Display', serif", marginBottom: "6px" }}>{drill.name}</div>
+      <div style={{ fontSize: "20px", fontWeight: 700, fontFamily: "'Fraunces', serif", marginBottom: "6px" }}>{drill.name}</div>
       <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.55, marginBottom: "16px" }}>{drill.instructions}</div>
       {drill.questions.map((question, index) => (
         <div key={index} style={{ marginBottom: "12px" }}>
-          <div style={{ fontSize: "12px", color: "#888", marginBottom: "4px", fontFamily: "'DM Mono', monospace" }}>Q{index + 1}. {question}</div>
+          <div style={{ fontSize: "12px", color: "#888", marginBottom: "4px", fontFamily: "'JetBrains Mono', monospace" }}>Q{index + 1}. {question}</div>
           <textarea
             value={answers[index] || ""}
             onChange={(e) => setAnswers((prev) => ({ ...prev, [index]: e.target.value }))}
             placeholder="Your answer…"
-            style={{ width: "100%", minHeight: "64px", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "13px", lineHeight: 1.55, resize: "vertical", fontFamily: "'DM Sans', sans-serif", background: "#fff", boxSizing: "border-box" }}
+            style={{ ...textareaStyle, minHeight: "64px", background: "#fff" }}
           />
         </div>
       ))}
@@ -182,10 +182,10 @@ export default function ReportScreen({ config, transcript, onNew, onUserUpdated 
 
   return (
     <div style={pageWrap}>
-      <div style={{ marginBottom: "36px" }}>
-        <div style={eyebrow}>Session Complete</div>
-        <h1 style={headline}>Coach Report</h1>
-        <div style={{ fontSize: "13px", color: "#888", marginTop: "6px" }}>
+      <div style={{ ...heroCard, marginBottom: "18px" }}>
+        <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Session Complete</div>
+        <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>Coach Report</div>
+        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.84)", marginTop: "10px", lineHeight: 1.7 }}>
           {topic.title.slice(0, 55)}… · <span style={{ color: DIFF_COLOR[topic.difficulty] }}>{topic.difficulty}</span> · {sideData.position} · vs {character.name}
         </div>
       </div>
@@ -214,7 +214,7 @@ export default function ReportScreen({ config, transcript, onNew, onUserUpdated 
         </div>
       ) : !fetchError && <FeedbackSkeleton />}
 
-      <div style={{ padding: "14px 18px", background: "#fafafa", border: "1px solid #eee", borderRadius: "8px", marginBottom: "20px" }}>
+      <div style={{ ...sectionCard, padding: "14px 18px", marginBottom: "20px" }}>
         <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>{character.avatar} What convinces {character.name}</div>
         {character.convincedBy.map((item, index) => (
           <div key={index} style={{ fontSize: "12px", color: "#555", marginBottom: "2px" }}>

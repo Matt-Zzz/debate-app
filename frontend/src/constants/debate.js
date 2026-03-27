@@ -12,4 +12,20 @@ export const DIFF_COLOR = {
   Hard: "#c62828",
 };
 
+export const LEVEL_NAMES = {
+  1: "Novice",
+  2: "Speaker",
+  3: "Debater",
+  4: "Advocate",
+  5: "Champion",
+};
+
+export const LEVEL_XP_THRESHOLDS = {
+  1: 0,
+  2: 120,
+  3: 300,
+  4: 550,
+  5: 850,
+};
+
 export const TRAINING_TOPIC_REFRESH_LIMIT = 3;

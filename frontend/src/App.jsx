@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import AuthScreen from "./components/auth/AuthScreen";
+import BottomNav from "./components/common/BottomNav";
 import DebateScreen from "./components/debate/DebateScreen";
 import ProfileScreen from "./components/profile/ProfileScreen";
 import PvPScreen from "./components/pvp/PvPScreen";
@@ -7,7 +8,7 @@ import ReportScreen from "./components/report/ReportScreen";
 import SetupScreen from "./components/setup/SetupScreen";
 import TutorialPlacementScreen from "./components/tutorial/TutorialPlacementScreen";
 import { apiFetch, getAuthToken, setAuthToken } from "./lib/api";
-import { appSurface, baseStyles, loadingSurface, solidBtn } from "./styles/ui";
+import { appSurface, baseStyles, loadingSurface } from "./styles/ui";
 
 export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
@@ -81,25 +82,11 @@ export default function App() {
     );
   }
 
+  const showBottomNav = screen === "setup" || screen === "pvp" || screen === "profile";
+
   return (
     <div style={appSurface}>
       <style>{baseStyles}</style>
-
-      <div style={{ borderBottom: "1px solid #eee", background: "#fff", position: "sticky", top: 0, zIndex: 20 }}>
-        <div style={{ maxWidth: "760px", margin: "0 auto", padding: "10px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-          <div style={{ fontSize: "12px", color: "#666", lineHeight: 1.6 }}>
-            Signed in as <span style={{ fontWeight: 600 }}>{user.name}</span>
-            <br />
-            Level {user.currentLevel}: {user.levelName} · {user.totalXP} XP
-          </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button onClick={() => setScreen("pvp")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "pvp" ? "#1a1a1a" : "#555" }}>PvP</button>
-            <button onClick={() => setScreen("setup")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "setup" ? "#1a1a1a" : "#555" }}>Sessions</button>
-            <button onClick={() => setScreen("profile")} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: screen === "profile" ? "#1a1a1a" : "#555" }}>Profile</button>
-            <button onClick={signOut} style={{ ...solidBtn, padding: "7px 12px", fontSize: "11px", background: "#8b0000" }}>Sign out</button>
-          </div>
-        </div>
-      </div>
 
       {screen === "pvp" && <PvPScreen user={user} onUserUpdated={setUser} />}
       {screen === "setup" && <SetupScreen user={user} onStart={(nextConfig) => { setConfig(nextConfig); setScreen("debate"); }} />}
@@ -112,7 +99,8 @@ export default function App() {
           onUserUpdated={setUser}
         />
       )}
-      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("setup")} onSignOut={finishSignOut} />}
+      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("setup")} onSignOut={signOut} />}
+      {showBottomNav && <BottomNav screen={screen} onNavigate={setScreen} />}
     </div>
   );
 }

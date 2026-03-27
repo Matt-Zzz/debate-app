@@ -1,8 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../../lib/api";
-import { eyebrow, headline, pageWrap, solidBtn } from "../../styles/ui";
+import {
+  eyebrow,
+  heroCard,
+  inputStyle,
+  pageWrap,
+  secondaryBtn,
+  sectionCard,
+  solidBtn,
+  subheadline,
+} from "../../styles/ui";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
+
+const featureCards = [
+  { title: "Tutorial Placement", text: "Get placed into the right level from your first session." },
+  { title: "Training XP", text: "Unlock tougher debate topics as your sessions improve." },
+  { title: "PvP Arena", text: "Match with nearby skill levels and track results." },
+];
 
 export default function AuthScreen({ onAuth }) {
   const [mode, setMode] = useState("signin");
@@ -45,7 +60,7 @@ export default function AuthScreen({ onAuth }) {
         type: "standard",
         theme: "outline",
         size: "large",
-        width: 300,
+        width: 320,
         text: "signin_with",
       });
     };
@@ -87,77 +102,89 @@ export default function AuthScreen({ onAuth }) {
   };
 
   return (
-    <div style={pageWrap}>
-      <div style={{ maxWidth: "460px", margin: "0 auto" }}>
-        <div style={{ marginBottom: "28px" }}>
-          <div style={eyebrow}>Debate Simulator</div>
-          <h1 style={headline}>{isSignIn ? "Sign in" : "Create account"}</h1>
+    <div style={{ ...pageWrap, minHeight: "100vh", display: "flex", alignItems: "center" }}>
+      <div style={{ width: "100%", display: "grid", gap: "18px", maxWidth: "560px", margin: "0 auto" }}>
+        <div style={heroCard}>
+          <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>DebateHub</div>
+          <h1 style={{ margin: "10px 0 8px", fontSize: "clamp(2.3rem, 8vw, 3.5rem)", lineHeight: 0.98, fontFamily: "'Fraunces', serif" }}>
+            Master debate through deliberate practice.
+          </h1>
+          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)", marginTop: "12px" }}>
+            Tutorial placement, progression-based training, and PvP sessions in one mobile-first flow.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginTop: "18px" }}>
+            {featureCards.map((item) => (
+              <div
+                key={item.title}
+                style={{
+                  background: "rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(255,255,255,0.16)",
+                  borderRadius: "18px",
+                  padding: "12px",
+                  minHeight: "110px",
+                }}
+              >
+                <div style={{ fontSize: "13px", fontWeight: 800, marginBottom: "6px" }}>{item.title}</div>
+                <div style={{ fontSize: "12px", lineHeight: 1.55, color: "rgba(255,255,255,0.82)" }}>{item.text}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div style={{ background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "18px 20px" }}>
-          {!isSignIn && (
-            <div style={{ marginBottom: "10px" }}>
-              <div style={{ fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa", fontFamily: "'DM Mono', monospace", marginBottom: "4px" }}>Name</div>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your name"
-                style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }}
-              />
+        <div style={{ ...sectionCard, padding: "22px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", marginBottom: "18px" }}>
+            <div>
+              <div style={eyebrow}>{isSignIn ? "Welcome Back" : "Create Account"}</div>
+              <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "8px", color: "#111827" }}>
+                {isSignIn ? "Sign in to continue" : "Start your debate path"}
+              </div>
             </div>
-          )}
-
-          <div style={{ marginBottom: "10px" }}>
-            <div style={{ fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa", fontFamily: "'DM Mono', monospace", marginBottom: "4px" }}>Email</div>
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              type="email"
-              style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }}
-            />
-          </div>
-
-          <div style={{ marginBottom: "12px" }}>
-            <div style={{ fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase", color: "#aaa", fontFamily: "'DM Mono', monospace", marginBottom: "4px" }}>Password</div>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={isSignIn ? "Your password" : "At least 8 characters"}
-              type="password"
-              style={{ width: "100%", padding: "10px 12px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "14px" }}
-            />
-          </div>
-
-          {error && (
-            <div style={{ fontSize: "12px", color: "#c62828", marginBottom: "12px" }}>
-              {error}
-            </div>
-          )}
-
-          <button onClick={submit} disabled={busy} style={{ ...solidBtn, width: "100%", opacity: busy ? 0.7 : 1 }}>
-            {busy ? "Please wait…" : (isSignIn ? "Sign in" : "Create account")}
-          </button>
-
-          {isSignIn && GOOGLE_CLIENT_ID && (
-            <>
-              <div style={{ fontSize: "11px", color: "#aaa", textAlign: "center", margin: "12px 0 8px" }}>or</div>
-              <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center" }} />
-            </>
-          )}
-
-          <div style={{ marginTop: "12px", fontSize: "12px", color: "#666" }}>
-            {isSignIn ? "No account yet?" : "Already have an account?"}{" "}
             <button
               onClick={() => {
                 setMode(isSignIn ? "signup" : "signin");
                 setError("");
               }}
-              style={{ border: "none", background: "none", color: "#1a1a1a", cursor: "pointer", fontWeight: 600, padding: 0 }}
+              style={secondaryBtn}
             >
-              {isSignIn ? "Create one" : "Sign in"}
+              {isSignIn ? "Create account" : "Sign in"}
             </button>
           </div>
+
+          {!isSignIn && (
+            <div style={{ marginBottom: "12px" }}>
+              <div style={{ ...eyebrow, marginBottom: "6px" }}>Name</div>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your display name" style={inputStyle} />
+            </div>
+          )}
+
+          <div style={{ marginBottom: "12px" }}>
+            <div style={{ ...eyebrow, marginBottom: "6px" }}>Email</div>
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" type="email" style={inputStyle} />
+          </div>
+
+          <div style={{ marginBottom: "14px" }}>
+            <div style={{ ...eyebrow, marginBottom: "6px" }}>Password</div>
+            <input
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={isSignIn ? "Your password" : "At least 8 characters"}
+              type="password"
+              style={inputStyle}
+            />
+          </div>
+
+          {error && <div style={{ fontSize: "12px", color: "#dc2626", marginBottom: "12px" }}>{error}</div>}
+
+          <button onClick={submit} disabled={busy} style={{ ...solidBtn, width: "100%", opacity: busy ? 0.72 : 1 }}>
+            {busy ? "Please wait…" : isSignIn ? "Sign in" : "Create account"}
+          </button>
+
+          {isSignIn && GOOGLE_CLIENT_ID && (
+            <>
+              <div style={{ fontSize: "11px", color: "#94a3b8", textAlign: "center", margin: "14px 0 10px" }}>or continue with</div>
+              <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center" }} />
+            </>
+          )}
         </div>
       </div>
     </div>

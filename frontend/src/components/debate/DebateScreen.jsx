@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FORMAT } from "../../constants/debate";
 import useSpeechToText from "../../hooks/useSpeechToText";
 import { apiFetch, streamOpponentSpeech } from "../../lib/api";
-import { eyebrow, eyebrowSmall, pageWrap, solidBtn } from "../../styles/ui";
+import { eyebrow, eyebrowSmall, heroCard, pageWrap, sectionCard, solidBtn, textareaStyle } from "../../styles/ui";
 import Timer from "../common/Timer";
 
 function MicPermissionModal({ onAllow, onDismiss }) {
@@ -234,15 +234,17 @@ export default function DebateScreen({ config, onComplete }) {
         />
       )}
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+      <div style={{ ...heroCard, marginBottom: "18px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px", flexWrap: "wrap" }}>
         <div>
-          <div style={eyebrow}>vs {character.avatar} {character.name}</div>
-          <div style={{ fontSize: "13px", color: "#555", maxWidth: "440px", lineHeight: 1.5, marginTop: "3px" }}>{topic.title}</div>
+          <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>vs {character.avatar} {character.name}</div>
+          <div style={{ fontSize: "14px", color: "rgba(255,255,255,0.86)", maxWidth: "440px", lineHeight: 1.7, marginTop: "6px" }}>{topic.title}</div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ ...eyebrow, textAlign: "right" }}>Side {side}: {sideData.position}</div>
-          <div style={{ fontSize: "11px", color: "#bbb", marginTop: "2px" }}>Stage {idx + 1}/{FORMAT.length}</div>
+          <div style={{ ...eyebrow, textAlign: "right", color: "rgba(255,255,255,0.72)" }}>Side {side}: {sideData.position}</div>
+          <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.72)", marginTop: "4px" }}>Stage {idx + 1}/{FORMAT.length}</div>
         </div>
+      </div>
       </div>
 
       <div style={{ display: "flex", gap: "4px", marginBottom: "20px" }}>
@@ -259,7 +261,7 @@ export default function DebateScreen({ config, onComplete }) {
         </div>
       )}
 
-      <div style={{ background: "#fafafa", border: "1px solid #e8e8e8", borderRadius: "10px", padding: "22px 26px", marginBottom: "16px" }}>
+      <div style={{ ...sectionCard, padding: "22px 26px", marginBottom: "16px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
           <div style={{ flex: 1 }}>
             <h2 style={{ margin: 0, fontSize: "17px", fontWeight: 600, fontFamily: "'Playfair Display', serif" }}>{stage.name}</h2>
@@ -284,18 +286,10 @@ export default function DebateScreen({ config, onComplete }) {
               }}
               placeholder={listening ? "Listening - speak your argument…" : "Type your argument, or click Use Voice to speak…"}
               style={{
-                width: "100%",
-                minHeight: "110px",
-                padding: "12px 14px",
-                border: `1px solid ${listening ? "#c62828" : "#ddd"}`,
-                borderRadius: "6px",
-                fontSize: "14px",
-                lineHeight: 1.65,
-                resize: "vertical",
-                fontFamily: "'DM Sans', sans-serif",
+                ...textareaStyle,
+                border: `1px solid ${listening ? "#dc2626" : "rgba(99, 102, 241, 0.16)"}`,
                 background: listening ? "#fff8f8" : "#fff",
                 marginBottom: "12px",
-                boxSizing: "border-box",
                 transition: "border-color 0.2s, background 0.2s",
               }}
             />
@@ -323,7 +317,7 @@ export default function DebateScreen({ config, onComplete }) {
 
         {!stageDone && !isUser && (streaming || streamedText) && (
           <>
-            <div style={{ background: "#fff", border: "1px solid #ddd", borderRadius: "6px", padding: "14px 16px", marginBottom: "12px" }}>
+            <div style={{ background: "#fff", border: "1px solid rgba(99, 102, 241, 0.14)", borderRadius: "18px", padding: "14px 16px", marginBottom: "12px" }}>
               <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>{character.avatar} {character.name}</div>
               <div className={streaming ? "stream-cursor" : ""} style={{ fontSize: "14px", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>
                 {streamedText}
@@ -341,11 +335,11 @@ export default function DebateScreen({ config, onComplete }) {
         )}
       </div>
 
-      <div style={{ background: "#fafafa", border: "1px solid #f0f0f0", borderRadius: "8px", padding: "12px 16px", marginBottom: "16px" }}>
+      <div style={{ ...sectionCard, padding: "12px 16px", marginBottom: "16px" }}>
         <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>Watch out - {character.name} will flag:</div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
           {character.fallaciesDetected.slice(0, 5).map((fallacy, index) => (
-            <div key={index} style={{ fontSize: "11px", padding: "3px 10px", background: "#fff", border: "1px solid #e8e8e8", borderRadius: "20px", color: "#555" }}>{fallacy}</div>
+            <div key={index} style={{ fontSize: "11px", padding: "5px 10px", background: "#fff", border: "1px solid rgba(99, 102, 241, 0.12)", borderRadius: "999px", color: "#555" }}>{fallacy}</div>
           ))}
         </div>
       </div>
