@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import AuthScreen from "./components/auth/AuthScreen";
 import BottomNav from "./components/common/BottomNav";
 import DebateScreen from "./components/debate/DebateScreen";
+import HomeScreen from "./components/home/HomeScreen";
 import ProfileScreen from "./components/profile/ProfileScreen";
 import PvPScreen from "./components/pvp/PvPScreen";
 import ReportScreen from "./components/report/ReportScreen";
@@ -13,7 +14,7 @@ import { appSurface, baseStyles, loadingSurface } from "./styles/ui";
 export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
-  const [screen, setScreen] = useState("setup");
+  const [screen, setScreen] = useState("home");
   const [config, setConfig] = useState(null);
   const [transcript, setTranscript] = useState([]);
 
@@ -35,7 +36,7 @@ export default function App() {
   const finishSignOut = () => {
     setAuthToken("");
     setUser(null);
-    setScreen("setup");
+    setScreen("home");
     setConfig(null);
     setTranscript([]);
   };
@@ -50,7 +51,7 @@ export default function App() {
   const handleAuth = ({ token, user: nextUser }) => {
     setAuthToken(token);
     setUser(nextUser);
-    setScreen("setup");
+    setScreen("home");
     setConfig(null);
     setTranscript([]);
   };
@@ -77,29 +78,30 @@ export default function App() {
     return (
       <div style={appSurface}>
         <style>{baseStyles}</style>
-        <TutorialPlacementScreen onComplete={(nextUser) => { setUser(nextUser); setScreen("setup"); }} />
+        <TutorialPlacementScreen onComplete={(nextUser) => { setUser(nextUser); setScreen("home"); }} />
       </div>
     );
   }
 
-  const showBottomNav = screen === "setup" || screen === "pvp" || screen === "profile";
+  const showBottomNav = screen === "home" || screen === "training" || screen === "pvp" || screen === "profile";
 
   return (
     <div style={appSurface}>
       <style>{baseStyles}</style>
 
+      {screen === "home" && <HomeScreen user={user} onNavigate={setScreen} />}
       {screen === "pvp" && <PvPScreen user={user} onUserUpdated={setUser} />}
-      {screen === "setup" && <SetupScreen user={user} onStart={(nextConfig) => { setConfig(nextConfig); setScreen("debate"); }} />}
+      {screen === "training" && <SetupScreen user={user} onStart={(nextConfig) => { setConfig(nextConfig); setScreen("debate"); }} />}
       {screen === "debate" && config && <DebateScreen config={config} onComplete={(nextTranscript) => { setTranscript(nextTranscript); setScreen("report"); }} />}
       {screen === "report" && config && (
         <ReportScreen
           config={config}
           transcript={transcript}
-          onNew={() => { setConfig(null); setTranscript([]); setScreen("setup"); }}
+          onNew={() => { setConfig(null); setTranscript([]); setScreen("training"); }}
           onUserUpdated={setUser}
         />
       )}
-      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("setup")} onSignOut={signOut} />}
+      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("home")} onSignOut={signOut} />}
       {showBottomNav && <BottomNav screen={screen} onNavigate={setScreen} />}
     </div>
   );

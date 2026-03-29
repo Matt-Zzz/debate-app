@@ -13,7 +13,6 @@ import {
   sectionCard,
   solidBtn,
   subheadline,
-  tabStyle,
 } from "../../styles/ui";
 
 function pickRandomTopic(topics, excludeId = null) {
@@ -45,7 +44,6 @@ export default function SetupScreen({ onStart, user }) {
   const [topics, setTopics] = useState([]);
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState(0);
   const [topic, setTopic] = useState(null);
   const [char, setChar] = useState(null);
   const [side, setSide] = useState(null);
@@ -62,8 +60,6 @@ export default function SetupScreen({ onStart, user }) {
       .catch(() => setLoading(false));
   }, []);
 
-  const done = [!!topic, !!char, !!side];
-
   const refreshTopic = () => {
     if (refreshesLeft <= 0) return;
     const nextTopic = pickRandomTopic(topics, topic?.id || null);
@@ -74,7 +70,7 @@ export default function SetupScreen({ onStart, user }) {
   };
 
   if (loading) {
-    return <div style={{ ...pageWrap, color: "#667085", fontFamily: "'JetBrains Mono', monospace", fontSize: "13px" }}>Loading sessions…</div>;
+    return <div style={{ ...pageWrap, color: "#667085", fontFamily: "'JetBrains Mono', monospace", fontSize: "13px" }}>Loading training…</div>;
   }
 
   return (
@@ -84,10 +80,10 @@ export default function SetupScreen({ onStart, user }) {
           <div style={{ maxWidth: "460px" }}>
             <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Training Sessions</div>
             <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
-              Configure your next debate.
+              Set up your next training run.
             </div>
             <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
-              Topics are assigned from your unlocked difficulty pool. Lock the topic, choose your opponent, then pick a side.
+              Your topic pool is already folded into training. Choose a prompt, select an opponent profile, and lock the side you want to sharpen.
             </p>
           </div>
           <LevelBadge level={user.currentLevel} size="lg" />
@@ -105,71 +101,53 @@ export default function SetupScreen({ onStart, user }) {
         </div>
       </div>
 
-      <div style={{ ...sectionCard, padding: "10px", marginBottom: "18px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-        {["Topic", "Opponent", "Side"].map((label, index) => (
-          <button key={label} onClick={() => setStep(index)} style={tabStyle(step === index, done[index])}>
-            {done[index] ? "✓ " : ""}
-            {label}
-          </button>
-        ))}
+      <div style={{ ...sectionCard, padding: "18px 20px", marginBottom: "14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", flexWrap: "wrap" }}>
+          <div>
+            <div style={eyebrowSmall}>Assigned Topic</div>
+            <div style={{ fontSize: "26px", lineHeight: 1.15, fontWeight: 800, color: "#111827", marginTop: "8px", maxWidth: "520px" }}>
+              {topic ? topic.title : "No topic available"}
+            </div>
+          </div>
+          {topic?.difficulty && <DifficultyChip difficulty={topic.difficulty} />}
+        </div>
+
+        {topic && (
+          <>
+            <div style={{ fontSize: "14px", color: "#475467", lineHeight: 1.75, marginTop: "12px", marginBottom: "14px" }}>
+              {topic.description}
+            </div>
+            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+              <div style={{ padding: "7px 11px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", fontSize: "11px", fontWeight: 700 }}>
+                Tag: {topic.tag}
+              </div>
+              <div style={{ padding: "7px 11px", borderRadius: "999px", background: "#f8fafc", color: "#475467", fontSize: "11px", fontWeight: 700 }}>
+                Refreshes left: {refreshesLeft}/{TRAINING_TOPIC_REFRESH_LIMIT}
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
-      {step === 0 && (
-        <>
-          <div style={{ ...sectionCard, padding: "18px 20px", marginBottom: "14px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", flexWrap: "wrap" }}>
-              <div>
-                <div style={eyebrowSmall}>Assigned Topic</div>
-                <div style={{ fontSize: "26px", lineHeight: 1.15, fontWeight: 800, color: "#111827", marginTop: "8px", maxWidth: "520px" }}>
-                  {topic ? topic.title : "No topic available"}
-                </div>
-              </div>
-              {topic?.difficulty && <DifficultyChip difficulty={topic.difficulty} />}
-            </div>
+      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "18px" }}>
+        <button
+          onClick={refreshTopic}
+          disabled={!topic || refreshesLeft <= 0}
+          style={{ ...solidBtn, background: "linear-gradient(135deg, #64748b 0%, #475569 100%)", boxShadow: "0 12px 24px rgba(71, 85, 105, 0.20)", opacity: !topic || refreshesLeft <= 0 ? 0.5 : 1 }}
+        >
+          Refresh Topic
+        </button>
+      </div>
 
-            {topic && (
-              <>
-                <div style={{ fontSize: "14px", color: "#475467", lineHeight: 1.75, marginTop: "12px", marginBottom: "14px" }}>
-                  {topic.description}
-                </div>
-                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                  <div style={{ padding: "7px 11px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", fontSize: "11px", fontWeight: 700 }}>
-                    Tag: {topic.tag}
-                  </div>
-                  <div style={{ padding: "7px 11px", borderRadius: "999px", background: "#f8fafc", color: "#475467", fontSize: "11px", fontWeight: 700 }}>
-                    Refreshes left: {refreshesLeft}/{TRAINING_TOPIC_REFRESH_LIMIT}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <button
-              onClick={refreshTopic}
-              disabled={!topic || refreshesLeft <= 0}
-              style={{ ...solidBtn, background: "linear-gradient(135deg, #64748b 0%, #475569 100%)", boxShadow: "0 12px 24px rgba(71, 85, 105, 0.20)", opacity: !topic || refreshesLeft <= 0 ? 0.5 : 1 }}
-            >
-              Refresh Topic
-            </button>
-            <button onClick={() => setStep(1)} disabled={!topic} style={{ ...solidBtn, opacity: topic ? 1 : 0.5 }}>
-              Lock Topic
-            </button>
-          </div>
-        </>
-      )}
-
-      {step === 1 && (
+      <div style={{ marginBottom: "18px" }}>
+        <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Opponent</div>
         <div style={{ display: "grid", gap: "12px" }}>
           {characters.map((character) => {
             const active = char?.id === character.id;
             return (
               <button
                 key={character.id}
-                onClick={() => {
-                  setChar(character);
-                  setStep(2);
-                }}
+                onClick={() => setChar(character)}
                 style={cardBtn(active)}
               >
                 <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
@@ -189,12 +167,12 @@ export default function SetupScreen({ onStart, user }) {
             );
           })}
         </div>
-      )}
+      </div>
 
-      {step === 2 && topic && (
+      {topic && (
         <div style={{ display: "grid", gap: "12px" }}>
           <div style={{ ...sectionCard, padding: "18px 20px" }}>
-            <div style={eyebrowSmall}>Locked Topic</div>
+            <div style={eyebrowSmall}>Choose Your Side</div>
             <div style={{ fontSize: "22px", lineHeight: 1.2, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "8px" }}>{topic.title}</div>
           </div>
           {["A", "B"].map((nextSide) => {
@@ -217,9 +195,9 @@ export default function SetupScreen({ onStart, user }) {
         </div>
       )}
 
-      {done.every(Boolean) && (
-        <button onClick={() => onStart({ topic, character: char, side, sessionId: `session-${Date.now()}` })} style={{ ...solidBtn, marginTop: "20px" }}>
-          Begin Session
+      {!!topic && !!char && !!side && (
+        <button onClick={() => onStart({ topic, character: char, side, sessionId: `training-${Date.now()}` })} style={{ ...solidBtn, marginTop: "20px" }}>
+          Begin Training
         </button>
       )}
     </div>

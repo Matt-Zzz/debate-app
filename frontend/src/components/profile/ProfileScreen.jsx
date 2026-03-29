@@ -118,7 +118,7 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
               <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "8px" }}>{user.placementScore}</div>
             </div>
             <div style={{ background: "#ecfdf3", borderRadius: "18px", padding: "14px", border: "1px solid rgba(34,197,94,0.12)" }}>
-              <div style={eyebrowSmall}>Sessions</div>
+              <div style={eyebrowSmall}>Training Runs</div>
               <div style={{ fontSize: "24px", fontWeight: 800, marginTop: "8px" }}>{history.length}</div>
             </div>
             <div style={{ background: "#fff7ed", borderRadius: "18px", padding: "14px", border: "1px solid rgba(249,115,22,0.12)" }}>
@@ -168,7 +168,7 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
       <div style={{ ...sectionCard, padding: "22px", marginBottom: "14px" }}>
         <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Training History</div>
         {loadingHistory && <div style={{ color: "#667085", fontSize: "13px" }}>Loading history…</div>}
-        {!loadingHistory && history.length === 0 && <div style={{ color: "#667085", fontSize: "13px" }}>No training sessions saved yet.</div>}
+        {!loadingHistory && history.length === 0 && <div style={{ color: "#667085", fontSize: "13px" }}>No training runs saved yet.</div>}
         {!loadingHistory && history.length > 0 && (
           <div style={{ display: "grid", gap: "10px" }}>
             {history.map((item) => (
@@ -198,7 +198,7 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
         )}
       </div>
 
-      <button onClick={onBack} style={secondaryBtn}>Back to sessions</button>
+      <button onClick={onBack} style={secondaryBtn}>Back home</button>
     </div>
   );
 }
