@@ -13,11 +13,11 @@ export const DIFF_COLOR = {
 };
 
 export const LEVEL_NAMES = {
-  1: "Novice",
-  2: "Speaker",
-  3: "Debater",
-  4: "Advocate",
-  5: "Champion",
+  1: "Iron",
+  2: "Silver",
+  3: "Gold",
+  4: "Diamond",
+  5: "Master",
 };
 
 export const LEVEL_XP_THRESHOLDS = {

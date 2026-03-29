@@ -14,6 +14,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, AsyncIterator, Optional, Union
+from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -209,6 +210,10 @@ def init_db() -> None:
         ensure_column(conn, "users", "total_xp", "INTEGER NOT NULL DEFAULT 0")
         ensure_column(conn, "users", "tutorial_completed", "INTEGER NOT NULL DEFAULT 0")
         ensure_column(conn, "users", "placement_score", "INTEGER NOT NULL DEFAULT 0")
+        ensure_column(conn, "users", "profile_image_url", "TEXT")
+        ensure_column(conn, "users", "location", "TEXT")
+        ensure_column(conn, "users", "headline", "TEXT")
+        ensure_column(conn, "users", "bio", "TEXT")
         ensure_column(conn, "training_history", "session_id", "TEXT")
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_training_history_user_session ON training_history(user_id, session_id)"
@@ -228,6 +233,42 @@ def api_error(status_code: int, message: str) -> None:
 
 def normalize_email(email: str) -> str:
     return email.strip().lower()
+
+
+def normalize_optional_text(value: str, field_name: str, max_length: int) -> str | None:
+    trimmed = value.strip()
+    if not trimmed:
+        return None
+    if len(trimmed) > max_length:
+        api_error(400, f"{field_name} must be {max_length} characters or fewer")
+    return trimmed
+
+
+def normalize_optional_url(value: str, field_name: str, max_length: int = 500) -> str | None:
+    trimmed = value.strip()
+    if not trimmed:
+        return None
+    if len(trimmed) > max_length:
+        api_error(400, f"{field_name} must be {max_length} characters or fewer")
+    parsed = urlparse(trimmed)
+    if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+        api_error(400, f"{field_name} must be a valid http or https URL")
+    return trimmed
+
+
+def normalize_profile_image(value: str) -> str | None:
+    trimmed = value.strip()
+    if not trimmed:
+        return None
+
+    if trimmed.startswith("data:image/"):
+        if len(trimmed) > 2_000_000:
+            api_error(400, "Profile image is too large")
+        if not re.fullmatch(r"data:image/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+/=]+", trimmed):
+            api_error(400, "Profile image must be a valid PNG, JPEG, WEBP, or GIF upload")
+        return trimmed
+
+    return normalize_optional_url(trimmed, "Profile image URL")
 
 
 def hash_password(password: str, salt: str | None = None) -> str:
@@ -286,6 +327,10 @@ def public_user(row: sqlite3.Row | dict) -> dict:
         "id": row["id"],
         "email": row["email"],
         "name": row["name"],
+        "profileImageUrl": row["profile_image_url"],
+        "location": row["location"],
+        "headline": row["headline"],
+        "bio": row["bio"],
         "currentLevel": snapshot["currentLevel"],
         "levelName": snapshot["levelName"],
         "totalXP": snapshot["totalXP"],
@@ -658,6 +703,10 @@ class GoogleLoginRequest(BaseModel):
 class AccountUpdateRequest(BaseModel):
     name: str | None = None
     email: str | None = None
+    profileImageUrl: str | None = None
+    location: str | None = None
+    headline: str | None = None
+    bio: str | None = None
     currentPassword: str | None = None
     newPassword: str | None = None
 
@@ -873,6 +922,18 @@ def update_me(req: AccountUpdateRequest, user: dict = Depends(get_current_user))
             if exists:
                 api_error(409, "Email is already in use")
             updates["email"] = email
+
+        if req.profileImageUrl is not None:
+            updates["profile_image_url"] = normalize_profile_image(req.profileImageUrl)
+
+        if req.location is not None:
+            updates["location"] = normalize_optional_text(req.location, "Location", 80)
+
+        if req.headline is not None:
+            updates["headline"] = normalize_optional_text(req.headline, "Headline", 120)
+
+        if req.bio is not None:
+            updates["bio"] = normalize_optional_text(req.bio, "Bio", 280)
 
         if req.newPassword:
             if len(req.newPassword) < 8:

@@ -3,11 +3,11 @@ from __future__ import annotations
 from typing import Any
 
 LEVELS = {
-    1: {"name": "Novice", "difficulties": ["Easy"]},
-    2: {"name": "Speaker", "difficulties": ["Easy", "Medium"]},
-    3: {"name": "Debater", "difficulties": ["Medium"]},
-    4: {"name": "Advocate", "difficulties": ["Medium", "Hard"]},
-    5: {"name": "Champion", "difficulties": ["Hard"]},
+    1: {"name": "Iron", "difficulties": ["Easy"]},
+    2: {"name": "Silver", "difficulties": ["Easy", "Medium"]},
+    3: {"name": "Gold", "difficulties": ["Medium"]},
+    4: {"name": "Diamond", "difficulties": ["Medium", "Hard"]},
+    5: {"name": "Master", "difficulties": ["Hard"]},
 }
 
 XP_THRESHOLDS = {

@@ -9,6 +9,10 @@ class UserSchema(BaseModel):
     id: int
     email: str
     name: str
+    profileImageUrl: str | None = None
+    location: str | None = None
+    headline: str | None = None
+    bio: str | None = None
     currentLevel: int
     levelName: str
     totalXP: int
