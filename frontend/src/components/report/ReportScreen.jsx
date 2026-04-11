@@ -1,3 +1,5 @@
+// report screen component
+
 import { useEffect, useState } from "react";
 import { DIFF_COLOR } from "../../constants/debate";
 import { apiFetch } from "../../lib/api";

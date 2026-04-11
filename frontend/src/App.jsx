@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import AuthScreen from "./components/auth/AuthScreen";
 import BottomNav from "./components/common/BottomNav";
+import CoachMode from "./components/coach/CoachMode";
 import DebateScreen from "./components/debate/DebateScreen";
 import HomeScreen from "./components/home/HomeScreen";
 import ProfileScreen from "./components/profile/ProfileScreen";
@@ -11,12 +12,15 @@ import TutorialPlacementScreen from "./components/tutorial/TutorialPlacementScre
 import { apiFetch, getAuthToken, setAuthToken } from "./lib/api";
 import { appSurface, baseStyles, loadingSurface } from "./styles/ui";
 
+const NAV_SCREENS = ["home", "training", "coach", "pvp", "profile"];
+
 export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [screen, setScreen] = useState("home");
   const [config, setConfig] = useState(null);
   const [transcript, setTranscript] = useState([]);
+  const [coachSeeds, setCoachSeeds] = useState([]);
 
   useEffect(() => {
     const token = getAuthToken();
@@ -24,6 +28,7 @@ export default function App() {
       setAuthLoading(false);
       return;
     }
+
     apiFetch("/auth/me")
       .then((response) => setUser(response.user))
       .catch(() => {
@@ -39,6 +44,7 @@ export default function App() {
     setScreen("home");
     setConfig(null);
     setTranscript([]);
+    setCoachSeeds([]);
   };
 
   const signOut = async () => {
@@ -54,7 +60,15 @@ export default function App() {
     setScreen("home");
     setConfig(null);
     setTranscript([]);
+    setCoachSeeds([]);
   };
+
+  const goCoach = (seeds = []) => {
+    setCoachSeeds(seeds);
+    setScreen("coach");
+  };
+
+  const showBottomNav = NAV_SCREENS.includes(screen);
 
   if (authLoading) {
     return (
@@ -78,31 +92,83 @@ export default function App() {
     return (
       <div style={appSurface}>
         <style>{baseStyles}</style>
-        <TutorialPlacementScreen onComplete={(nextUser) => { setUser(nextUser); setScreen("home"); }} />
+        <TutorialPlacementScreen
+          onComplete={(nextUser) => {
+            setUser(nextUser);
+            setScreen("home");
+          }}
+        />
       </div>
     );
   }
-
-  const showBottomNav = screen === "home" || screen === "training" || screen === "pvp" || screen === "profile";
 
   return (
     <div style={appSurface}>
       <style>{baseStyles}</style>
 
-      {screen === "home" && <HomeScreen user={user} onNavigate={setScreen} />}
-      {screen === "pvp" && <PvPScreen user={user} onUserUpdated={setUser} />}
-      {screen === "training" && <SetupScreen user={user} onStart={(nextConfig) => { setConfig(nextConfig); setScreen("debate"); }} />}
-      {screen === "debate" && config && <DebateScreen config={config} onComplete={(nextTranscript) => { setTranscript(nextTranscript); setScreen("report"); }} />}
+      {screen === "home" && (
+        <HomeScreen user={user} onNavigate={setScreen} />
+      )}
+
+      {screen === "pvp" && (
+        <PvPScreen user={user} onUserUpdated={setUser} />
+      )}
+
+      {screen === "training" && (
+        <SetupScreen
+          user={user}
+          onStart={(nextConfig) => {
+            setConfig(nextConfig);
+            setScreen("debate");
+          }}
+        />
+      )}
+
+      {screen === "debate" && config && (
+        <DebateScreen
+          config={config}
+          onComplete={(nextTranscript) => {
+            setTranscript(nextTranscript);
+            setScreen("report");
+          }}
+        />
+      )}
+
       {screen === "report" && config && (
         <ReportScreen
           config={config}
           transcript={transcript}
-          onNew={() => { setConfig(null); setTranscript([]); setScreen("training"); }}
+          onNew={() => {
+            setConfig(null);
+            setTranscript([]);
+            setScreen("training");
+          }}
+          onCoach={goCoach}
           onUserUpdated={setUser}
         />
       )}
-      {screen === "profile" && <ProfileScreen user={user} onUserUpdated={setUser} onBack={() => setScreen("home")} onSignOut={signOut} />}
-      {showBottomNav && <BottomNav screen={screen} onNavigate={setScreen} />}
+
+      {screen === "coach" && (
+        <CoachMode
+          user={user}
+          onUserUpdated={setUser}
+          initialSeeds={coachSeeds}
+          onExit={() => setScreen(config ? "report" : "home")}
+        />
+      )}
+
+      {screen === "profile" && (
+        <ProfileScreen
+          user={user}
+          onUserUpdated={setUser}
+          onBack={() => setScreen("home")}
+          onSignOut={signOut}
+        />
+      )}
+
+      {showBottomNav && (
+        <BottomNav screen={screen} onNavigate={setScreen} />
+      )}
     </div>
   );
 }

@@ -1,8 +1,12 @@
 """
-skill_trees.py — Skill tree definitions, XP rules, and level helpers.
+skill_trees.py
+Skill tree definitions, XP rules, and level helpers.
 """
+
 from __future__ import annotations
+
 from typing import Any
+
 
 SKILL_TREES: dict[str, dict] = {
     "clash": {
@@ -37,16 +41,23 @@ SKILL_TREES: dict[str, dict] = {
     },
 }
 
-# XP required to reach each level within a trS = {1: 0, 2: 60, 3: 150, 4: 300, 5: 500}
+# XP required to reach each level within a tree
+TREE_XP_THRESHOLDS = {
+    1: 0,
+    2: 60,
+    3: 150,
+    4: 300,
+    5: 500,
+}
 
-# XP rewards per mini-game
+# XP rewards per mini game
 MINI_GAME_TREE_XP: dict[str, dict] = {
     "clash_point_picker": {"base": 15, "bonus": 20, "global": 5},
-    "fallacy_hunt":       {"base": 18, "bonus": 25, "global": 6},
-    "rebuttal_match":     {"base": 16, "bonus": 20, "global": 5},
-    "impact_ranking":     {"base": 14, "bonus": 18, "global": 4},
-    "speech_polish":      {"base": 20, "bonus": 15, "global": 6},
-    "opponent_read":      {"base": 12, "bonus": 15, "global": 4},
+    "fallacy_hunt": {"base": 18, "bonus": 25, "global": 6},
+    "rebuttal_match": {"base": 16, "bonus": 20, "global": 5},
+    "impact_ranking": {"base": 14, "bonus": 18, "global": 4},
+    "speech_polish": {"base": 20, "bonus": 15, "global": 6},
+    "opponent_read": {"base": 12, "bonus": 15, "global": 4},
 }
 
 MINI_GAME_REGISTRY: dict[str, dict] = {
@@ -112,23 +123,37 @@ def calculate_mini_game_xp(
     difficulty: str = "medium",
     streak: int = 0,
 ) -> dict[str, int]:
-    rules = MINI_GAME_TREE_XP.get(mini_game_id, {"base": 10, "bonus": 10, "global": 3})
+    rules = MINI_GAME_TREE_XP.get(
+        mini_game_id,
+        {"base": 10, "bonus": 10, "global": 3},
+    )
     ratio = max(0.0, min(1.0, score / max_score)) if max_score > 0 else 0.0
     difficulty_mult = {"easy": 0.8, "medium": 1.0, "hard": 1.3}.get(difficulty, 1.0)
     streak_bonus = min(streak * 3, 12)
-    tree_xp = int(round((rules["base"] + rules["bonus"] * ratio) * difficulty_mult + streak_bonus))
+
+    tree_xp = int(
+        round((rules["base"] + rules["bonus"] * ratio) * difficulty_mult + streak_bonus)
+    )
     global_xp = int(rules["global"] * difficulty_mult)
-    return {"treeXP": tree_xp, "globalXP": global_xp}
+
+    return {
+        "treeXP": tree_xp,
+        "globalXP": global_xp,
+    }
 
 
 def skill_tree_snapshot(tree_id: str, xp: int) -> dict[str, Any]:
     level = tree_level_from_xp(xp)
-    meta = SKILL_TREES.get(tree_id, {"name": tree_id, "icon": "📘", "description": ""})
+    meta = SKILL_TREES.get(
+        tree_id,
+        {"name": tree_id, "icon": "📘", "description": ""},
+    )
     max_level = max(TREE_XP_THRESHOLDS)
     current_threshold = TREE_XP_THRESHOLDS.get(level, 0)
-    next_threshold = TREE_XP_THRESHOLDS.get(level + 1) if lel < max_level else None
+    next_threshold = TREE_XP_THRESHOLDS.get(level + 1) if level < max_level else None
     xp_in_level = xp - current_threshold
     xp_for_level = (next_threshold - current_threshold) if next_threshold else 0
+
     return {
         "treeId": tree_id,
         "name": meta["name"],

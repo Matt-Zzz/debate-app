@@ -1,3 +1,5 @@
+// home screen component
+
 import { Dumbbell, Home, Swords, Target, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../lib/api";

@@ -1,3 +1,5 @@
+// profile screen component
+
 import { Bell, ChevronRight, History, LogOut, Settings, Swords, Target, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { apiFetch, setAuthToken } from "../../lib/api";

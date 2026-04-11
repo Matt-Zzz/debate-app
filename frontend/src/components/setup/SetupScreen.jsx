@@ -1,3 +1,5 @@
+// setup screen component
+
 import { useEffect, useState } from "react";
 import { TRAINING_TOPIC_REFRESH_LIMIT } from "../../constants/debate";
 import { apiFetch } from "../../lib/api";

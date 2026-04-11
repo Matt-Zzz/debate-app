@@ -1,3 +1,5 @@
+// tutorial placement screen component
+
 import { useEffect, useMemo, useState } from "react";
 import DifficultyChip from "../common/DifficultyChip";
 import LevelBadge from "../common/LevelBadge";

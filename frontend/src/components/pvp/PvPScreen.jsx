@@ -1,3 +1,5 @@
+// pvp screen component
+
 import { useEffect, useState } from "react";
 import DifficultyChip from "../common/DifficultyChip";
 import LevelBadge from "../common/LevelBadge";

@@ -37,7 +37,7 @@ export default function CoachSuggestionCard({ rec, onPlay }) {
     <div style={S.card}>
       <div style={S.top}>
         <div style={S.iconWrap}>{tree.icon || "📘"}</div>
-        <divtyle={{ flex: 1 }}>
+        <div style={{ flex: 1 }}>
           <div style={S.label}>{tree.name || rec.skillTreeId}</div>
           <div style={S.title}>{rec.miniGameLabel || rec.miniGameId}</div>
         </div>

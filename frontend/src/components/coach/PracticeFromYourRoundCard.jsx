@@ -40,7 +40,7 @@ export default function PracticeFromYourRoundCard({ seed, onPlay }) {
       <div style={S.excerpt}>"{seed.sourceExcerpt || seed.excerpt}"</div>
       <div style={S.note}>{seed.coachNote}</div>
       <div style={S.footer}>
-        <span style={S.treeTag}seed.difficulty || "medium"}</span>
+        <span style={S.treeTag}>{seed.difficulty || "medium"}</span>
         <button style={S.btn} onClick={() => onPlay(seed)}>Practice this →</button>
       </div>
     </div>

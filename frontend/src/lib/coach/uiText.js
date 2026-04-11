@@ -44,3 +44,4 @@ export function pickEncouragement(treeId, seed = 0) {
   const phrases = TREE_ENCOURAGEMENT[treeId] || ["Keep practising this skill."];
   return phrases[seed % phrases.length];
 }
+

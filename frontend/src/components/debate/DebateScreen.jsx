@@ -1,3 +1,5 @@
+// debate screen component
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FORMAT } from "../../constants/debate";
 import useSpeechToText from "../../hooks/useSpeechToText";

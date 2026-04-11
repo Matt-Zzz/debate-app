@@ -1,71 +1,175 @@
-import { Dumbbell, Home, Swords, User } from "lucide-react";
-import { theme } from "../../styles/ui";
+import React from "react";
 
-const icons = {
-  home: Home,
-  training: Dumbbell,
-  pvp: Swords,
-  profile: User,
+const navWrap = {
+  position: "sticky",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  zIndex: 40,
+  background: "#f7f5f5",
+  borderTop: "1px solid #e7e1e1",
+  padding: "10px 8px 12px",
 };
 
-export default function BottomNav({ screen, onNavigate }) {
-  const items = [
-    { id: "home", label: "Home" },
-    { id: "training", label: "Training" },
-    { id: "pvp", label: "PvP" },
-    { id: "profile", label: "Profile" },
-  ];
+const navGrid = {
+  maxWidth: "900px",
+  margin: "0 auto",
+  display: "grid",
+  gridTemplateColumns: "repeat(5, 1fr)",
+  gap: "4px",
+  alignItems: "end",
+};
 
+const itemBase = {
+  appearance: "none",
+  background: "transparent",
+  border: 0,
+  cursor: "pointer",
+  padding: "8px 4px",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "8px",
+  color: "#6b7a90",
+  fontFamily: "'DM Sans', sans-serif",
+};
+
+const activePill = {
+  width: "56px",
+  height: "56px",
+  borderRadius: "18px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "rgba(91, 90, 230, 0.12)",
+};
+
+const inactivePill = {
+  width: "56px",
+  height: "56px",
+  borderRadius: "18px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "transparent",
+};
+
+const activeLabel = {
+  fontSize: "13px",
+  fontWeight: 700,
+  color: "#5b5ae6",
+};
+
+const inactiveLabel = {
+  fontSize: "13px",
+  fontWeight: 700,
+  color: "#6b7a90",
+};
+
+function IconStroke({ children, active = false }) {
   return (
-    <nav
-      style={{
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: "rgba(255,255,255,0.98)",
-        borderTop: "1px solid rgba(99, 102, 241, 0.12)",
-        boxShadow: "0 -10px 24px rgba(15, 23, 42, 0.08)",
-        zIndex: 30,
-        backdropFilter: "blur(14px)",
-      }}
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={active ? "#5b5ae6" : "#6b7a90"}
+      strokeWidth="2.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
     >
-      <div style={{ maxWidth: "760px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "4px", padding: "8px 10px 10px" }}>
-        {items.map((item) => {
-          const active = screen === item.id;
-          const Icon = icons[item.id];
+      {children}
+    </svg>
+  );
+}
+
+function HomeIcon({ active }) {
+  return (
+    <IconStroke active={active}>
+      <path d="M3 10.5 12 3l9 7.5" />
+      <path d="M5.5 9.5V20h13V9.5" />
+      <path d="M9.5 20v-6h5v6" />
+    </IconStroke>
+  );
+}
+
+function TrainingIcon({ active }) {
+  return (
+    <IconStroke active={active}>
+      <path d="M6 7l2-2" />
+      <path d="M16 17l2-2" />
+      <path d="M4.5 9.5l5 5" />
+      <path d="M14.5 19.5l5-5" />
+      <path d="M10 6l8 8" />
+      <path d="M7 13l4 4" />
+      <path d="M13 7l4-4" />
+      <path d="M7 17l-4 4" />
+    </IconStroke>
+  );
+}
+
+function CoachIcon({ active }) {
+  return (
+    <IconStroke active={active}>
+      <circle cx="12" cy="8" r="3.2" />
+      <path d="M6.5 19c1.1-2.5 3.1-3.8 5.5-3.8s4.4 1.3 5.5 3.8" />
+      <path d="M18.2 6.2l1.8-1.8" />
+      <path d="M18.2 9.8 20 11.6" />
+    </IconStroke>
+  );
+}
+
+function PvPIcon({ active }) {
+  return (
+    <IconStroke active={active}>
+      <path d="M7 7l10 10" />
+      <path d="M17 7 7 17" />
+      <path d="M5.5 5.5 8 8" />
+      <path d="M16 16l2.5 2.5" />
+      <path d="M16 8l2.5-2.5" />
+      <path d="M5.5 18.5 8 16" />
+    </IconStroke>
+  );
+}
+
+function ProfileIcon({ active }) {
+  return (
+    <IconStroke active={active}>
+      <circle cx="12" cy="7.5" r="3.2" />
+      <path d="M5 19c1.4-3.1 4-4.7 7-4.7s5.6 1.6 7 4.7" />
+    </IconStroke>
+  );
+}
+
+const ITEMS = [
+  { id: "home", label: "Home", Icon: HomeIcon },
+  { id: "training", label: "Training", Icon: TrainingIcon },
+  { id: "coach", label: "Coach", Icon: CoachIcon },
+  { id: "pvp", label: "PvP", Icon: PvPIcon },
+  { id: "profile", label: "Profile", Icon: ProfileIcon },
+];
+
+export default function BottomNav({ screen, onNavigate }) {
+  return (
+    <nav style={navWrap}>
+      <div style={navGrid}>
+        {ITEMS.map(({ id, label, Icon }) => {
+          const active = screen === id;
+
           return (
             <button
-              key={item.id}
-              onClick={() => onNavigate(item.id)}
-              style={{
-                border: "none",
-                background: "transparent",
-                borderRadius: "16px",
-                padding: "6px 8px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "4px",
-                color: active ? theme.primary : "#64748b",
-                fontSize: "11px",
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
+              key={id}
+              type="button"
+              onClick={() => onNavigate(id)}
+              style={itemBase}
+              aria-current={active ? "page" : undefined}
             >
-              <div
-                style={{
-                  width: "34px",
-                  height: "34px",
-                  borderRadius: "12px",
-                  display: "grid",
-                  placeItems: "center",
-                  background: active ? "rgba(79, 70, 229, 0.12)" : "transparent",
-                }}
-              >
-                <Icon size={20} />
+              <div style={active ? activePill : inactivePill}>
+                <Icon active={active} />
               </div>
-              <span>{item.label}</span>
+              <div style={active ? activeLabel : inactiveLabel}>{label}</div>
             </button>
           );
         })}
