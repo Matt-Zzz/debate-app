@@ -1,65 +1,88 @@
 import { xpProgressInLevel } from "../../lib/coach/registry";
+import { theme } from "../../styles/ui";
 
 const S = {
   card: (active) => ({
-    background: active ? "#1a1a1a" : "#fafafa",
-    border: `1px solid ${active ? "#1a1a1a" : "#e8e8e8"}`,
-    borderRadius: "10px",
-    padding: "14px 16px",
-    cursor: active ? "default" : "pointer",
-    transition: "all 0.15s",
-    fontFamily: "'DM Sans', sans-serif",
+    width: "100%",
+    padding: "18px 18px 16px",
+    background: active
+      ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
+      : "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,251,0.94))",
+    border: `1px solid ${active ? "rgba(79,70,229,0.16)" : theme.border}`,
+    borderRadius: "22px",
+    cursor: "pointer",
+    transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease",
+    fontFamily: "'Plus Jakarta Sans', sans-serif",
+    boxShadow: active
+      ? "0 20px 35px rgba(79, 70, 229, 0.24)"
+      : "0 12px 28px rgba(15, 23, 42, 0.08)",
+    textAlign: "left",
   }),
   top: {
     display: "flex",
     alignItems: "center",
-    gap: "10px",
-    marginBottom: "10px",
+    gap: "12px",
+    marginBottom: "12px",
   },
-  icon: {
+  iconWrap: (active) => ({
+    width: "42px",
+    height: "42px",
+    borderRadius: "15px",
+    background: active ? "rgba(255,255,255,0.16)" : "#eef2ff",
+    color: active ? "#fff" : theme.primary,
+    display: "grid",
+    placeItems: "center",
     fontSize: "20px",
-    lineHeight: 1,
+    flexShrink: 0,
+  }),
+  titleBlock: {
+    minWidth: 0,
   },
   name: (active) => ({
-    fontSize: "14px",
-    fontWeight: 600,
+    fontSize: "16px",
+    fontWeight: 800,
     color: active ? "#fff" : "#1a1a1a",
   }),
   level: (active) => ({
     marginLeft: "auto",
     fontSize: "11px",
-    fontFamily: "'DM Mono', monospace",
-    color: active ? "rgba(255,255,255,0.5)" : "#bbb",
+    fontFamily: "'JetBrains Mono', monospace",
+    color: active ? "#fff" : theme.primary,
+    background: active ? "rgba(255,255,255,0.14)" : "#eef2ff",
+    padding: "7px 10px",
+    borderRadius: "999px",
+    fontWeight: 700,
   }),
   desc: (active) => ({
-    fontSize: "12px",
-    color: active ? "rgba(255,255,255,0.75)" : "#666",
-    lineHeight: 1.5,
-    marginBottom: "10px",
-    minHeight: "36px",
+    fontSize: "13px",
+    color: active ? "rgba(255,255,255,0.86)" : "#667085",
+    lineHeight: 1.6,
+    marginBottom: "14px",
+    minHeight: "42px",
   }),
   barBg: (active) => ({
-    height: "4px",
-    borderRadius: "2px",
-    background: active ? "rgba(255,255,255,0.15)" : "#eee",
+    height: "8px",
+    borderRadius: "999px",
+    background: active ? "rgba(255,255,255,0.18)" : "rgba(79,70,229,0.10)",
     overflow: "hidden",
   }),
   barFill: (pct, active) => ({
     height: "100%",
     width: `${pct}%`,
-    background: active ? "#fff" : "#1a1a1a",
-    borderRadius: "2px",
+    background: active ? "#fff" : "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+    borderRadius: "999px",
     transition: "width 0.6s ease",
   }),
   xpRow: {
     display: "flex",
     justifyContent: "space-between",
-    marginTop: "4px",
+    gap: "10px",
+    marginTop: "8px",
   },
   xpText: (active) => ({
-    fontSize: "10px",
-    fontFamily: "'DM Mono', monospace",
-    color: active ? "rgba(255,255,255,0.4)" : "#ccc",
+    fontSize: "11px",
+    fontFamily: "'JetBrains Mono', monospace",
+    color: active ? "rgba(255,255,255,0.76)" : "#98a2b3",
   }),
 };
 
@@ -69,10 +92,17 @@ export default function SkillTreeCard({ tree, active = false, onClick }) {
   const { earned, total, pct } = xpProgressInLevel(tree.totalXP ?? 0);
 
   return (
-    <div style={S.card(active)} onClick={onClick}>
+    <button
+      type="button"
+      style={S.card(active)}
+      onClick={onClick}
+      aria-pressed={active}
+    >
       <div style={S.top}>
-        <span style={S.icon}>{tree.icon || "📘"}</span>
-        <span style={S.name(active)}>{tree.name || "Skill"}</span>
+        <span style={S.iconWrap(active)}>{tree.icon || "📘"}</span>
+        <span style={S.titleBlock}>
+          <span style={S.name(active)}>{tree.name || "Skill"}</span>
+        </span>
         <span style={S.level(active)}>Lv {tree.level ?? 1}</span>
       </div>
 
@@ -92,6 +122,6 @@ export default function SkillTreeCard({ tree, active = false, onClick }) {
           </span>
         </div>
       )}
-    </div>
+    </button>
   );
 }

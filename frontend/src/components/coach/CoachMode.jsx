@@ -1,116 +1,95 @@
-import { useState, useEffect, useCallback } from "react";
+import { Flame, Sparkles, Target, Trophy } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import CoachSummaryBar from "./CoachSummaryBar";
 import CoachSuggestionCard from "./CoachSuggestionCard";
 import PracticeFromYourRoundCard from "./PracticeFromYourRoundCard";
 import SkillTreeCard from "./SkillTreeCard";
 import { SKILL_TREES } from "../../lib/coach/registry";
+import { apiFetch } from "../../lib/api";
 import {
-  pickEncouragement,
   LEVEL_UP_MESSAGES,
+  pickEncouragement,
 } from "../../lib/coach/uiText";
+import {
+  eyebrow,
+  eyebrowSmall,
+  headline,
+  heroCard,
+  pageWrap,
+  secondaryBtn,
+  sectionCard,
+  solidBtn,
+  subheadline,
+  theme,
+} from "../../styles/ui";
 
-// API helper, mirrors the one in App.jsx / lib/api.js
-const API = "http://localhost:3001/api";
-
-function getToken() {
-  return localStorage.getItem("debate_auth_token") || "";
-}
-
-async function apiFetch(path, opts = {}) {
-  const token = getToken();
-  const res = await fetch(`${API}${path}`, {
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...opts,
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw Object.assign(new Error(err.message || "API error"), { data: err });
-  }
-
-  return res.json();
-}
-
-// Styles
-const wrap = {
-  maxWidth: "700px",
-  margin: "0 auto",
-  padding: "36px 24px",
-  fontFamily: "'DM Sans', sans-serif",
-};
-
-const eyebrow = {
-  fontSize: "11px",
-  letterSpacing: "0.12em",
-  textTransform: "uppercase",
-  color: "#aaa",
-  fontFamily: "'DM Mono', monospace",
-  marginBottom: "6px",
-};
-
-const headline = {
-  fontSize: "1.9rem",
-  fontWeight: 600,
-  color: "#1a1a1a",
-  margin: "8px 0 0",
-  fontFamily: "'Playfair Display', Georgia, serif",
-};
-
-const sectionHdr = {
-  fontSize: "11px",
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
-  color: "#bbb",
-  fontFamily: "'DM Mono', monospace",
-  marginBottom: "12px",
-};
-
-const solidBtn = {
-  padding: "10px 22px",
-  background: "#1a1a1a",
+const heroActionBtn = {
+  ...secondaryBtn,
+  background: "rgba(255,255,255,0.16)",
+  border: "1px solid rgba(255,255,255,0.16)",
   color: "#fff",
-  border: "1px solid #1a1a1a",
-  borderRadius: "6px",
-  fontSize: "13px",
-  fontWeight: 600,
-  cursor: "pointer",
-  fontFamily: "'DM Sans', sans-serif",
+  boxShadow: "none",
 };
 
-const outlineBtn = {
-  padding: "10px 22px",
-  background: "#fff",
-  color: "#1a1a1a",
-  border: "1px solid #ddd",
-  borderRadius: "6px",
-  fontSize: "13px",
-  fontWeight: 500,
-  cursor: "pointer",
-  fontFamily: "'DM Sans', sans-serif",
+const sectionTitle = {
+  fontSize: "24px",
+  lineHeight: 1.05,
+  fontWeight: 700,
+  fontFamily: "'Fraunces', serif",
+  color: theme.ink,
+  marginTop: "8px",
 };
 
-const treeGrid = {
+const heroStatGrid = {
   display: "grid",
-  gridTemplateColumns: "1fr 1fr 1fr",
-  gap: "10px",
-  marginBottom: "8px",
+  gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+  gap: "12px",
+  marginTop: "20px",
 };
 
-const recGrid = {
+const skillGrid = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+  gap: "12px",
+};
+
+const cardGrid = {
+  display: "grid",
+  gap: "12px",
+};
+
+const detailCard = {
+  marginTop: "16px",
+  padding: "18px 20px",
+  borderRadius: "22px",
+  background:
+    "linear-gradient(180deg, rgba(255,255,255,0.98), rgba(244,247,251,0.96))",
+  border: `1px solid ${theme.border}`,
+  boxShadow: theme.shadowSoft,
+};
+
+const recentRow = {
   display: "flex",
-  flexDirection: "column",
-  gap: "10px",
-  marginBottom: "8px",
+  alignItems: "center",
+  gap: "14px",
+  padding: "14px 16px",
+  borderRadius: "18px",
+  background: "rgba(248,250,252,0.94)",
+  border: `1px solid ${theme.border}`,
+};
+
+const emptyCard = {
+  ...sectionCard,
+  padding: "20px 22px",
+  background:
+    "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(244,247,251,0.92))",
 };
 
 const Skeleton = ({ h = "60px" }) => (
   <div
     style={{
       height: h,
-      borderRadius: "8px",
+      borderRadius: "18px",
       background:
         "linear-gradient(90deg,#f0f0f0 25%,#e4e4e4 50%,#f0f0f0 75%)",
       backgroundSize: "200% 100%",
@@ -119,7 +98,111 @@ const Skeleton = ({ h = "60px" }) => (
   />
 );
 
-// Result overlay shown after completing a game
+function formatMiniGameLabel(miniGameId = "") {
+  return miniGameId
+    .split("_")
+    .filter(Boolean)
+    .map((part) => part[0]?.toUpperCase() + part.slice(1))
+    .join(" ");
+}
+
+function getWeakestTree(trees) {
+  if (!Array.isArray(trees) || trees.length === 0) return null;
+
+  return [...trees].sort(
+    (left, right) =>
+      (left.level ?? 1) - (right.level ?? 1) ||
+      (left.totalXP ?? 0) - (right.totalXP ?? 0)
+  )[0];
+}
+
+function buildCoachLead(userName, newSeeds, weakestTree, recentGames) {
+  const prefix = userName ? `${userName}, ` : "";
+
+  if (newSeeds.length > 0) {
+    return `${prefix}I pulled ${newSeeds.length} personalized rep${
+      newSeeds.length === 1 ? "" : "s"
+    } from your latest round so you can practice the exact spots that slipped.`;
+  }
+
+  if (weakestTree) {
+    return `${prefix}${weakestTree.name} is still your thinnest area. Stay deliberate here and the rest of the skill map will feel easier.`;
+  }
+
+  if (recentGames.length > 0) {
+    return `${prefix}you already have momentum. Keep the reps tight and stack another focused game before the streak cools off.`;
+  }
+
+  return `${prefix}Coach Mode turns your debate history into deliberate reps so you can train the right weakness instead of guessing.`;
+}
+
+function SectionHeader({ label, title, description }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "12px",
+        alignItems: "flex-end",
+        flexWrap: "wrap",
+        marginBottom: "12px",
+      }}
+    >
+      <div>
+        <div style={eyebrowSmall}>{label}</div>
+        <div style={sectionTitle}>{title}</div>
+      </div>
+      {description && (
+        <div
+          style={{
+            fontSize: "13px",
+            color: theme.muted,
+            lineHeight: 1.6,
+            maxWidth: "360px",
+          }}
+        >
+          {description}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HeroStat({ icon: Icon, label, value, tint }) {
+  return (
+    <div
+      style={{
+        padding: "16px 18px",
+        borderRadius: "20px",
+        background: tint,
+        border: "1px solid rgba(255,255,255,0.14)",
+        backdropFilter: "blur(10px)",
+      }}
+    >
+      <div
+        style={{
+          width: "40px",
+          height: "40px",
+          borderRadius: "14px",
+          background: "rgba(255,255,255,0.16)",
+          display: "grid",
+          placeItems: "center",
+          color: "#fff",
+          marginBottom: "14px",
+        }}
+      >
+        <Icon size={18} />
+      </div>
+      <div style={{ fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.72)" }}>
+        {label}
+      </div>
+      <div style={{ fontSize: "24px", lineHeight: 1.1, fontWeight: 800, color: "#fff", marginTop: "6px" }}>
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function GameResultPanel({ result, onContinue }) {
   if (!result) return null;
 
@@ -131,86 +214,151 @@ function GameResultPanel({ result, onContinue }) {
     nextRecommendations,
   } = result;
 
-  return (
-    <div style={{ textAlign: "center", padding: "40px 24px" }}>
-      <div style={{ fontSize: "48px", marginBottom: "12px" }}>
-        {leveledUp ? "🎉" : treeXPEarned >= 20 ? "⭐" : "✓"}
-      </div>
+  const resultGlyph = leveledUp ? "🎉" : treeXPEarned >= 20 ? "⭐" : "✓";
+  const resultTitle = leveledUp
+    ? LEVEL_UP_MESSAGES[updatedTree?.treeId] || "Level up!"
+    : "Rep logged.";
 
+  return (
+    <>
       <div
         style={{
-          fontSize: "22px",
-          fontWeight: 600,
-          fontFamily: "'Playfair Display', serif",
-          marginBottom: "8px",
+          ...heroCard,
+          marginBottom: "18px",
+          display: "flex",
+          justifyContent: "space-between",
+          gap: "18px",
+          flexWrap: "wrap",
+          alignItems: "center",
         }}
       >
-        {leveledUp
-          ? LEVEL_UP_MESSAGES[updatedTree?.treeId] || "Level up!"
-          : "Good work."}
-      </div>
-
-      <div style={{ fontSize: "14px", color: "#666", marginBottom: "20px" }}>
-        +{treeXPEarned} tree XP · +{globalXPEarned} global XP
-      </div>
-
-      {updatedTree && (
-        <div style={{ maxWidth: "280px", margin: "0 auto 24px" }}>
-          <SkillTreeCard tree={updatedTree} active />
-        </div>
-      )}
-
-      {nextRecommendations?.length > 0 && (
-        <div style={{ marginBottom: "24px" }}>
-          <div
-            style={{
-              ...sectionHdr,
-              textAlign: "left",
-              maxWidth: "280px",
-              margin: "0 auto 10px",
-            }}
-          >
-            Up next
+        <div style={{ maxWidth: "480px" }}>
+          <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>
+            Session Logged
           </div>
-
           <div
             style={{
-              maxWidth: "280px",
-              margin: "0 auto",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
+              fontSize: "clamp(2rem, 7vw, 3rem)",
+              lineHeight: 0.98,
+              fontWeight: 800,
+              fontFamily: "'Fraunces', serif",
+              marginTop: "10px",
             }}
           >
-            {nextRecommendations.slice(0, 2).map((rec, i) => (
-              <div
-                key={i}
-                style={{
-                  fontSize: "13px",
-                  color: "#555",
-                  padding: "10px 13px",
-                  background: "#fafafa",
-                  border: "1px solid #eee",
-                  borderRadius: "8px",
-                  textAlign: "left",
-                }}
-              >
-                <strong>
-                  {SKILL_TREES[rec.skillTreeId]?.icon} {rec.treeName}
-                </strong>{" "}
-                - {rec.miniGameLabel}
+            {resultTitle}
+          </div>
+          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
+            Your coach queue is updated and the next best reps are ready.
+          </p>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
+            <div
+              style={{
+                padding: "10px 12px",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.14)",
+                fontSize: "13px",
+                fontWeight: 700,
+              }}
+            >
+              +{treeXPEarned} tree XP
+            </div>
+            <div
+              style={{
+                padding: "10px 12px",
+                borderRadius: "16px",
+                background: "rgba(255,255,255,0.14)",
+                fontSize: "13px",
+                fontWeight: 700,
+              }}
+            >
+              +{globalXPEarned} global XP
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{
+            width: "88px",
+            height: "88px",
+            borderRadius: "28px",
+            background: "rgba(255,255,255,0.14)",
+            display: "grid",
+            placeItems: "center",
+            fontSize: "42px",
+            flexShrink: 0,
+          }}
+        >
+          {resultGlyph}
+        </div>
+      </div>
+
+      <div style={{ ...sectionCard, padding: "22px 22px 20px" }}>
+        <SectionHeader
+          label="Next Move"
+          title="Coach update"
+          description="Your tree progress and next recommendations are already refreshed."
+        />
+
+        <div
+          style={{
+            display: "grid",
+            gap: "16px",
+            gridTemplateColumns: updatedTree
+              ? "repeat(auto-fit, minmax(240px, 1fr))"
+              : "1fr",
+          }}
+        >
+          {updatedTree && (
+            <div>
+              <SkillTreeCard tree={updatedTree} active />
+            </div>
+          )}
+
+          <div>
+            {nextRecommendations?.length > 0 ? (
+              <div style={{ display: "grid", gap: "10px" }}>
+                {nextRecommendations.slice(0, 2).map((rec, index) => (
+                  <div
+                    key={`${rec.skillTreeId}-${index}`}
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: "18px",
+                      background: "rgba(248,250,252,0.94)",
+                      border: `1px solid ${theme.border}`,
+                    }}
+                  >
+                    <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>
+                      Up Next
+                    </div>
+                    <div style={{ fontSize: "16px", fontWeight: 800, color: theme.ink }}>
+                      {SKILL_TREES[rec.skillTreeId]?.icon} {rec.treeName}
+                    </div>
+                    <div style={{ fontSize: "13px", color: theme.muted, marginTop: "4px", lineHeight: 1.6 }}>
+                      {rec.miniGameLabel}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            ) : (
+              <div style={emptyCard}>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: theme.ink }}>
+                  Queue cleared
+                </div>
+                <div style={{ ...subheadline, marginTop: "6px" }}>
+                  You have no immediate follow-up recommendations. Head back to Coach and pick the next tree manually.
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-        <button onClick={() => onContinue("home")} style={solidBtn}>
-          Back to Coach
-        </button>
+        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "18px" }}>
+          <button onClick={() => onContinue("home")} style={solidBtn}>
+            Back to Coach
+          </button>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -303,23 +451,49 @@ export default function CoachMode({
 
   if (loading) {
     return (
-      <div style={wrap}>
-        <div style={{ ...eyebrow, marginBottom: "6px" }}>Coach Mode</div>
-        <div style={{ ...headline, marginBottom: "24px" }}>
-          Loading your progress…
+      <div style={pageWrap}>
+        <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+        <div style={{ ...heroCard, marginBottom: "18px" }}>
+          <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>
+            Coach Mode
+          </div>
+          <div
+            style={{
+              fontSize: "clamp(2rem, 7vw, 3rem)",
+              lineHeight: 0.98,
+              fontWeight: 800,
+              fontFamily: "'Fraunces', serif",
+              marginTop: "10px",
+            }}
+          >
+            Loading your training map...
+          </div>
+          <div style={{ marginTop: "18px" }}>
+            <Skeleton h="70px" />
+          </div>
+          <div style={heroStatGrid}>
+            {[1, 2, 3].map((item) => (
+              <Skeleton key={item} h="120px" />
+            ))}
+          </div>
         </div>
-        <Skeleton h="60px" />
-        <div
-          style={{
-            marginTop: "16px",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr",
-            gap: "10px",
-          }}
-        >
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Skeleton key={i} h="90px" />
-          ))}
+
+        <div style={{ ...sectionCard, padding: "20px 22px", marginBottom: "18px" }}>
+          <Skeleton h="20px" />
+          <div style={{ marginTop: "14px", display: "grid", gap: "12px" }}>
+            {[1, 2].map((item) => (
+              <Skeleton key={item} h="164px" />
+            ))}
+          </div>
+        </div>
+
+        <div style={{ ...sectionCard, padding: "20px 22px" }}>
+          <Skeleton h="20px" />
+          <div style={{ ...skillGrid, marginTop: "14px" }}>
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <Skeleton key={item} h="170px" />
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -327,26 +501,33 @@ export default function CoachMode({
 
   if (error) {
     return (
-      <div style={wrap}>
-        <div style={{ color: "#c62828", fontSize: "14px", marginBottom: "16px" }}>
-          Could not load Coach Mode: {error}
+      <div style={pageWrap}>
+        <div style={{ ...sectionCard, padding: "24px 24px 22px" }}>
+          <div style={eyebrowSmall}>Coach Mode</div>
+          <div style={{ ...headline, fontSize: "clamp(1.8rem, 5vw, 2.4rem)" }}>
+            Could not load your coach queue.
+          </div>
+          <div style={{ ...subheadline, color: theme.danger, marginTop: "10px" }}>
+            {error}
+          </div>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "18px" }}>
+            <button onClick={load} style={solidBtn}>
+              Retry
+            </button>
+            {onExit && (
+              <button onClick={onExit} style={secondaryBtn}>
+                Back
+              </button>
+            )}
+          </div>
         </div>
-        <button onClick={load} style={solidBtn}>
-          Retry
-        </button>
-        {onExit && (
-          <button onClick={onExit} style={{ ...outlineBtn, marginLeft: "10px" }}>
-            ← Back
-          </button>
-        )}
       </div>
     );
   }
 
   if (view === "result" && latestResult) {
     return (
-      <div style={wrap}>
-        <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+      <div style={pageWrap}>
         <GameResultPanel result={latestResult} onContinue={handleContinue} />
       </div>
     );
@@ -360,29 +541,69 @@ export default function CoachMode({
   } = coachData || {};
 
   const newSeeds = practiceSeeds.filter((s) => s.status === "new");
+  const weakestTree = getWeakestTree(skillTrees);
+  const heroCopy = buildCoachLead(user?.name, newSeeds, weakestTree, recentGames);
+  const selectedTree = skillTrees.find((tree) => tree.treeId === activeTree) || null;
 
   return (
-    <div style={wrap}>
-      <style>{`@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+    <div style={pageWrap}>
+      <div style={{ ...heroCard, marginBottom: "18px" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: "18px",
+            flexWrap: "wrap",
+            alignItems: "flex-start",
+          }}
+        >
+          <div style={{ maxWidth: "520px" }}>
+            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>
+              Coach Mode
+            </div>
+            <div
+              style={{
+                fontSize: "clamp(2rem, 7vw, 3rem)",
+                lineHeight: 0.98,
+                fontWeight: 800,
+                fontFamily: "'Fraunces', serif",
+                marginTop: "10px",
+              }}
+            >
+              Train with intent.
+            </div>
+            <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
+              {heroCopy}
+            </p>
+          </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "20px",
-        }}
-      >
-        <div>
-          <div style={eyebrow}>Coach Mode</div>
-          <h1 style={headline}>Your training</h1>
+          {onExit && (
+            <button onClick={onExit} style={heroActionBtn}>
+              Exit Coach
+            </button>
+          )}
         </div>
 
-        {onExit && (
-          <button onClick={onExit} style={{ ...outlineBtn, padding: "7px 14px" }}>
-            Exit
-          </button>
-        )}
+        <div style={heroStatGrid}>
+          <HeroStat
+            icon={Sparkles}
+            label="Personalized Reps"
+            value={`${newSeeds.length}`}
+            tint="linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0.08))"
+          />
+          <HeroStat
+            icon={Target}
+            label="Current Focus"
+            value={weakestTree?.name || "All Trees"}
+            tint="linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.08))"
+          />
+          <HeroStat
+            icon={Flame}
+            label="Recent Reps"
+            value={`${recentGames.length}`}
+            tint="linear-gradient(135deg, rgba(255,255,255,0.12), rgba(255,255,255,0.08))"
+          />
+        </div>
       </div>
 
       <CoachSummaryBar
@@ -392,19 +613,16 @@ export default function CoachMode({
       />
 
       {newSeeds.length > 0 && (
-        <>
-          <div style={sectionHdr}>From your last round</div>
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "10px",
-              marginBottom: "8px",
-            }}
-          >
+        <div style={{ marginBottom: "18px" }}>
+          <SectionHeader
+            label="From Your Last Round"
+            title="Personalized reps"
+            description="These drills were generated from the exact moments your last debate exposed."
+          />
+          <div style={cardGrid}>
             {newSeeds.slice(0, 2).map((seed) => (
               <PracticeFromYourRoundCard
-                key={seed.id}
+                key={seed.id || `${seed.skillTreeId}-${seed.coachNote}`}
                 seed={seed}
                 onPlay={(s) => {
                   alert(
@@ -416,13 +634,17 @@ export default function CoachMode({
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
       {recommendations.length > 0 && (
-        <>
-          <div style={sectionHdr}>Suggested next</div>
-          <div style={recGrid}>
+        <div style={{ marginBottom: "18px" }}>
+          <SectionHeader
+            label="Suggested Next"
+            title="Coach queue"
+            description="Priority picks based on your weakest trees, recent seeds, and the games you have already been playing."
+          />
+          <div style={cardGrid}>
             {recommendations.map((rec, i) => (
               <CoachSuggestionCard
                 key={i}
@@ -441,120 +663,220 @@ export default function CoachMode({
               />
             ))}
           </div>
-        </>
+        </div>
       )}
 
-      <div style={sectionHdr}>Skill trees</div>
-      <div style={treeGrid}>
-        {skillTrees.map((tree) => (
-          <SkillTreeCard
-            key={tree.treeId}
-            tree={tree}
-            active={activeTree === tree.treeId}
-            onClick={() =>
-              setActiveTree(activeTree === tree.treeId ? null : tree.treeId)
-            }
-          />
-        ))}
-      </div>
+      <div style={{ ...sectionCard, padding: "20px 22px", marginBottom: "18px" }}>
+        <SectionHeader
+          label="Skill Trees"
+          title="Your training map"
+          description="Tap a tree to inspect its current level, XP runway, and the specific coaching note behind it."
+        />
 
-      {activeTree &&
-        (() => {
-          const tree = skillTrees.find((t) => t.treeId === activeTree);
-          if (!tree) return null;
+        <div style={skillGrid}>
+          {skillTrees.map((tree) => (
+            <SkillTreeCard
+              key={tree.treeId}
+              tree={tree}
+              active={activeTree === tree.treeId}
+              onClick={() =>
+                setActiveTree(activeTree === tree.treeId ? null : tree.treeId)
+              }
+            />
+          ))}
+        </div>
 
-          return (
+        {selectedTree ? (
+          <div style={detailCard}>
             <div
               style={{
-                padding: "14px 16px",
-                background: "#fafafa",
-                border: "1px solid #eee",
-                borderRadius: "8px",
-                marginTop: "8px",
+                display: "flex",
+                justifyContent: "space-between",
+                gap: "12px",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
               }}
             >
-              <div style={{ fontSize: "13px", color: "#555", lineHeight: 1.6 }}>
-                {pickEncouragement(activeTree, tree.level)}
+              <div>
+                <div style={eyebrowSmall}>Current Focus</div>
+                <div
+                  style={{
+                    fontSize: "22px",
+                    fontWeight: 700,
+                    fontFamily: "'Fraunces', serif",
+                    color: theme.ink,
+                    marginTop: "8px",
+                  }}
+                >
+                  {selectedTree.icon} {selectedTree.name}
+                </div>
               </div>
               <div
                 style={{
+                  padding: "10px 12px",
+                  borderRadius: "16px",
+                  background: "#eef2ff",
+                  color: theme.primary,
                   fontSize: "12px",
-                  color: "#bbb",
-                  marginTop: "6px",
-                  fontFamily: "'DM Mono', monospace",
+                  fontWeight: 800,
                 }}
               >
-                Total XP: {tree.totalXP} · Level {tree.level}
-                {!tree.maxLevel && ` · ${tree.xpToNext} to next level`}
+                Level {selectedTree.level}
               </div>
             </div>
-          );
-        })()}
 
-      {recentGames.length > 0 && (
-        <>
-          <div style={sectionHdr}>Recent games</div>
+            <div style={{ ...subheadline, marginTop: "10px" }}>
+              {pickEncouragement(selectedTree.treeId, selectedTree.level)}
+            </div>
+
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "14px" }}>
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: "16px",
+                  background: "rgba(79,70,229,0.08)",
+                  color: theme.primaryDeep,
+                  fontSize: "12px",
+                  fontWeight: 700,
+                }}
+              >
+                {selectedTree.totalXP} total XP
+              </div>
+              {!selectedTree.maxLevel && (
+                <div
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: "16px",
+                    background: "rgba(15,23,42,0.06)",
+                    color: theme.ink,
+                    fontSize: "12px",
+                    fontWeight: 700,
+                  }}
+                >
+                  {selectedTree.xpToNext} XP to next level
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div style={{ ...subheadline, marginTop: "14px" }}>
+            Select a tree to inspect its coaching note and progression details.
+          </div>
+        )}
+      </div>
+
+      <div style={{ ...sectionCard, padding: "20px 22px" }}>
+        <SectionHeader
+          label="Recent Games"
+          title="Latest reps"
+          description="A quick read on what you have played most recently and where the XP landed."
+        />
+
+        {recentGames.length > 0 ? (
           <div
             style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "6px",
+              display: "grid",
+              gap: "10px",
             }}
           >
             {recentGames.slice(0, 5).map((g) => {
               const tree = SKILL_TREES[g.skillTreeId] || {};
 
               return (
-                <div
-                  key={g.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "12px",
-                    padding: "10px 13px",
-                    background: "#fafafa",
-                    border: "1px solid #eee",
-                    borderRadius: "8px",
-                  }}
-                >
-                  <span style={{ fontSize: "16px" }}>{tree.icon || "📘"}</span>
-
+                <div key={g.id} style={recentRow}>
+                  <div
+                    style={{
+                      width: "42px",
+                      height: "42px",
+                      borderRadius: "15px",
+                      background: "#eef2ff",
+                      color: theme.primary,
+                      display: "grid",
+                      placeItems: "center",
+                      fontSize: "18px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {tree.icon || "📘"}
+                  </div>
                   <div style={{ flex: 1 }}>
                     <div
                       style={{
-                        fontSize: "13px",
-                        fontWeight: 500,
-                        color: "#1a1a1a",
+                        fontSize: "15px",
+                        fontWeight: 800,
+                        color: theme.ink,
                       }}
                     >
-                      {g.miniGameId.replace(/_/g, " ")}
+                      {formatMiniGameLabel(g.miniGameId)}
                     </div>
                     <div
                       style={{
-                        fontSize: "11px",
-                        color: "#aaa",
-                        fontFamily: "'DM Mono', monospace",
+                        fontSize: "12px",
+                        color: theme.muted,
+                        marginTop: "4px",
                       }}
                     >
-                      {g.score}/{g.maxScore} · +{g.treeXP} XP
+                      {tree.name || g.skillTreeId} · {g.score}/{g.maxScore} · +{g.treeXP} tree XP
                     </div>
                   </div>
 
                   <div
                     style={{
-                      fontSize: "11px",
-                      color: "#ccc",
-                      fontFamily: "'DM Mono', monospace",
+                      textAlign: "right",
                     }}
                   >
-                    {new Date(g.createdAt).toLocaleDateString()}
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 800,
+                        color: theme.primary,
+                      }}
+                    >
+                      +{g.globalXP} XP
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: theme.muted,
+                        marginTop: "4px",
+                      }}
+                    >
+                      {new Date(g.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
                 </div>
               );
             })}
           </div>
-        </>
-      )}
+        ) : (
+          <div style={emptyCard}>
+            <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
+              <div
+                style={{
+                  width: "42px",
+                  height: "42px",
+                  borderRadius: "14px",
+                  background: "#eef2ff",
+                  color: theme.primary,
+                  display: "grid",
+                  placeItems: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Trophy size={18} />
+              </div>
+              <div>
+                <div style={{ fontSize: "16px", fontWeight: 800, color: theme.ink }}>
+                  No reps logged yet
+                </div>
+                <div style={{ ...subheadline, marginTop: "6px" }}>
+                  Start from a suggested game or a personalized round excerpt and this section will begin tracking your coach history.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
