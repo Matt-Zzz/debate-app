@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const API = "http://localhost:3001/api";
+const API = "/api";
 
 // ─── FALLACY DICTIONARY ────────────────────────────────────────────────────────
 // Every fallacy that can appear as a chip option.

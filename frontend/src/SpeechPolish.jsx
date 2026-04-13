@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 // 2. {screen === "polish" && <SpeechPolish onFinish={() => setScreen("setup")} />}
 // 3. Wire it into your screen flow after FallacyHunt, or as a standalone warm-up.
 
-const API = "http://localhost:3001/api";
+const API = "/api";
 
 const LEVEL_META = {
   level1: {

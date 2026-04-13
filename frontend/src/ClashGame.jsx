@@ -25,7 +25,7 @@ import { useState, useEffect, useCallback } from "react";
 //    warm-up rather than the default landing page.
 // ──────────────────────────────────────────────────────────────────────────────
 
-const API = "http://localhost:3001/api";
+const API = "/api";
 
 function shuffle(arr) {
   const a = [...arr];

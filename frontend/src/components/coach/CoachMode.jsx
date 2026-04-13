@@ -10,7 +10,7 @@ import {
 } from "../../lib/coach/uiText";
 
 // API helper, mirrors the one in App.jsx / lib/api.js
-const API = "http://localhost:3001/api";
+const API = "/api";
 
 function getToken() {
   return localStorage.getItem("debate_auth_token") || "";
