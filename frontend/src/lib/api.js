@@ -1,4 +1,4 @@
-const API = "http://localhost:3001/api";
+const API = "/api";
 const AUTH_TOKEN_KEY = "debate_auth_token";
 
 export function getAuthToken() {
