@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { API_BASE_URL } from "./lib/api";
 
 // SPEECH POLISH
 // Four-level mini-game for sharpening debate language.
@@ -7,8 +8,6 @@ import { useEffect, useState } from "react";
 // 1. import SpeechPolish from "./SpeechPolish";
 // 2. {screen === "polish" && <SpeechPolish onFinish={() => setScreen("setup")} />}
 // 3. Wire it into your screen flow after FallacyHunt, or as a standalone warm-up.
-
-const API = "/api";
 
 const LEVEL_META = {
   level1: {
@@ -861,7 +860,7 @@ export default function SpeechPolish({ onFinish }) {
   const [current, setCurrent] = useState(0);
 
   useEffect(() => {
-    fetch(`${API}/speech-polish`)
+    fetch(`${API_BASE_URL}/speech-polish`)
       .then((r) => {
         if (!r.ok) {
           throw new Error("Failed to fetch speech polish data");

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { API_BASE_URL } from "./lib/api";
 
 // ─── CLASH POINT PICKER ────────────────────────────────────────────────────────
 // Self-contained mini-game component.
@@ -24,8 +25,6 @@ import { useState, useEffect, useCallback } from "react";
 //    Add a way to reach it from the setup screen if you want it as an optional
 //    warm-up rather than the default landing page.
 // ──────────────────────────────────────────────────────────────────────────────
-
-const API = "/api";
 
 function shuffle(arr) {
   const a = [...arr];
@@ -209,7 +208,7 @@ export default function ClashGame({ onFinish }) {
 
   // Fetch clash topics from backend on mount
   useEffect(() => {
-    fetch(`${API}/clash-topics`)
+    fetch(`${API_BASE_URL}/clash-topics`)
       .then(r => r.json())
       .then(data => { setRawTopics(data); setLoading(false); })
       .catch(() => setLoading(false));

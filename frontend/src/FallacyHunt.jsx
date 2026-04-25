@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-
-const API = "/api";
+import { API_BASE_URL } from "./lib/api";
 
 // ─── FALLACY DICTIONARY ────────────────────────────────────────────────────────
 // Every fallacy that can appear as a chip option.
@@ -447,7 +446,7 @@ export default function FallacyHunt({ onFinish }) {
   const [maxScore,   setMaxScore]   = useState(0);
 
   useEffect(() => {
-    fetch(`${API}/fallacies`)
+    fetch(`${API_BASE_URL}/fallacies`)
       .then(r => r.json())
       .then(data => { setRawData(data); setLoading(false); })
       .catch(() => setLoading(false));

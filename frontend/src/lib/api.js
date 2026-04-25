@@ -1,4 +1,7 @@
-const API = "/api";
+const rawApiBaseUrl = import.meta.env.VITE_API_BASE_URL || "/api";
+export const API_BASE_URL = rawApiBaseUrl.endsWith("/")
+  ? rawApiBaseUrl.slice(0, -1)
+  : rawApiBaseUrl;
 const AUTH_TOKEN_KEY = "debate_auth_token";
 
 export function getAuthToken() {
@@ -30,7 +33,7 @@ export async function apiFetch(path, opts = {}) {
     ...authHeader(),
     ...(opts.headers || {}),
   };
-  const res = await fetch(`${API}${path}`, {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
     headers,
     ...opts,
   });
@@ -42,7 +45,7 @@ export async function apiFetch(path, opts = {}) {
 }
 
 export async function streamOpponentSpeech(payload, onChunk) {
-  const res = await fetch(`${API}/opponent-speech`, {
+  const res = await fetch(`${API_BASE_URL}/opponent-speech`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeader() },
     body: JSON.stringify(payload),
