@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { API_BASE_URL } from "./lib/api";
+import { API_BASE_URL } from "../../lib/api";
 
 // ─── CLASH POINT PICKER ────────────────────────────────────────────────────────
 // Self-contained mini-game component.

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { API_BASE_URL } from "./lib/api";
+import { API_BASE_URL } from "../../lib/api";
 
 // ─── FALLACY DICTIONARY ────────────────────────────────────────────────────────
 // Every fallacy that can appear as a chip option.

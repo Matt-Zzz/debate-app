@@ -18,7 +18,9 @@ const DEFAULT_SCENARIOS = [
   },
   {
     id: "s2",
-   nates bureaucratic gatekeeping that excludes eligible people", dimension: "Systemic" },
+    claim: "Universal basic income should replace most targeted welfare programs.",
+    impacts: [
+      { id: "a", label: "Eliminates bureaucratic gatekeeping that excludes eligible people", dimension: "Systemic" },
       { id: "b", label: "Unconditional floor prevents extreme poverty for millions", dimension: "Magnitude" },
       { id: "c", label: "Administrative cost savings free up budget for other programmes", dimension: "Secondary" },
     ],
@@ -134,10 +136,10 @@ const S = {
     fontSize: "14px",
     fontWeight: 800,
     flexShrink: 0,
-    fontFamily: "'JetBrains Mono',   color: "#111827",
+    fontFamily: "'JetBrains Mono', monospace",
     lineHeight: 1.35,
     marginBottom: "4px",
-  },
+  }),
   impactDim: {
     fontSize: "11px",
     fontWeight: 700,

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "./lib/api";
+import { API_BASE_URL } from "../../lib/api";
 
 // SPEECH POLISH
 // Four-level mini-game for sharpening debate language.

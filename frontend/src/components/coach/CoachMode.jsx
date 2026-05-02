@@ -9,9 +9,9 @@ import { apiFetch } from "../../lib/api";
 import { LEVEL_UP_MESSAGES, pickEncouragement } from "../../lib/coach/uiText";
 
 // Mini-game components — add imports here as each game is wired
-import ClashGame from "../../ClashGame";
-import FallacyHunt from "../../FallacyHunt";
-import SpeechPolish from "../../SpeechPolish";
+import ClashGame from "../minigames/ClashGame";
+import FallacyHunt from "../minigames/FallacyHunt";
+import SpeechPolish from "../minigames/SpeechPolish";
 
 import {
   eyebrow,
