@@ -36,15 +36,15 @@ export const loadingSurface = {
 };
 
 export const pageWrap = {
-  maxWidth: "760px",
+  maxWidth: "680px",
   margin: "0 auto",
-  padding: "24px 20px 110px",
+  padding: "18px 14px 96px",
 };
 
 export const sectionCard = {
   background: theme.card,
   border: `1px solid ${theme.border}`,
-  borderRadius: "24px",
+  borderRadius: "20px",
   boxShadow: theme.shadowSoft,
   backdropFilter: "blur(10px)",
 };
@@ -59,8 +59,8 @@ export const softCard = {
 export const heroCard = {
   background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #ec4899 100%)",
   color: "#fff",
-  borderRadius: "30px",
-  padding: "28px 24px",
+  borderRadius: "22px",
+  padding: "20px 18px",
   boxShadow: "0 28px 60px rgba(79, 70, 229, 0.28)",
 };
 
@@ -83,7 +83,7 @@ export const eyebrowSmall = {
 };
 
 export const headline = {
-  fontSize: "clamp(2rem, 5vw, 2.8rem)",
+  fontSize: "clamp(1.7rem, 5vw, 2.5rem)",
   lineHeight: 1.04,
   fontWeight: 700,
   color: theme.ink,
@@ -92,19 +92,19 @@ export const headline = {
 };
 
 export const subheadline = {
-  fontSize: "14px",
+  fontSize: "13px",
   color: theme.muted,
-  lineHeight: 1.7,
-  marginTop: "10px",
+  lineHeight: 1.55,
+  marginTop: "8px",
 };
 
 export const solidBtn = {
-  padding: "13px 22px",
+  padding: "12px 18px",
   background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
   color: "#fff",
   border: "none",
-  borderRadius: "16px",
-  fontSize: "14px",
+  borderRadius: "14px",
+  fontSize: "13px",
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -113,12 +113,12 @@ export const solidBtn = {
 };
 
 export const secondaryBtn = {
-  padding: "13px 22px",
+  padding: "12px 18px",
   background: "#fff",
   color: theme.primary,
   border: `1px solid rgba(79, 70, 229, 0.18)`,
-  borderRadius: "16px",
-  fontSize: "14px",
+  borderRadius: "14px",
+  fontSize: "13px",
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -127,7 +127,7 @@ export const secondaryBtn = {
 };
 
 export const ghostBtn = {
-  padding: "12px 18px",
+  padding: "11px 16px",
   background: "rgba(255,255,255,0.72)",
   color: theme.ink,
   border: `1px solid ${theme.border}`,
@@ -139,13 +139,13 @@ export const ghostBtn = {
 };
 
 export const cardBtn = (active) => ({
-  padding: "18px 20px",
+  padding: "16px",
   background: active
     ? "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)"
     : "rgba(255,255,255,0.94)",
   color: active ? "#fff" : theme.ink,
   border: `1px solid ${active ? "rgba(79,70,229,0.16)" : theme.border}`,
-  borderRadius: "22px",
+  borderRadius: "18px",
   cursor: "pointer",
   textAlign: "left",
   transition: "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease",
@@ -155,10 +155,10 @@ export const cardBtn = (active) => ({
 
 export const inputStyle = {
   width: "100%",
-  padding: "13px 15px",
+  padding: "12px 14px",
   border: `1px solid rgba(99, 102, 241, 0.16)`,
-  borderRadius: "16px",
-  fontSize: "14px",
+  borderRadius: "14px",
+  fontSize: "13px",
   background: "rgba(248,250,252,0.96)",
   boxSizing: "border-box",
   fontFamily: "'Plus Jakarta Sans', sans-serif",

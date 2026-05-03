@@ -14,9 +14,9 @@ import {
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 const featureCards = [
-  { title: "Tutorial Placement", text: "Get placed into the right level from your first session." },
-  { title: "Training XP", text: "Unlock tougher debate topics as your sessions improve." },
-  { title: "PvP Arena", text: "Match with nearby skill levels and track results." },
+  { title: "Placement" },
+  { title: "Training XP" },
+  { title: "PvP" },
 ];
 
 export default function AuthScreen({ onAuth }) {
@@ -103,39 +103,37 @@ export default function AuthScreen({ onAuth }) {
 
   return (
     <div style={{ ...pageWrap, minHeight: "100vh", display: "flex", alignItems: "center" }}>
-      <div style={{ width: "100%", display: "grid", gap: "18px", maxWidth: "560px", margin: "0 auto" }}>
+      <div style={{ width: "100%", display: "grid", gap: "14px", maxWidth: "560px", margin: "0 auto" }}>
         <div style={heroCard}>
           <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>DebateHub</div>
-          <h1 style={{ margin: "10px 0 8px", fontSize: "clamp(2.3rem, 8vw, 3.5rem)", lineHeight: 0.98, fontFamily: "'Fraunces', serif" }}>
-            Master debate through deliberate practice.
+          <h1 style={{ margin: "8px 0 6px", fontSize: "clamp(1.9rem, 8vw, 2.9rem)", lineHeight: 1, fontFamily: "'Fraunces', serif" }}>
+            Train debate fast.
           </h1>
-          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)", marginTop: "12px" }}>
-            Tutorial placement, progression-based training, and PvP sessions in one mobile-first flow.
+          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)", marginTop: "8px" }}>
+            Practice, level up, and queue PvP.
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px", marginTop: "18px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(90px, 1fr))", gap: "8px", marginTop: "14px" }}>
             {featureCards.map((item) => (
               <div
                 key={item.title}
                 style={{
-                  background: "rgba(255,255,255,0.12)",
+                  background: "rgba(255,255,255,0.14)",
                   border: "1px solid rgba(255,255,255,0.16)",
-                  borderRadius: "18px",
-                  padding: "12px",
-                  minHeight: "110px",
+                  borderRadius: "14px",
+                  padding: "10px 8px",
                 }}
               >
-                <div style={{ fontSize: "13px", fontWeight: 800, marginBottom: "6px" }}>{item.title}</div>
-                <div style={{ fontSize: "12px", lineHeight: 1.55, color: "rgba(255,255,255,0.82)" }}>{item.text}</div>
+                <div style={{ fontSize: "12px", fontWeight: 800, textAlign: "center" }}>{item.title}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div style={{ ...sectionCard, padding: "22px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", marginBottom: "18px" }}>
+        <div style={{ ...sectionCard, padding: "18px 16px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", marginBottom: "14px" }}>
             <div>
               <div style={eyebrow}>{isSignIn ? "Welcome Back" : "Create Account"}</div>
-              <div style={{ fontSize: "28px", fontWeight: 800, marginTop: "8px", color: "#111827" }}>
+              <div style={{ fontSize: "22px", fontWeight: 800, marginTop: "6px", color: "#111827" }}>
                 {isSignIn ? "Sign in to continue" : "Start your debate path"}
               </div>
             </div>

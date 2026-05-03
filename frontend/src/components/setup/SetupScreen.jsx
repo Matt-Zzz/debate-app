@@ -24,6 +24,11 @@ function pickRandomTopic(topics, excludeId = null) {
   return source[Math.floor(Math.random() * source.length)];
 }
 
+function shorten(text = "", limit = 110) {
+  if (!text || text.length <= limit) return text;
+  return `${text.slice(0, limit).trim()}...`;
+}
+
 function SettingPill({ label, value, active }) {
   return (
     <div
@@ -77,15 +82,15 @@ export default function SetupScreen({ onStart, user }) {
 
   return (
     <div style={pageWrap}>
-      <div style={{ ...heroCard, marginBottom: "18px" }}>
+      <div style={{ ...heroCard, marginBottom: "14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", flexWrap: "wrap", alignItems: "center" }}>
           <div style={{ maxWidth: "460px" }}>
             <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Training Sessions</div>
             <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
-              Set up your next training run.
+              Set your next run.
             </div>
             <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
-              Your topic pool is already folded into training. Choose a prompt, select an opponent profile, and lock the side you want to sharpen.
+              Choose topic, opponent, and side.
             </p>
           </div>
           <LevelBadge level={user.currentLevel} size="lg" />
@@ -103,11 +108,11 @@ export default function SetupScreen({ onStart, user }) {
         </div>
       </div>
 
-      <div style={{ ...sectionCard, padding: "18px 20px", marginBottom: "14px" }}>
+      <div style={{ ...sectionCard, padding: "14px 14px", marginBottom: "12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", flexWrap: "wrap" }}>
           <div>
             <div style={eyebrowSmall}>Assigned Topic</div>
-            <div style={{ fontSize: "26px", lineHeight: 1.15, fontWeight: 800, color: "#111827", marginTop: "8px", maxWidth: "520px" }}>
+            <div style={{ fontSize: "21px", lineHeight: 1.15, fontWeight: 800, color: "#111827", marginTop: "6px", maxWidth: "520px" }}>
               {topic ? topic.title : "No topic available"}
             </div>
           </div>
@@ -116,8 +121,8 @@ export default function SetupScreen({ onStart, user }) {
 
         {topic && (
           <>
-            <div style={{ fontSize: "14px", color: "#475467", lineHeight: 1.75, marginTop: "12px", marginBottom: "14px" }}>
-              {topic.description}
+            <div style={{ fontSize: "13px", color: "#475467", lineHeight: 1.5, marginTop: "10px", marginBottom: "10px" }}>
+              {shorten(topic.description, 120)}
             </div>
             <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
               <div style={{ padding: "7px 11px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", fontSize: "11px", fontWeight: 700 }}>
@@ -137,13 +142,13 @@ export default function SetupScreen({ onStart, user }) {
           disabled={!topic || refreshesLeft <= 0}
           style={{ ...solidBtn, background: "linear-gradient(135deg, #64748b 0%, #475569 100%)", boxShadow: "0 12px 24px rgba(71, 85, 105, 0.20)", opacity: !topic || refreshesLeft <= 0 ? 0.5 : 1 }}
         >
-          Refresh Topic
+          New Topic
         </button>
       </div>
 
       <div style={{ marginBottom: "18px" }}>
         <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Opponent</div>
-        <div style={{ display: "grid", gap: "12px" }}>
+        <div style={{ display: "grid", gap: "10px" }}>
           {characters.map((character) => {
             const active = char?.id === character.id;
             return (
@@ -155,9 +160,8 @@ export default function SetupScreen({ onStart, user }) {
                 <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
                   <div style={{ fontSize: "32px", flexShrink: 0 }}>{character.avatar}</div>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "20px", fontWeight: 800, fontFamily: "'Fraunces', serif", marginBottom: "4px" }}>{character.name}</div>
+                    <div style={{ fontSize: "18px", fontWeight: 800, fontFamily: "'Fraunces', serif", marginBottom: "4px" }}>{character.name}</div>
                     <div style={{ fontSize: "13px", opacity: active ? 0.78 : 0.66, marginBottom: "8px" }}>{character.tagline}</div>
-                    <div style={{ fontSize: "13px", opacity: active ? 0.88 : 0.72, lineHeight: 1.65, marginBottom: "12px" }}>{character.description}</div>
                     <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                       {Object.entries(character.settings).map(([key, value]) => (
                         <SettingPill key={key} label={key} value={value} active={active} />
@@ -173,9 +177,9 @@ export default function SetupScreen({ onStart, user }) {
 
       {topic && (
         <div style={{ display: "grid", gap: "12px" }}>
-          <div style={{ ...sectionCard, padding: "18px 20px" }}>
+          <div style={{ ...sectionCard, padding: "14px 14px" }}>
             <div style={eyebrowSmall}>Choose Your Side</div>
-            <div style={{ fontSize: "22px", lineHeight: 1.2, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "8px" }}>{topic.title}</div>
+            <div style={{ fontSize: "19px", lineHeight: 1.2, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "6px" }}>{topic.title}</div>
           </div>
           {["A", "B"].map((nextSide) => {
             const data = nextSide === "A" ? topic.sideA : topic.sideB;
@@ -185,7 +189,7 @@ export default function SetupScreen({ onStart, user }) {
                 <div style={{ ...eyebrowSmall, marginBottom: "8px", color: active ? "rgba(255,255,255,0.72)" : undefined }}>
                   Side {nextSide}
                 </div>
-                <div style={{ fontSize: "18px", fontWeight: 800, marginBottom: "10px" }}>{data.position}</div>
+                <div style={{ fontSize: "16px", fontWeight: 800, marginBottom: "8px" }}>{data.position}</div>
                 {data.args.map((arg, index) => (
                   <div key={index} style={{ fontSize: "13px", lineHeight: 1.65, opacity: active ? 0.92 : 0.72, marginBottom: "4px" }}>
                     · {arg}

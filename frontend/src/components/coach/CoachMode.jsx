@@ -122,17 +122,15 @@ function getWeakestTree(trees) {
 function buildCoachLead(userName, newSeeds, weakestTree, recentGames) {
   const prefix = userName ? `${userName}, ` : "";
   if (newSeeds.length > 0) {
-    return `${prefix}I pulled ${newSeeds.length} personalized rep${
-      newSeeds.length === 1 ? "" : "s"
-    } from your latest round so you can practice the exact spots that slipped.`;
+    return `${prefix}${newSeeds.length} personalized rep${newSeeds.length === 1 ? "" : "s"} ready.`;
   }
   if (weakestTree) {
-    return `${prefix}${weakestTree.name} is still your thinnest area. Stay deliberate here and the rest of the skill map will feel easier.`;
+    return `${prefix}Focus: ${weakestTree.name}.`;
   }
   if (recentGames.length > 0) {
-    return `${prefix}you already have momentum. Keep the reps tight and stack another focused game before the streak cools off.`;
+    return `${prefix}Momentum is up. Log another focused rep.`;
   }
-  return `${prefix}Coach Mode turns your debate history into deliberate reps so you can train the right weakness instead of guessing.`;
+  return `${prefix}Coach builds reps from your latest debates.`;
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -154,7 +152,7 @@ function SectionHeader({ label, title, description }) {
         <div style={sectionTitle}>{title}</div>
       </div>
       {description && (
-        <div style={{ fontSize: "13px", color: theme.muted, lineHeight: 1.6, maxWidth: "360px" }}>
+        <div style={{ fontSize: "12px", color: theme.muted, lineHeight: 1.45, maxWidth: "320px" }}>
           {description}
         </div>
       )}
@@ -233,9 +231,7 @@ function GameResultPanel({ result, onContinue }) {
           >
             {resultTitle}
           </div>
-          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
-            Your coach queue is updated and the next best reps are ready.
-          </p>
+          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>Queue updated.</p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
             <div style={{ padding: "10px 12px", borderRadius: "16px", background: "rgba(255,255,255,0.14)", fontSize: "13px", fontWeight: 700 }}>
               +{treeXPEarned} tree XP
@@ -265,7 +261,7 @@ function GameResultPanel({ result, onContinue }) {
         <SectionHeader
           label="Next Move"
           title="Coach update"
-          description="Your tree progress and next recommendations are already refreshed."
+          description="Progress refreshed."
         />
         <div
           style={{
@@ -305,8 +301,8 @@ function GameResultPanel({ result, onContinue }) {
             ) : (
               <div style={emptyCard}>
                 <div style={{ fontSize: "16px", fontWeight: 800, color: theme.ink }}>Queue cleared</div>
-                <div style={{ ...subheadline, marginTop: "6px" }}>
-                  No immediate follow-up recommendations. Head back to Coach and pick the next tree manually.
+                  <div style={{ ...subheadline, marginTop: "6px" }}>
+                  No immediate follow-up recommendations.
                 </div>
               </div>
             )}
@@ -492,7 +488,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
         <div style={{ ...heroCard, marginBottom: "18px" }}>
           <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Coach Mode</div>
           <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
-            Loading your training map...
+            Loading coach...
           </div>
           <div style={{ marginTop: "18px" }}>
             <Skeleton h="70px" />
@@ -674,7 +670,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
           <SectionHeader
             label="From Your Last Round"
             title="Personalized reps"
-            description="These drills were generated from the exact moments your last debate exposed."
+            description="Built from your last round."
           />
           <div style={cardGrid}>
             {newSeeds.slice(0, 2).map((seed) => (
@@ -703,7 +699,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
           <SectionHeader
             label="Suggested Next"
             title="Coach queue"
-            description="Priority picks based on your weakest trees, recent seeds, and the games you have already been playing."
+            description="Priority picks."
           />
           <div style={cardGrid}>
             {recommendations.map((rec, i) => (
@@ -731,7 +727,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
         <SectionHeader
           label="Skill Trees"
           title="Your training map"
-          description="Tap a tree to inspect its current level, XP runway, and the specific coaching note behind it."
+          description="Tap a tree to inspect."
         />
         <div style={skillGrid}>
           {skillTrees.map((tree) => (
@@ -772,9 +768,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
             </div>
           </div>
         ) : (
-          <div style={{ ...subheadline, marginTop: "14px" }}>
-            Select a tree to inspect its coaching note and progression details.
-          </div>
+          <div style={{ ...subheadline, marginTop: "14px" }}>Select a tree to inspect.</div>
         )}
       </div>
 
@@ -783,7 +777,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
         <SectionHeader
           label="Recent Games"
           title="Latest reps"
-          description="A quick read on what you have played most recently and where the XP landed."
+          description="Recent XP gains."
         />
         {recentGames.length > 0 ? (
           <div style={{ display: "grid", gap: "10px" }}>
@@ -846,7 +840,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
               <div>
                 <div style={{ fontSize: "16px", fontWeight: 800, color: theme.ink }}>No reps logged yet</div>
                 <div style={{ ...subheadline, marginTop: "6px" }}>
-                  Start from a suggested game or a personalized round excerpt and this section will begin tracking your coach history.
+                  Start a suggested or personalized rep to log history.
                 </div>
               </div>
             </div>
