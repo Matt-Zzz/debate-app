@@ -75,6 +75,10 @@ Create `backend-python/.env` (or `../.env`) and set:
 GEMINI_API_KEY=your_key_here
 # optional
 GEMINI_MODEL=gemini-2.5-flash-lite
+# optional (agent pipeline model override)
+GEMINI_AGENT_MODEL=gemini-2.5-flash-lite
+# optional (enables NewsAPI source in Hot Debate Topic pipeline)
+NEWS_API_KEY=your_news_api_key
 # required for Google sign-in
 GOOGLE_CLIENT_ID=your_google_client_id
 ```

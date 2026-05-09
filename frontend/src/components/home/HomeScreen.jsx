@@ -16,6 +16,26 @@ import DifficultyChip from "../common/DifficultyChip";
 import LevelBadge from "../common/LevelBadge";
 import XPProgressBar from "../common/XPProgressBar";
 
+const DIFFICULTY_OPTIONS = ["Easy", "Medium", "Hard"];
+const CATEGORY_OPTIONS = [
+  "Education / AI",
+  "AI / Technology",
+  "Environment",
+  "Politics / Policy",
+  "Ethics",
+  "Economy",
+  "Culture / Society",
+];
+const MODE_OPTIONS = ["Casual", "Academic", "Policy", "Ethical"];
+
+function buildTrendingPath(filters) {
+  const params = new URLSearchParams({ limit: "10" });
+  if (filters.difficulty) params.set("difficulty", filters.difficulty);
+  if (filters.category) params.set("category", filters.category);
+  if (filters.mode) params.set("mode", filters.mode);
+  return `/trending-topics?${params.toString()}`;
+}
+
 function ActionCard({ icon: Icon, label, value, detail, tint, onClick }) {
   const content = (
     <>
@@ -110,6 +130,15 @@ export default function HomeScreen({ user, onNavigate }) {
   const [history, setHistory] = useState([]);
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [trendingTopics, setTrendingTopics] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(true);
+  const [trendingRefreshing, setTrendingRefreshing] = useState(false);
+  const [expandedTopicId, setExpandedTopicId] = useState("");
+  const [topicFilters, setTopicFilters] = useState({
+    difficulty: "",
+    category: "",
+    mode: "",
+  });
 
   useEffect(() => {
     let active = true;
@@ -132,9 +161,52 @@ export default function HomeScreen({ user, onNavigate }) {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    setTrendingLoading(true);
+
+    apiFetch(buildTrendingPath(topicFilters))
+      .then((topics) => {
+        if (!active) return;
+        setTrendingTopics(Array.isArray(topics) ? topics : []);
+      })
+      .catch(() => {
+        if (!active) return;
+        setTrendingTopics([]);
+      })
+      .finally(() => {
+        if (active) setTrendingLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [topicFilters.difficulty, topicFilters.category, topicFilters.mode]);
+
+  const refreshTrending = async () => {
+    setTrendingRefreshing(true);
+    try {
+      await apiFetch("/trending-topics/refresh", {
+        method: "POST",
+        body: JSON.stringify({ targetCount: 12, maxPerSource: 12 }),
+      });
+      const topics = await apiFetch(buildTrendingPath(topicFilters)).catch(() => []);
+      setTrendingTopics(topics);
+      setExpandedTopicId("");
+    } catch (_) {
+      // Ignore refresh errors and keep existing list.
+    } finally {
+      setTrendingRefreshing(false);
+      setTrendingLoading(false);
+    }
+  };
+
   const recentHistory = history.slice(0, 2);
   const activeMatch = matches.find((item) => item.status === "matched" || item.status === "waiting") || null;
   const strongestDifficulty = user.unlockedDifficulties[user.unlockedDifficulties.length - 1] || "Easy";
+  const categoryChoices = Array.from(
+    new Set([...CATEGORY_OPTIONS, ...trendingTopics.map((item) => item.category).filter(Boolean)])
+  );
 
   return (
     <div style={pageWrap}>
@@ -214,6 +286,132 @@ export default function HomeScreen({ user, onNavigate }) {
             tint="linear-gradient(135deg, #0f172a 0%, #334155 100%)"
             onClick={() => onNavigate("profile")}
           />
+        </div>
+      </div>
+
+      <div style={{ ...sectionCard, padding: "12px", marginBottom: "10px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
+          <div>
+            <div style={eyebrowSmall}>Trending</div>
+            <div style={{ fontSize: "16px", fontWeight: 800, marginTop: "4px", color: "#111827" }}>🔥 Trending Debate Topics</div>
+          </div>
+          <button
+            onClick={refreshTrending}
+            disabled={trendingRefreshing}
+            style={{
+              ...solidBtn,
+              padding: "8px 11px",
+              fontSize: "11px",
+              background: "linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)",
+              boxShadow: "0 8px 18px rgba(37, 99, 235, 0.24)",
+              opacity: trendingRefreshing ? 0.7 : 1,
+            }}
+          >
+            {trendingRefreshing ? "Refreshing..." : "Refresh Topics"}
+          </button>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "6px", marginTop: "10px" }}>
+          <select
+            value={topicFilters.difficulty}
+            onChange={(event) => setTopicFilters((prev) => ({ ...prev, difficulty: event.target.value }))}
+            style={{ borderRadius: "10px", border: "1px solid #d0d5dd", fontSize: "11px", padding: "8px", background: "#fff" }}
+          >
+            <option value="">Difficulty</option>
+            {DIFFICULTY_OPTIONS.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+          <select
+            value={topicFilters.category}
+            onChange={(event) => setTopicFilters((prev) => ({ ...prev, category: event.target.value }))}
+            style={{ borderRadius: "10px", border: "1px solid #d0d5dd", fontSize: "11px", padding: "8px", background: "#fff" }}
+          >
+            <option value="">Category</option>
+            {categoryChoices.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+          <select
+            value={topicFilters.mode}
+            onChange={(event) => setTopicFilters((prev) => ({ ...prev, mode: event.target.value }))}
+            style={{ borderRadius: "10px", border: "1px solid #d0d5dd", fontSize: "11px", padding: "8px", background: "#fff" }}
+          >
+            <option value="">Mode</option>
+            {MODE_OPTIONS.map((item) => (
+              <option key={item} value={item}>{item}</option>
+            ))}
+          </select>
+        </div>
+
+        <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
+          {!trendingLoading && trendingTopics.length === 0 && (
+            <ActivityCard
+              title="No trending topics yet"
+              meta="Try refresh to run the Hot Debate Topic Agent Pipeline."
+            />
+          )}
+
+          {trendingTopics.map((item) => {
+            const expanded = expandedTopicId === item.id;
+            return (
+              <div key={item.id} style={{ ...sectionCard, padding: "11px 12px" }}>
+                <div style={{ fontSize: "13px", fontWeight: 800, color: "#111827", lineHeight: 1.35 }}>{item.title}</div>
+                <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "6px" }}>
+                  <div style={{ padding: "5px 9px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", fontSize: "10px", fontWeight: 700 }}>
+                    Category: {item.category}
+                  </div>
+                  <div style={{ padding: "5px 9px", borderRadius: "999px", background: "#fef3c7", color: "#a16207", fontSize: "10px", fontWeight: 700 }}>
+                    Difficulty: {item.difficulty}
+                  </div>
+                  <div style={{ padding: "5px 9px", borderRadius: "999px", background: "#ecfeff", color: "#0e7490", fontSize: "10px", fontWeight: 700 }}>
+                    Trend Score: {item.trendScore}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
+                  <button onClick={() => onNavigate("training")} style={{ ...solidBtn, padding: "8px 10px", fontSize: "11px" }}>
+                    Start Debate
+                  </button>
+                  <button
+                    onClick={() => setExpandedTopicId((prev) => (prev === item.id ? "" : item.id))}
+                    style={{
+                      ...solidBtn,
+                      padding: "8px 10px",
+                      fontSize: "11px",
+                      background: "linear-gradient(135deg, #334155 0%, #0f172a 100%)",
+                      boxShadow: "0 8px 18px rgba(15, 23, 42, 0.2)",
+                    }}
+                  >
+                    {expanded ? "Hide Both Sides" : "View Both Sides"}
+                  </button>
+                </div>
+
+                {expanded && (
+                  <div style={{ marginTop: "8px", display: "grid", gap: "8px" }}>
+                    <div style={{ background: "#f8fafc", borderRadius: "10px", padding: "8px", border: "1px solid #e2e8f0" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 800, color: "#0f766e", marginBottom: "4px" }}>{item.proPosition}</div>
+                      {(item.proArguments || []).map((arg, index) => (
+                        <div key={`${item.id}-pro-${index}`} style={{ fontSize: "11px", color: "#334155", lineHeight: 1.45 }}>
+                          · {arg}
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ background: "#fff7ed", borderRadius: "10px", padding: "8px", border: "1px solid #fed7aa" }}>
+                      <div style={{ fontSize: "11px", fontWeight: 800, color: "#9a3412", marginBottom: "4px" }}>{item.conPosition}</div>
+                      {(item.conArguments || []).map((arg, index) => (
+                        <div key={`${item.id}-con-${index}`} style={{ fontSize: "11px", color: "#7c2d12", lineHeight: 1.45 }}>
+                          · {arg}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {trendingLoading && <div style={{ fontSize: "12px", color: "#667085" }}>Loading trending topics…</div>}
         </div>
       </div>
 

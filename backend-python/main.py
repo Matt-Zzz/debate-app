@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, AsyncIterator, Optional
 from urllib.parse import urlparse
 
-from fastapi import Depends, FastAPI, Header, HTTPException
+from fastapi import Depends, FastAPI, Header, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from google import genai
@@ -47,6 +47,7 @@ from skill_trees import (
 )
 from practice_seed_extractor import extract_practice_seeds
 from recommendations import recommend_next_actions
+from routes.topics import list_hot_topics, refresh_hot_topics, seed_from_static_topics
 
 # ── App setup ─────────────────────────────────────────────────────────────────
 
@@ -238,6 +239,30 @@ def init_db() -> None:
                 created_at TEXT NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
             );
+            CREATE TABLE IF NOT EXISTS debate_topics (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                motion_title TEXT NOT NULL,
+                category TEXT NOT NULL,
+                difficulty TEXT NOT NULL,
+                debate_style TEXT NOT NULL,
+                classification_reason TEXT NOT NULL,
+                recommended_level TEXT NOT NULL,
+                pro_position TEXT NOT NULL,
+                pro_arguments_json TEXT NOT NULL,
+                con_position TEXT NOT NULL,
+                con_arguments_json TEXT NOT NULL,
+                source TEXT NOT NULL,
+                raw_title TEXT NOT NULL,
+                raw_summary TEXT NOT NULL,
+                source_url TEXT NOT NULL DEFAULT '',
+                source_urls_json TEXT NOT NULL DEFAULT '[]',
+                trend_score INTEGER NOT NULL DEFAULT 0,
+                status TEXT NOT NULL DEFAULT 'approved',
+                safety_level TEXT NOT NULL DEFAULT 'safe',
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+            );
             CREATE INDEX IF NOT EXISTS idx_auth_tokens_user
                 ON auth_tokens(user_id);
             CREATE INDEX IF NOT EXISTS idx_training_history_user_created
@@ -254,6 +279,10 @@ def init_db() -> None:
                 ON practice_seeds(user_id, status);
             CREATE INDEX IF NOT EXISTS idx_mini_game_sessions_user
                 ON mini_game_sessions(user_id, created_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_debate_topics_status_trend
+                ON debate_topics(status, trend_score DESC, updated_at DESC);
+            CREATE INDEX IF NOT EXISTS idx_debate_topics_filters
+                ON debate_topics(difficulty, category, debate_style);
         """)
         ensure_column(conn, "users", "current_level",      "INTEGER NOT NULL DEFAULT 1")
         ensure_column(conn, "users", "total_xp",           "INTEGER NOT NULL DEFAULT 0")
@@ -271,6 +300,8 @@ def init_db() -> None:
 
 
 init_db()
+with db_conn() as conn:
+    seed_from_static_topics(conn, TOPICS, limit=8)
 print(f"✓ {len(TOPICS)} topics · {len(CHARACTERS)} characters · {len(DRILLS)} drills · "
       f"{len(CLASH_TOPICS)} clash topics · {len(FALLACIES)} fallacies · Coach Mode ready")
 
@@ -864,6 +895,11 @@ class MiniGameCompleteRequest(BaseModel):
     metadata: dict[str, Any] = {}
 
 
+class TrendingRefreshRequest(BaseModel):
+    targetCount: int = 10
+    maxPerSource: int = 12
+
+
 # ── Auth routes ───────────────────────────────────────────────────────────────
 
 @app.post("/api/auth/register")
@@ -1314,6 +1350,34 @@ def complete_pvp(session_id: str, req: PvPResultRequest, user: dict = Depends(ge
 
 # ── Data routes ───────────────────────────────────────────────────────────────
 
+@app.get("/api/trending-topics")
+def get_trending_topics(
+    limit: int = Query(default=10, ge=1, le=30),
+    difficulty: str | None = Query(default=None),
+    category: str | None = Query(default=None),
+    mode: str | None = Query(default=None),
+):
+    with db_conn() as conn:
+        topics = list_hot_topics(
+            conn,
+            limit=limit,
+            difficulty=(difficulty or "").strip() or None,
+            category=(category or "").strip() or None,
+            mode=(mode or "").strip() or None,
+        )
+    return topics
+
+
+@app.post("/api/trending-topics/refresh")
+def post_refresh_trending_topics(req: TrendingRefreshRequest, _: dict = Depends(get_current_user)):
+    target_count = max(5, min(int(req.targetCount or 10), 30))
+    max_per_source = max(5, min(int(req.maxPerSource or 12), 30))
+    with db_conn() as conn:
+        result = refresh_hot_topics(conn, target_count=target_count, max_per_source=max_per_source)
+        topics = list_hot_topics(conn, limit=target_count, difficulty=None, category=None, mode=None)
+    return {"refresh": result, "topics": topics}
+
+
 @app.get("/api/topics")
 def get_topics(user: dict | None = Depends(get_optional_user)):
     topics = [topic_payload(t, user) for t in TOPICS]
@@ -1351,9 +1415,11 @@ def get_speech_polish():
 def health():
     with db_conn() as conn:
         users = conn.execute("SELECT COUNT(*) AS c FROM users").fetchone()["c"]
+        trending_topics = conn.execute("SELECT COUNT(*) AS c FROM debate_topics").fetchone()["c"]
     return {
         "status": "ok",
         "topics": len(TOPICS),
+        "trendingTopics": trending_topics,
         "characters": len(CHARACTERS),
         "drills": len(DRILLS),
         "users": users,

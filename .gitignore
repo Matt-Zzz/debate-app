@@ -30,6 +30,7 @@ backend-python/*.db-wal
 .env
 .env.*
 backend-python/.env
+!backend-python/.env.example
 
 App Development/
 
