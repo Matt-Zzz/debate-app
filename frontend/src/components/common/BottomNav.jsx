@@ -8,7 +8,7 @@ const navWrap = {
   zIndex: 40,
   background: "#f7f5f5",
   borderTop: "1px solid #e7e1e1",
-  padding: "10px 8px 12px",
+  padding: "6px 8px 8px",
 };
 
 const navGrid = {
@@ -25,20 +25,20 @@ const itemBase = {
   background: "transparent",
   border: 0,
   cursor: "pointer",
-  padding: "8px 4px",
+  padding: "6px 4px",
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
   justifyContent: "center",
-  gap: "8px",
+  gap: "5px",
   color: "#6b7a90",
   fontFamily: "'DM Sans', sans-serif",
 };
 
 const activePill = {
-  width: "56px",
-  height: "56px",
-  borderRadius: "18px",
+  width: "46px",
+  height: "46px",
+  borderRadius: "14px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -46,9 +46,9 @@ const activePill = {
 };
 
 const inactivePill = {
-  width: "56px",
-  height: "56px",
-  borderRadius: "18px",
+  width: "46px",
+  height: "46px",
+  borderRadius: "14px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
@@ -56,13 +56,13 @@ const inactivePill = {
 };
 
 const activeLabel = {
-  fontSize: "13px",
+  fontSize: "11px",
   fontWeight: 700,
   color: "#5b5ae6",
 };
 
 const inactiveLabel = {
-  fontSize: "13px",
+  fontSize: "11px",
   fontWeight: 700,
   color: "#6b7a90",
 };
@@ -70,8 +70,8 @@ const inactiveLabel = {
 function IconStroke({ children, active = false }) {
   return (
     <svg
-      width="28"
-      height="28"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke={active ? "#5b5ae6" : "#6b7a90"}

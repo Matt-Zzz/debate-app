@@ -38,13 +38,13 @@ export const loadingSurface = {
 export const pageWrap = {
   maxWidth: "680px",
   margin: "0 auto",
-  padding: "18px 14px 96px",
+  padding: "14px 12px 88px",
 };
 
 export const sectionCard = {
   background: theme.card,
   border: `1px solid ${theme.border}`,
-  borderRadius: "20px",
+  borderRadius: "16px",
   boxShadow: theme.shadowSoft,
   backdropFilter: "blur(10px)",
 };
@@ -59,8 +59,8 @@ export const softCard = {
 export const heroCard = {
   background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #ec4899 100%)",
   color: "#fff",
-  borderRadius: "22px",
-  padding: "20px 18px",
+  borderRadius: "18px",
+  padding: "16px 14px",
   boxShadow: "0 28px 60px rgba(79, 70, 229, 0.28)",
 };
 
@@ -92,19 +92,19 @@ export const headline = {
 };
 
 export const subheadline = {
-  fontSize: "13px",
+  fontSize: "12px",
   color: theme.muted,
-  lineHeight: 1.55,
-  marginTop: "8px",
+  lineHeight: 1.45,
+  marginTop: "6px",
 };
 
 export const solidBtn = {
-  padding: "12px 18px",
+  padding: "10px 14px",
   background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
   color: "#fff",
   border: "none",
-  borderRadius: "14px",
-  fontSize: "13px",
+  borderRadius: "12px",
+  fontSize: "12px",
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -113,12 +113,12 @@ export const solidBtn = {
 };
 
 export const secondaryBtn = {
-  padding: "12px 18px",
+  padding: "10px 14px",
   background: "#fff",
   color: theme.primary,
   border: `1px solid rgba(79, 70, 229, 0.18)`,
-  borderRadius: "14px",
-  fontSize: "13px",
+  borderRadius: "12px",
+  fontSize: "12px",
   fontWeight: 700,
   cursor: "pointer",
   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -155,10 +155,10 @@ export const cardBtn = (active) => ({
 
 export const inputStyle = {
   width: "100%",
-  padding: "12px 14px",
+  padding: "10px 12px",
   border: `1px solid rgba(99, 102, 241, 0.16)`,
-  borderRadius: "14px",
-  fontSize: "13px",
+  borderRadius: "12px",
+  fontSize: "12px",
   background: "rgba(248,250,252,0.96)",
   boxSizing: "border-box",
   fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -167,8 +167,8 @@ export const inputStyle = {
 
 export const textareaStyle = {
   ...inputStyle,
-  minHeight: "110px",
-  lineHeight: 1.65,
+  minHeight: "96px",
+  lineHeight: 1.55,
   resize: "vertical",
 };
 

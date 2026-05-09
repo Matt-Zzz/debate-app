@@ -7,7 +7,6 @@ import DifficultyChip from "../common/DifficultyChip";
 import LevelBadge from "../common/LevelBadge";
 import XPProgressBar from "../common/XPProgressBar";
 import {
-  cardBtn,
   eyebrow,
   eyebrowSmall,
   heroCard,
@@ -24,25 +23,36 @@ function pickRandomTopic(topics, excludeId = null) {
   return source[Math.floor(Math.random() * source.length)];
 }
 
-function shorten(text = "", limit = 110) {
+function pickRandomCharacter(characters) {
+  if (!characters.length) return null;
+  return characters[Math.floor(Math.random() * characters.length)];
+}
+
+function pickRandomSide() {
+  return Math.random() < 0.5 ? "A" : "B";
+}
+
+function shorten(text = "", limit = 96) {
   if (!text || text.length <= limit) return text;
   return `${text.slice(0, limit).trim()}...`;
 }
 
-function SettingPill({ label, value, active }) {
+function SummaryPill({ label, value, tint }) {
   return (
     <div
       style={{
-        padding: "6px 10px",
-        borderRadius: "999px",
-        background: active ? "rgba(255,255,255,0.18)" : "#eef2ff",
-        border: `1px solid ${active ? "rgba(255,255,255,0.16)" : "rgba(99, 102, 241, 0.12)"}`,
-        color: active ? "rgba(255,255,255,0.86)" : "#4338ca",
-        fontSize: "11px",
-        fontWeight: 700,
+        background: tint,
+        borderRadius: "12px",
+        border: "1px solid rgba(255,255,255,0.20)",
+        padding: "8px",
       }}
     >
-      {label}: {value}
+      <div style={{ fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.78)", fontWeight: 700 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: "14px", marginTop: "3px", color: "#fff", fontWeight: 800 }}>
+        {value}
+      </div>
     </div>
   );
 }
@@ -56,12 +66,21 @@ export default function SetupScreen({ onStart, user }) {
   const [side, setSide] = useState(null);
   const [refreshesLeft, setRefreshesLeft] = useState(TRAINING_TOPIC_REFRESH_LIMIT);
 
+  const assignRandomRound = (availableTopics, availableCharacters, excludeTopicId = null) => {
+    const nextTopic = pickRandomTopic(availableTopics, excludeTopicId);
+    const nextChar = pickRandomCharacter(availableCharacters);
+    const nextSide = nextTopic ? pickRandomSide() : null;
+    setTopic(nextTopic);
+    setChar(nextChar);
+    setSide(nextSide);
+  };
+
   useEffect(() => {
     Promise.all([apiFetch("/topics"), apiFetch("/characters")])
       .then(([nextTopics, nextCharacters]) => {
         setTopics(nextTopics);
         setCharacters(nextCharacters);
-        setTopic(pickRandomTopic(nextTopics));
+        assignRandomRound(nextTopics, nextCharacters);
         setLoading(false);
       })
       .catch(() => setLoading(false));
@@ -69,66 +88,93 @@ export default function SetupScreen({ onStart, user }) {
 
   const refreshTopic = () => {
     if (refreshesLeft <= 0) return;
-    const nextTopic = pickRandomTopic(topics, topic?.id || null);
-    if (!nextTopic) return;
-    setTopic(nextTopic);
-    setSide(null);
+    assignRandomRound(topics, characters, topic?.id || null);
     setRefreshesLeft((prev) => Math.max(0, prev - 1));
   };
 
+  const switchSide = () => {
+    if (!topic) return;
+    setSide((prev) => (prev === "A" ? "B" : "A"));
+  };
+
   if (loading) {
-    return <div style={{ ...pageWrap, color: "#667085", fontFamily: "'JetBrains Mono', monospace", fontSize: "13px" }}>Loading training…</div>;
+    return <div style={{ ...pageWrap, color: "#667085", fontFamily: "'JetBrains Mono', monospace", fontSize: "12px" }}>Loading training…</div>;
   }
+
+  const selectedSideData = topic ? (side === "A" ? topic.sideA : side === "B" ? topic.sideB : null) : null;
 
   return (
     <div style={pageWrap}>
-      <div style={{ ...heroCard, marginBottom: "14px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", flexWrap: "wrap", alignItems: "center" }}>
+      <div style={{ ...heroCard, marginBottom: "12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
           <div style={{ maxWidth: "460px" }}>
             <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Training Sessions</div>
-            <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
+            <div style={{ fontSize: "clamp(1.55rem, 6vw, 2.4rem)", lineHeight: 1.02, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "8px" }}>
               Set your next run.
             </div>
             <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
-              Choose topic, opponent, and side.
+              Topic and side are assigned automatically.
             </p>
           </div>
-          <LevelBadge level={user.currentLevel} size="lg" />
+          <LevelBadge level={user.currentLevel} size="md" showLabel={false} />
         </div>
-        <div style={{ marginTop: "18px", background: "rgba(255,255,255,0.12)", borderRadius: "20px", padding: "16px", border: "1px solid rgba(255,255,255,0.16)" }}>
-          <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+
+        <div style={{ marginTop: "12px", background: "rgba(255,255,255,0.12)", borderRadius: "14px", padding: "12px", border: "1px solid rgba(255,255,255,0.16)" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, marginBottom: "8px" }}>
             Level {user.currentLevel}: {user.levelName}
           </div>
           <XPProgressBar user={user} showNumbers={!!user.nextLevelXP} />
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "14px" }}>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "10px" }}>
             {user.unlockedDifficulties.map((difficulty) => (
               <DifficultyChip key={difficulty} difficulty={difficulty} size="sm" />
             ))}
           </div>
         </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px", marginTop: "10px" }}>
+          <SummaryPill label="Topics" value={topics.length} tint="rgba(59, 130, 246, 0.26)" />
+          <SummaryPill label="Opponents" value={characters.length} tint="rgba(236, 72, 153, 0.26)" />
+          <SummaryPill label="Refreshes" value={`${refreshesLeft}/${TRAINING_TOPIC_REFRESH_LIMIT}`} tint="rgba(16, 185, 129, 0.26)" />
+        </div>
       </div>
 
-      <div style={{ ...sectionCard, padding: "14px 14px", marginBottom: "12px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start", flexWrap: "wrap" }}>
+      <div style={{ ...sectionCard, padding: "12px", marginBottom: "10px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start", flexWrap: "wrap" }}>
           <div>
             <div style={eyebrowSmall}>Assigned Topic</div>
-            <div style={{ fontSize: "21px", lineHeight: 1.15, fontWeight: 800, color: "#111827", marginTop: "6px", maxWidth: "520px" }}>
+            <div style={{ fontSize: "16px", lineHeight: 1.22, fontWeight: 800, color: "#111827", marginTop: "4px", maxWidth: "520px" }}>
               {topic ? topic.title : "No topic available"}
             </div>
           </div>
-          {topic?.difficulty && <DifficultyChip difficulty={topic.difficulty} />}
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", justifyContent: "flex-end" }}>
+            {topic?.difficulty && <DifficultyChip difficulty={topic.difficulty} size="sm" />}
+            <button
+              onClick={refreshTopic}
+              disabled={!topic || refreshesLeft <= 0}
+              style={{
+                ...solidBtn,
+                padding: "8px 11px",
+                fontSize: "11px",
+                background: "linear-gradient(135deg, #64748b 0%, #475569 100%)",
+                boxShadow: "0 8px 18px rgba(71, 85, 105, 0.22)",
+                opacity: !topic || refreshesLeft <= 0 ? 0.5 : 1,
+              }}
+            >
+              New Topic
+            </button>
+          </div>
         </div>
 
         {topic && (
           <>
-            <div style={{ fontSize: "13px", color: "#475467", lineHeight: 1.5, marginTop: "10px", marginBottom: "10px" }}>
-              {shorten(topic.description, 120)}
+            <div style={{ fontSize: "12px", color: "#475467", lineHeight: 1.45, marginTop: "8px", marginBottom: "8px" }}>
+              {shorten(topic.description, 125)}
             </div>
-            <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-              <div style={{ padding: "7px 11px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", fontSize: "11px", fontWeight: 700 }}>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              <div style={{ padding: "5px 9px", borderRadius: "999px", background: "#eef2ff", color: "#4338ca", fontSize: "10px", fontWeight: 700 }}>
                 Tag: {topic.tag}
               </div>
-              <div style={{ padding: "7px 11px", borderRadius: "999px", background: "#f8fafc", color: "#475467", fontSize: "11px", fontWeight: 700 }}>
+              <div style={{ padding: "5px 9px", borderRadius: "999px", background: "#f8fafc", color: "#475467", fontSize: "10px", fontWeight: 700 }}>
                 Refreshes left: {refreshesLeft}/{TRAINING_TOPIC_REFRESH_LIMIT}
               </div>
             </div>
@@ -136,73 +182,44 @@ export default function SetupScreen({ onStart, user }) {
         )}
       </div>
 
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "18px" }}>
-        <button
-          onClick={refreshTopic}
-          disabled={!topic || refreshesLeft <= 0}
-          style={{ ...solidBtn, background: "linear-gradient(135deg, #64748b 0%, #475569 100%)", boxShadow: "0 12px 24px rgba(71, 85, 105, 0.20)", opacity: !topic || refreshesLeft <= 0 ? 0.5 : 1 }}
-        >
-          New Topic
-        </button>
-      </div>
-
-      <div style={{ marginBottom: "18px" }}>
-        <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Opponent</div>
-        <div style={{ display: "grid", gap: "10px" }}>
-          {characters.map((character) => {
-            const active = char?.id === character.id;
-            return (
-              <button
-                key={character.id}
-                onClick={() => setChar(character)}
-                style={cardBtn(active)}
-              >
-                <div style={{ display: "flex", gap: "14px", alignItems: "flex-start" }}>
-                  <div style={{ fontSize: "32px", flexShrink: 0 }}>{character.avatar}</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "18px", fontWeight: 800, fontFamily: "'Fraunces', serif", marginBottom: "4px" }}>{character.name}</div>
-                    <div style={{ fontSize: "13px", opacity: active ? 0.78 : 0.66, marginBottom: "8px" }}>{character.tagline}</div>
-                    <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                      {Object.entries(character.settings).map(([key, value]) => (
-                        <SettingPill key={key} label={key} value={value} active={active} />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {topic && (
-        <div style={{ display: "grid", gap: "12px" }}>
-          <div style={{ ...sectionCard, padding: "14px 14px" }}>
-            <div style={eyebrowSmall}>Choose Your Side</div>
-            <div style={{ fontSize: "19px", lineHeight: 1.2, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "6px" }}>{topic.title}</div>
+      {topic && selectedSideData && (
+        <div style={{ ...sectionCard, padding: "12px", marginBottom: "10px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            <div>
+              <div style={eyebrowSmall}>Your Assigned Side</div>
+              <div style={{ fontSize: "14px", fontWeight: 800, color: "#111827", marginTop: "4px" }}>
+                Side {side}
+              </div>
+            </div>
+            <button
+              onClick={switchSide}
+              style={{
+                ...solidBtn,
+                padding: "8px 11px",
+                fontSize: "11px",
+                background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)",
+                boxShadow: "0 8px 18px rgba(79, 70, 229, 0.22)",
+              }}
+            >
+              Switch Side
+            </button>
           </div>
-          {["A", "B"].map((nextSide) => {
-            const data = nextSide === "A" ? topic.sideA : topic.sideB;
-            const active = side === nextSide;
-            return (
-              <button key={nextSide} onClick={() => setSide(nextSide)} style={cardBtn(active)}>
-                <div style={{ ...eyebrowSmall, marginBottom: "8px", color: active ? "rgba(255,255,255,0.72)" : undefined }}>
-                  Side {nextSide}
+
+          <div style={{ marginTop: "8px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 800, color: "#111827" }}>{selectedSideData.position}</div>
+            <div style={{ display: "grid", gap: "4px", marginTop: "7px" }}>
+              {selectedSideData.args.map((arg, index) => (
+                <div key={index} style={{ fontSize: "11px", lineHeight: 1.45, color: "#475467" }}>
+                  · {arg}
                 </div>
-                <div style={{ fontSize: "16px", fontWeight: 800, marginBottom: "8px" }}>{data.position}</div>
-                {data.args.map((arg, index) => (
-                  <div key={index} style={{ fontSize: "13px", lineHeight: 1.65, opacity: active ? 0.92 : 0.72, marginBottom: "4px" }}>
-                    · {arg}
-                  </div>
-                ))}
-              </button>
-            );
-          })}
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
       {!!topic && !!char && !!side && (
-        <button onClick={() => onStart({ topic, character: char, side, sessionId: `training-${Date.now()}` })} style={{ ...solidBtn, marginTop: "20px" }}>
+        <button onClick={() => onStart({ topic, character: char, side, sessionId: `training-${Date.now()}` })} style={{ ...solidBtn, width: "100%", marginTop: "2px" }}>
           Begin Training
         </button>
       )}

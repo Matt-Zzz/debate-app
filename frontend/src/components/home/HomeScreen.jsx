@@ -1,6 +1,6 @@
 // home screen component
 
-import { Dumbbell, Home, Swords, Target, User } from "lucide-react";
+import { Dumbbell, Swords, Target, User } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../lib/api";
 import {
@@ -9,7 +9,6 @@ import {
   heroCard,
   pageWrap,
   sectionCard,
-  secondaryBtn,
   solidBtn,
   subheadline,
 } from "../../styles/ui";
@@ -22,29 +21,30 @@ function ActionCard({ icon: Icon, label, value, detail, tint, onClick }) {
     <>
       <div
         style={{
-          width: "42px",
-          height: "42px",
-          borderRadius: "14px",
+          width: "34px",
+          height: "34px",
+          borderRadius: "11px",
           display: "grid",
           placeItems: "center",
           background: "rgba(255,255,255,0.22)",
           color: "#fff",
-          marginBottom: "12px",
+          marginBottom: "8px",
         }}
       >
-        <Icon size={20} />
+        <Icon size={16} />
       </div>
-      <div style={{ fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.78)" }}>{label}</div>
-      <div style={{ fontSize: "18px", lineHeight: 1.2, fontWeight: 800, color: "#fff", marginTop: "4px" }}>{value}</div>
-      {!!detail && <div style={{ fontSize: "11px", lineHeight: 1.45, color: "rgba(255,255,255,0.84)", marginTop: "6px" }}>{detail}</div>}
+      <div style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.82)" }}>{label}</div>
+      <div style={{ fontSize: "15px", lineHeight: 1.2, fontWeight: 800, color: "#fff", marginTop: "2px" }}>{value}</div>
+      {!!detail && <div style={{ fontSize: "10px", lineHeight: 1.35, color: "rgba(255,255,255,0.84)", marginTop: "4px" }}>{detail}</div>}
     </>
   );
 
   const cardStyle = {
     ...sectionCard,
-    padding: "14px 14px 12px",
+    padding: "10px 10px 9px",
     textAlign: "left",
     background: tint,
+    minHeight: "112px",
   };
 
   if (!onClick) {
@@ -60,20 +60,20 @@ function ActionCard({ icon: Icon, label, value, detail, tint, onClick }) {
 
 function ActivityCard({ title, meta, score }) {
   return (
-    <div style={{ ...sectionCard, padding: "16px 18px" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "flex-start" }}>
+    <div style={{ ...sectionCard, padding: "11px 12px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "flex-start" }}>
         <div>
-          <div style={{ fontSize: "15px", fontWeight: 800, color: "#111827" }}>{title}</div>
-          <div style={{ fontSize: "12px", color: "#667085", marginTop: "6px" }}>{meta}</div>
+          <div style={{ fontSize: "13px", fontWeight: 800, color: "#111827" }}>{title}</div>
+          <div style={{ fontSize: "11px", color: "#667085", marginTop: "4px", lineHeight: 1.45 }}>{meta}</div>
         </div>
         {score !== null && score !== undefined && (
           <div
             style={{
-              padding: "8px 10px",
-              borderRadius: "12px",
+              padding: "6px 8px",
+              borderRadius: "10px",
               background: "#eef2ff",
               color: "#4338ca",
-              fontSize: "12px",
+              fontSize: "11px",
               fontWeight: 800,
               whiteSpace: "nowrap",
             }}
@@ -81,6 +81,26 @@ function ActivityCard({ title, meta, score }) {
             {score}/100
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SummaryPill({ label, value, tint }) {
+  return (
+    <div
+      style={{
+        background: tint,
+        borderRadius: "12px",
+        border: "1px solid rgba(255,255,255,0.20)",
+        padding: "8px",
+      }}
+    >
+      <div style={{ fontSize: "10px", letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.78)", fontWeight: 700 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: "14px", marginTop: "3px", color: "#fff", fontWeight: 800 }}>
+        {value}
       </div>
     </div>
   );
@@ -112,64 +132,57 @@ export default function HomeScreen({ user, onNavigate }) {
     };
   }, []);
 
-  const recentHistory = history.slice(0, 3);
+  const recentHistory = history.slice(0, 2);
   const activeMatch = matches.find((item) => item.status === "matched" || item.status === "waiting") || null;
   const strongestDifficulty = user.unlockedDifficulties[user.unlockedDifficulties.length - 1] || "Easy";
 
   return (
     <div style={pageWrap}>
-      <div style={{ ...heroCard, marginBottom: "18px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", flexWrap: "wrap", alignItems: "center" }}>
-          <div style={{ maxWidth: "480px" }}>
+      <div style={{ ...heroCard, marginBottom: "12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
+          <div style={{ maxWidth: "460px" }}>
             <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Home Dashboard</div>
-            <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
+            <div style={{ fontSize: "clamp(1.55rem, 6vw, 2.4rem)", lineHeight: 1.02, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "8px" }}>
               Welcome back, {user.name}.
             </div>
             <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
-              Pick Training or PvP and log a rep.
+              Training tier unlocked: {strongestDifficulty}.
             </p>
           </div>
-          <LevelBadge level={user.currentLevel} size="lg" />
+          <LevelBadge level={user.currentLevel} size="md" showLabel={false} />
         </div>
 
-        <div style={{ marginTop: "18px", background: "rgba(255,255,255,0.12)", borderRadius: "20px", padding: "16px", border: "1px solid rgba(255,255,255,0.16)" }}>
-          <div style={{ fontSize: "14px", fontWeight: 700, marginBottom: "10px" }}>
+        <div style={{ marginTop: "12px", background: "rgba(255,255,255,0.12)", borderRadius: "14px", padding: "12px", border: "1px solid rgba(255,255,255,0.16)" }}>
+          <div style={{ fontSize: "12px", fontWeight: 700, marginBottom: "8px" }}>
             Level {user.currentLevel}: {user.levelName}
           </div>
           <XPProgressBar user={user} showNumbers={!!user.nextLevelXP} />
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginTop: "14px" }}>
+          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "10px" }}>
             {user.unlockedDifficulties.map((difficulty) => (
               <DifficultyChip key={difficulty} difficulty={difficulty} size="sm" />
             ))}
           </div>
         </div>
-      </div>
 
-      <div
-        style={{
-          background: "linear-gradient(135deg, #fb923c 0%, #f97316 45%, #ec4899 100%)",
-          borderRadius: "22px",
-          padding: "18px 16px",
-          color: "#fff",
-          boxShadow: "0 20px 46px rgba(249, 115, 22, 0.22)",
-          marginBottom: "18px",
-        }}
-      >
-        <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Recommended</div>
-        <div style={{ fontSize: "22px", lineHeight: 1.1, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "6px" }}>
-          Start a training rep.
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px", marginTop: "10px" }}>
+          <SummaryPill label="Runs" value={history.length} tint="rgba(59, 130, 246, 0.26)" />
+          <SummaryPill label="PvP" value={matches.length} tint="rgba(236, 72, 153, 0.26)" />
+          <SummaryPill label="XP" value={user.totalXP} tint="rgba(16, 185, 129, 0.26)" />
         </div>
-        <p style={{ ...subheadline, color: "rgba(255,255,255,0.88)", marginBottom: "12px" }}>
-          Unlocked tier: {strongestDifficulty}.
-        </p>
-        <button onClick={() => onNavigate("training")} style={{ ...secondaryBtn, background: "#fff", color: "#f97316" }}>
-          Go to Training
-        </button>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "10px" }}>
+          <button onClick={() => onNavigate("training")} style={{ ...solidBtn, background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", boxShadow: "0 10px 22px rgba(234, 88, 12, 0.24)" }}>
+            Start Training
+          </button>
+          <button onClick={() => onNavigate("pvp")} style={{ ...solidBtn, background: "linear-gradient(135deg, #475569 0%, #334155 100%)", boxShadow: "0 10px 22px rgba(51, 65, 85, 0.24)" }}>
+            Open PvP
+          </button>
+        </div>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Quick Actions</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "10px" }}>
+      <div style={{ marginBottom: "12px" }}>
+        <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Quick Actions</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
           <ActionCard
             icon={Dumbbell}
             label="Training"
@@ -204,23 +217,20 @@ export default function HomeScreen({ user, onNavigate }) {
         </div>
       </div>
 
-      <div style={{ ...sectionCard, padding: "16px 14px", marginBottom: "14px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ ...sectionCard, padding: "12px", marginBottom: "10px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <div>
             <div style={eyebrowSmall}>Recent Activity</div>
-            <div style={{ fontSize: "19px", fontWeight: 800, marginTop: "6px", color: "#111827" }}>Latest reps</div>
+            <div style={{ fontSize: "16px", fontWeight: 800, marginTop: "4px", color: "#111827" }}>Latest reps</div>
           </div>
-          <button onClick={() => onNavigate("profile")} style={solidBtn}>
+          <button onClick={() => onNavigate("profile")} style={{ ...solidBtn, padding: "8px 11px", fontSize: "11px" }}>
             Open Profile
           </button>
         </div>
 
-        <div style={{ display: "grid", gap: "10px", marginTop: "16px" }}>
+        <div style={{ display: "grid", gap: "8px", marginTop: "10px" }}>
           {!loading && recentHistory.length === 0 && !activeMatch && (
-            <>
-              <ActivityCard title="Start your first run" meta="Open Training and begin." />
-              <ActivityCard title="Try PvP next" meta="Queue when you are ready." />
-            </>
+            <ActivityCard title="Start your first run" meta="Open Training or queue a PvP match." />
           )}
 
           {activeMatch && (
@@ -239,32 +249,7 @@ export default function HomeScreen({ user, onNavigate }) {
             />
           ))}
 
-          {loading && <div style={{ fontSize: "13px", color: "#667085" }}>Loading activity…</div>}
-        </div>
-      </div>
-
-      <div style={{ ...sectionCard, padding: "14px 14px" }}>
-        <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-          <div
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "14px",
-              background: "#eef2ff",
-              color: "#4338ca",
-              display: "grid",
-              placeItems: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Home size={18} />
-          </div>
-          <div>
-            <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>Today&apos;s Focus</div>
-            <div style={{ fontSize: "13px", lineHeight: 1.5, color: "#475467" }}>
-              Use Training to pick a prompt and opponent.
-            </div>
-          </div>
+          {loading && <div style={{ fontSize: "12px", color: "#667085" }}>Loading activity…</div>}
         </div>
       </div>
     </div>
