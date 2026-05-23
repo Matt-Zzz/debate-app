@@ -21,26 +21,29 @@ GOSSIP_PATTERNS = [
     re.compile(r"\b(celebrity|divorce|dating|relationship drama|red carpet|fashion week)\b", re.I),
 ]
 
-DEBATE_MARKERS = [
+DEBATE_MARKERS = {
     "should",
     "ban",
     "allow",
     "regulate",
     "policy",
     "legal",
-    "ethic",
+    "ethics",
+    "ethical",
     "fair",
     "rights",
     "privacy",
     "responsibility",
+    "school",
     "schools",
-    "universit",
+    "university",
+    "universities",
     "exam",
-    "ai",
     "government",
     "tax",
     "climate",
-]
+    "public",
+}
 
 CONTROVERSY_MARKERS = [
     "debate",
@@ -64,6 +67,14 @@ CAUTION_MARKERS = [
     "violence",
 ]
 
+NON_DEBATE_HEADLINE_PATTERNS = [
+    re.compile(r"^\s*(live updates?|breaking|watch):", re.I),
+    re.compile(r"\b(hours after|minutes after|today|this week|according to)\b", re.I),
+    re.compile(r"\b(cbs news|fox news|bbc|cnn|reuters|associated press)\b", re.I),
+    re.compile(r"\b(what happened|who is|where is|when did|how many)\b", re.I),
+]
+
+FACTUAL_QUESTION_PREFIX = re.compile(r"^\s*(what|who|where|when|how)\b", re.I)
 
 _ALLOWED_SAFETY = {"safe", "caution", "unsafe"}
 
@@ -76,8 +87,13 @@ def _to_bool(value: object, fallback: bool = False) -> bool:
     return fallback
 
 
+def _has_keyword(text: str, keyword: str) -> bool:
+    return re.search(rf"\b{re.escape(keyword)}\b", text) is not None
+
+
 def _heuristic_suitability(topic: RawTopic) -> SuitabilityResult:
     text = f"{topic.raw_title}. {topic.summary}".strip().lower()
+    title = topic.raw_title.strip()
 
     if PROTECTED_GROUP_ATTACK.search(text):
         return SuitabilityResult(
@@ -95,7 +111,21 @@ def _heuristic_suitability(topic: RawTopic) -> SuitabilityResult:
             safety_level=safety_level,
         )
 
-    has_debate_signal = any(marker in text for marker in DEBATE_MARKERS)
+    if any(pattern.search(title) for pattern in NON_DEBATE_HEADLINE_PATTERNS):
+        return SuitabilityResult(
+            is_debatable=False,
+            reason="Headline format is breaking-news style and needs reframing before debate use.",
+            safety_level=safety_level,
+        )
+
+    if FACTUAL_QUESTION_PREFIX.search(title):
+        return SuitabilityResult(
+            is_debatable=False,
+            reason="Question is mainly factual and does not create two clear policy sides.",
+            safety_level=safety_level,
+        )
+
+    has_debate_signal = any(_has_keyword(text, marker) for marker in DEBATE_MARKERS)
     has_controversy_signal = any(marker in text for marker in CONTROVERSY_MARKERS)
 
     if any(pattern.search(text) for pattern in FACT_ONLY_PATTERNS) and not has_debate_signal:
@@ -109,6 +139,13 @@ def _heuristic_suitability(topic: RawTopic) -> SuitabilityResult:
         return SuitabilityResult(
             is_debatable=False,
             reason="Topic is too short and vague for structured debate.",
+            safety_level=safety_level,
+        )
+
+    if len(title) > 120 and ":" in title:
+        return SuitabilityResult(
+            is_debatable=False,
+            reason="Topic title is too headline-like and specific for classroom debate.",
             safety_level=safety_level,
         )
 
@@ -137,7 +174,8 @@ def evaluate_debate_suitability(topic: RawTopic) -> SuitabilityResult:
     prompt = (
         "Evaluate if this trending topic is suitable for student debate.\n"
         "Return JSON with keys: is_debatable(boolean), reason(string), safety_level(string: safe|caution|unsafe).\n"
-        "Criteria: clear controversy, both sides arguable, not only factual event, avoid targeted harm.\n\n"
+        "Criteria: clear controversy, both sides arguable, not only factual event, avoid targeted harm.\n"
+        "Reject raw headline/update items that are too specific or rely on named-person drama.\n\n"
         f"Source: {topic.source}\n"
         f"Title: {topic.raw_title}\n"
         f"Summary: {topic.summary}\n"

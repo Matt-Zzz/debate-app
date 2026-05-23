@@ -133,6 +133,8 @@ export default function HomeScreen({ user, onNavigate }) {
   const [trendingTopics, setTrendingTopics] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(true);
   const [trendingRefreshing, setTrendingRefreshing] = useState(false);
+  const [trendingRefreshMeta, setTrendingRefreshMeta] = useState(null);
+  const [trendingRefreshError, setTrendingRefreshError] = useState("");
   const [expandedTopicId, setExpandedTopicId] = useState("");
   const [topicFilters, setTopicFilters] = useState({
     difficulty: "",
@@ -185,16 +187,18 @@ export default function HomeScreen({ user, onNavigate }) {
 
   const refreshTrending = async () => {
     setTrendingRefreshing(true);
+    setTrendingRefreshError("");
     try {
-      await apiFetch("/trending-topics/refresh", {
+      const payload = await apiFetch("/trending-topics/refresh", {
         method: "POST",
         body: JSON.stringify({ targetCount: 12, maxPerSource: 12 }),
       });
+      setTrendingRefreshMeta(payload?.refresh || null);
       const topics = await apiFetch(buildTrendingPath(topicFilters)).catch(() => []);
       setTrendingTopics(topics);
       setExpandedTopicId("");
-    } catch (_) {
-      // Ignore refresh errors and keep existing list.
+    } catch (err) {
+      setTrendingRefreshError(err?.message || "Refresh failed");
     } finally {
       setTrendingRefreshing(false);
       setTrendingLoading(false);
@@ -207,6 +211,7 @@ export default function HomeScreen({ user, onNavigate }) {
   const categoryChoices = Array.from(
     new Set([...CATEGORY_OPTIONS, ...trendingTopics.map((item) => item.category).filter(Boolean)])
   );
+  const allLocalSeed = trendingTopics.length > 0 && trendingTopics.every((item) => item.source === "LocalSeed");
 
   return (
     <div style={pageWrap}>
@@ -310,6 +315,31 @@ export default function HomeScreen({ user, onNavigate }) {
             {trendingRefreshing ? "Refreshing..." : "Refresh Topics"}
           </button>
         </div>
+        {!!trendingRefreshMeta && (
+          <>
+            <div style={{ fontSize: "11px", color: "#475467", marginTop: "7px" }}>
+              Refresh stats: raw {trendingRefreshMeta.rawCount} · evaluated {trendingRefreshMeta.evaluatedCount} · accepted {trendingRefreshMeta.acceptedCount} · stored {trendingRefreshMeta.storedCount}
+            </div>
+            <div style={{ fontSize: "11px", color: "#667085", marginTop: "2px" }}>
+              Sources: raw {Object.entries(trendingRefreshMeta.rawBySource || {}).map(([k, v]) => `${k}:${v}`).join(", ") || "-"} | accepted {Object.entries(trendingRefreshMeta.acceptedBySource || {}).map(([k, v]) => `${k}:${v}`).join(", ") || "-"}
+            </div>
+            {Array.isArray(trendingRefreshMeta.sourceDiagnostics) && trendingRefreshMeta.sourceDiagnostics.length > 0 && (
+              <div style={{ fontSize: "11px", color: "#667085", marginTop: "2px", lineHeight: 1.35 }}>
+                Diagnostics: {trendingRefreshMeta.sourceDiagnostics.map((d) => `${d.source}:${d.ok ? `ok(${d.count})` : `fail(${d.error})`}`).join(" | ")}
+              </div>
+            )}
+          </>
+        )}
+        {!!trendingRefreshError && (
+          <div style={{ fontSize: "11px", color: "#b42318", marginTop: "7px" }}>
+            Refresh failed: {trendingRefreshError}
+          </div>
+        )}
+        {allLocalSeed && (
+          <div style={{ fontSize: "11px", color: "#b54708", marginTop: "7px" }}>
+            Showing local fallback topics. No live source topics are currently available.
+          </div>
+        )}
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "6px", marginTop: "10px" }}>
           <select

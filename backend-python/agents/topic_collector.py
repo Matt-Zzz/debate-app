@@ -4,9 +4,9 @@ import re
 
 from agents.ai_runtime import gemini_json_or_default
 from models.debate_topic import RawTopic
-from services.hackernews_service import fetch_hackernews_topics
-from services.news_service import fetch_news_topics
-from services.reddit_service import fetch_reddit_topics
+from services.hackernews_service import fetch_hackernews_topics, fetch_hackernews_topics_with_meta
+from services.news_service import fetch_news_topics, fetch_news_topics_with_meta
+from services.reddit_service import fetch_reddit_topics, fetch_reddit_topics_with_meta
 
 
 def _normalize_title(title: str) -> str:
@@ -17,6 +17,8 @@ def _sanitize_topic(topic: RawTopic) -> RawTopic | None:
     title = " ".join(topic.raw_title.split())
     summary = " ".join(topic.summary.split())
     if len(title) < 12:
+        return None
+    if len(title) > 180:
         return None
     return RawTopic(
         source=topic.source,
@@ -45,7 +47,8 @@ def _ai_refine_topic(topic: RawTopic) -> RawTopic | None:
     prompt = (
         "Clean and normalize a hot trend item for a student debate app.\n"
         "Return JSON with keys: keep(boolean), raw_title(string), summary(string), popularity_score(int 0-100).\n"
-        "Drop only if it is clearly spam, pure gossip, or too vague to understand.\n\n"
+        "Drop if it is pure gossip, raw breaking-news update text, or not usable for policy/ethics debate reframing.\n"
+        "Keep titles neutral and compact; avoid quotes and sensational phrasing.\n\n"
         f"Source: {topic.source}\n"
         f"Raw title: {topic.raw_title}\n"
         f"Raw summary: {topic.summary}\n"
@@ -108,3 +111,31 @@ def collect_hot_topics(max_per_source: int = 12) -> list[RawTopic]:
 
     topics.sort(key=lambda item: item.popularity_score, reverse=True)
     return topics
+
+
+def collect_hot_topics_with_meta(max_per_source: int = 12) -> tuple[list[RawTopic], list[dict]]:
+    reddit_topics, reddit_meta = fetch_reddit_topics_with_meta(max_per_source)
+    news_topics, news_meta = fetch_news_topics_with_meta(max_per_source)
+    hn_topics, hn_meta = fetch_hackernews_topics_with_meta(max_per_source)
+
+    batches = [reddit_topics, news_topics, hn_topics]
+    diagnostics = [reddit_meta, news_meta, hn_meta]
+
+    seen: set[str] = set()
+    topics: list[RawTopic] = []
+    for batch in batches:
+        for item in batch:
+            clean = _sanitize_topic(item)
+            if clean is None:
+                continue
+            clean = _ai_refine_topic(clean)
+            if clean is None:
+                continue
+            key = _normalize_title(clean.raw_title)
+            if not key or key in seen:
+                continue
+            seen.add(key)
+            topics.append(clean)
+
+    topics.sort(key=lambda item: item.popularity_score, reverse=True)
+    return topics, diagnostics

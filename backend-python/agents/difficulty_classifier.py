@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import re
+
 from agents.ai_runtime import gemini_json_or_default
 from models.debate_topic import DebateDraft, RawTopic, TopicClassification
 
 
 CATEGORY_RULES: list[tuple[str, list[str]]] = [
-    ("Education / AI", ["school", "student", "university", "exam", "curriculum", "ai", "chatgpt"]),
+    ("Education / AI", ["school", "student", "university", "universities", "exam", "curriculum", "ai", "chatgpt"]),
     ("AI / Technology", ["ai", "algorithm", "automation", "software", "platform", "cyber"]),
     ("Environment", ["climate", "emission", "carbon", "energy", "pollution", "biodiversity"]),
     ("Politics / Policy", ["government", "policy", "regulation", "law", "election", "tax", "public"]),
@@ -52,9 +54,13 @@ _ALLOWED_DIFFICULTY = {"Easy", "Medium", "Hard"}
 _ALLOWED_STYLE = {"Casual", "Academic", "Policy", "Ethical"}
 
 
+def _keyword_in_text(text: str, keyword: str) -> bool:
+    return re.search(rf"\b{re.escape(keyword)}\b", text) is not None
+
+
 def _pick_label(text: str, rules: list[tuple[str, list[str]]], default: str) -> str:
     for label, keywords in rules:
-        if any(word in text for word in keywords):
+        if any(_keyword_in_text(text, word) for word in keywords):
             return label
     return default
 
@@ -68,9 +74,9 @@ def _heuristic_classify(topic: RawTopic, draft: DebateDraft) -> TopicClassificat
     score = 0
     if style in {"Policy", "Ethical"}:
         score += 1
-    if any(word in text for word in MEDIUM_KEYWORDS):
+    if any(_keyword_in_text(text, word) for word in MEDIUM_KEYWORDS):
         score += 1
-    if any(word in text for word in HARD_KEYWORDS):
+    if any(_keyword_in_text(text, word) for word in HARD_KEYWORDS):
         score += 2
 
     if score <= 1:

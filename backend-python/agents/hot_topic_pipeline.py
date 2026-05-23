@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import re
 from hashlib import sha1
 
 from agents.debate_filter import evaluate_debate_suitability
 from agents.debate_generator import generate_debate_draft
 from agents.difficulty_classifier import classify_topic
-from agents.topic_collector import collect_hot_topics
+from agents.topic_collector import collect_hot_topics_with_meta
 from models.debate_topic import HotDebateTopic
 
 
@@ -14,8 +15,31 @@ def _make_topic_id(title: str, source_url: str) -> str:
     return f"hot_{digest}"
 
 
+def _draft_usable(topic_text: str) -> bool:
+    q = " ".join((topic_text or "").split()).strip()
+    lower = q.lower()
+    if not q.endswith("?"):
+        return False
+    if len(q) < 20 or len(q) > 130:
+        return False
+    if ":" in q:
+        return False
+    if "should society adopt this policy" in lower:
+        return False
+    if any(fragment in lower for fragment in ("live updates", "breaking:", "hours after", "minutes after", "cbs news")):
+        return False
+    if re.search(r"\b(what|who|where|when|how many)\b", lower):
+        return False
+    if not re.search(r"\b(should|can|must|ought|allow|ban|regulate|require|prioritize)\b", lower):
+        return False
+    return True
+
+
 def run_hot_debate_topic_pipeline(target_count: int = 10, max_per_source: int = 12) -> dict:
-    raw_topics = collect_hot_topics(max_per_source=max_per_source)
+    raw_topics, source_diagnostics = collect_hot_topics_with_meta(max_per_source=max_per_source)
+    raw_source_breakdown: dict[str, int] = {}
+    for item in raw_topics:
+        raw_source_breakdown[item.source] = raw_source_breakdown.get(item.source, 0) + 1
 
     evaluated = 0
     accepted: list[HotDebateTopic] = []
@@ -26,6 +50,8 @@ def run_hot_debate_topic_pipeline(target_count: int = 10, max_per_source: int = 
             continue
 
         draft = generate_debate_draft(raw)
+        if not _draft_usable(draft.topic):
+            continue
         cls = classify_topic(raw, draft)
 
         accepted.append(
@@ -61,10 +87,16 @@ def run_hot_debate_topic_pipeline(target_count: int = 10, max_per_source: int = 
 
     final_topics = sorted(deduped.values(), key=lambda item: item.trend_score, reverse=True)
     trimmed = final_topics[: max(1, min(target_count, 30))]
+    accepted_source_breakdown: dict[str, int] = {}
+    for item in trimmed:
+        accepted_source_breakdown[item.source] = accepted_source_breakdown.get(item.source, 0) + 1
 
     return {
         "raw_count": len(raw_topics),
         "evaluated_count": evaluated,
         "accepted_count": len(trimmed),
+        "raw_source_breakdown": raw_source_breakdown,
+        "accepted_source_breakdown": accepted_source_breakdown,
+        "source_diagnostics": source_diagnostics,
         "topics": trimmed,
     }

@@ -17,6 +17,14 @@ QUESTION_PREFIXES = (
     "would ",
 )
 
+BAD_QUESTION_FRAGMENTS = (
+    "should society adopt this policy:",
+    "live updates",
+    "breaking:",
+    "hours after",
+    "minutes after",
+)
+
 ARGUMENT_BANK: list[tuple[list[str], dict[str, list[str] | str]]] = [
     (
         ["ai", "exam", "university", "school", "student"],
@@ -130,6 +138,24 @@ def _to_motion(question: str) -> str:
     )
 
 
+def _question_quality_ok(question: str) -> bool:
+    q = " ".join(question.split()).strip()
+    lower = q.lower()
+    if not q.endswith("?"):
+        return False
+    if len(q) < 20 or len(q) > 130:
+        return False
+    if q.count("?") != 1:
+        return False
+    if ":" in q:
+        return False
+    if any(fragment in lower for fragment in BAD_QUESTION_FRAGMENTS):
+        return False
+    if not re.search(r"\b(should|can|must|ought|allow|ban|regulate|require|prioritize)\b", lower):
+        return False
+    return True
+
+
 def _pick_argument_pack(text: str) -> dict[str, list[str] | str] | None:
     for keywords, pack in ARGUMENT_BANK:
         if any(word in text for word in keywords):
@@ -194,7 +220,9 @@ def generate_debate_draft(topic: RawTopic) -> DebateDraft:
     prompt = (
         "Rewrite a trending issue into a formal debate topic and generate both sides.\n"
         "Return JSON keys: topic, motion, pro_position, pro_arguments(array), con_position, con_arguments(array).\n"
-        "The topic should be a single debate question for students.\n"
+        "The topic must be one concise classroom debate question (8-18 words).\n"
+        "Do not copy headline phrasing, names, timestamps, outlets, or quotes.\n"
+        "Frame the core principle/policy as a general question.\n"
         "Arguments should be concise and not extremist.\n\n"
         f"Source: {topic.source}\n"
         f"Raw title: {topic.raw_title}\n"
@@ -215,6 +243,29 @@ def generate_debate_draft(topic: RawTopic) -> DebateDraft:
         question = fallback.topic
     if not question.endswith("?"):
         question = f"{question.rstrip('.')}?"
+
+    if not _question_quality_ok(question):
+        repair_default = {"topic": fallback.topic}
+        repair_payload = gemini_json_or_default(
+            system_instruction=(
+                "You are Debate Question Repair Agent. Output strict JSON only."
+            ),
+            prompt=(
+                "Rewrite this into one concise, neutral classroom debate question.\n"
+                "Return JSON with key: topic.\n"
+                "Rules: 8-18 words, no names/outlets/time markers, no headline copy, must be arguable from both sides.\n\n"
+                f"Candidate question: {question}\n"
+                f"Original title: {topic.raw_title}\n"
+                f"Summary: {topic.summary}\n"
+            ),
+            default=repair_default,
+            max_output_tokens=220,
+        )
+        repaired = " ".join(str(repair_payload.get("topic", fallback.topic)).split()).strip()
+        if repaired and not repaired.endswith("?"):
+            repaired = f"{repaired.rstrip('.')}?"
+        if repaired:
+            question = repaired
 
     motion = " ".join(str(payload.get("motion", fallback.motion)).split()).strip() or _to_motion(question)
     if not motion.lower().startswith("this house believes"):

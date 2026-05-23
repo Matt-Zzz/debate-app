@@ -124,37 +124,49 @@ def list_hot_topics(
     category: str | None,
     mode: str | None,
 ) -> list[dict]:
-    where = ["status='approved'"]
-    params: list[str | int] = []
+    def query(include_local_seed: bool) -> list[sqlite3.Row]:
+        where = ["status='approved'"]
+        params: list[str | int] = []
 
-    if difficulty:
-        where.append("difficulty=?")
-        params.append(difficulty)
-    if category:
-        where.append("category=?")
-        params.append(category)
-    if mode:
-        where.append("debate_style=?")
-        params.append(mode)
+        if not include_local_seed:
+            where.append("source <> 'LocalSeed'")
+        if difficulty:
+            where.append("difficulty=?")
+            params.append(difficulty)
+        if category:
+            where.append("category=?")
+            params.append(category)
+        if mode:
+            where.append("debate_style=?")
+            params.append(mode)
 
-    params.append(max(1, min(limit, 30)))
-    sql = (
-        "SELECT * FROM debate_topics "
-        f"WHERE {' AND '.join(where)} "
-        "ORDER BY trend_score DESC, updated_at DESC LIMIT ?"
-    )
-    rows = conn.execute(sql, tuple(params)).fetchall()
+        params.append(max(1, min(limit, 30)))
+        sql = (
+            "SELECT * FROM debate_topics "
+            f"WHERE {' AND '.join(where)} "
+            "ORDER BY trend_score DESC, updated_at DESC LIMIT ?"
+        )
+        return conn.execute(sql, tuple(params)).fetchall()
+
+    rows = query(include_local_seed=False)
+    if not rows:
+        rows = query(include_local_seed=True)
     return [serialize_trending_topic(row) for row in rows]
 
 
 def refresh_hot_topics(conn: sqlite3.Connection, target_count: int = 10, max_per_source: int = 12) -> dict:
     result = run_hot_debate_topic_pipeline(target_count=target_count, max_per_source=max_per_source)
     topics = result.get("topics") or []
+    # Replace previously generated live topics so stale low-quality rows do not linger.
+    conn.execute("DELETE FROM debate_topics WHERE source <> 'LocalSeed'")
     stored = upsert_hot_topics(conn, topics)
     return {
         "rawCount": result.get("raw_count", 0),
         "evaluatedCount": result.get("evaluated_count", 0),
         "acceptedCount": result.get("accepted_count", 0),
+        "rawBySource": result.get("raw_source_breakdown", {}),
+        "acceptedBySource": result.get("accepted_source_breakdown", {}),
+        "sourceDiagnostics": result.get("source_diagnostics", []),
         "storedCount": stored,
     }
 

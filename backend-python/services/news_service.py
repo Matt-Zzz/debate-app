@@ -4,7 +4,7 @@ import os
 from urllib.parse import urlencode
 
 from models.debate_topic import RawTopic
-from services.http_utils import clean_text, fetch_json
+from services.http_utils import clean_text, fetch_json_detailed
 
 
 NEWS_API_BASE = "https://newsapi.org/v2/top-headlines"
@@ -21,20 +21,23 @@ def _build_news_url(limit: int, api_key: str) -> str:
     return f"{NEWS_API_BASE}?{query}"
 
 
-def fetch_news_topics(limit: int = 12) -> list[RawTopic]:
+def fetch_news_topics_with_meta(limit: int = 12) -> tuple[list[RawTopic], dict]:
     api_key = os.environ.get("NEWS_API_KEY", "").strip()
     if not api_key:
-        return []
+        return [], {"source": "NewsAPI", "ok": False, "error": "NEWS_API_KEY missing", "count": 0}
 
-    payload = fetch_json(_build_news_url(limit, api_key), headers={"User-Agent": "DebateAppHotTopics/1.0"})
+    payload, err = fetch_json_detailed(_build_news_url(limit, api_key), headers={"User-Agent": "DebateAppHotTopics/1.0"})
     if not isinstance(payload, dict):
-        return []
+        return [], {"source": "NewsAPI", "ok": False, "error": err or "no payload", "count": 0}
     if payload.get("status") != "ok":
-        return []
+        code = str(payload.get("code") or "").strip()
+        message = str(payload.get("message") or "").strip()
+        detail = f"{code}: {message}".strip(": ").strip()
+        return [], {"source": "NewsAPI", "ok": False, "error": detail or "status not ok", "count": 0}
 
     articles = payload.get("articles")
     if not isinstance(articles, list):
-        return []
+        return [], {"source": "NewsAPI", "ok": False, "error": "missing articles array", "count": 0}
 
     topics: list[RawTopic] = []
     for idx, article in enumerate(articles):
@@ -57,4 +60,9 @@ def fetch_news_topics(limit: int = 12) -> list[RawTopic]:
                 popularity_score=popularity,
             )
         )
+    return topics, {"source": "NewsAPI", "ok": True, "error": "", "count": len(topics)}
+
+
+def fetch_news_topics(limit: int = 12) -> list[RawTopic]:
+    topics, _ = fetch_news_topics_with_meta(limit=limit)
     return topics

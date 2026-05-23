@@ -79,6 +79,9 @@ GEMINI_MODEL=gemini-2.5-flash-lite
 GEMINI_AGENT_MODEL=gemini-2.5-flash-lite
 # optional (enables NewsAPI source in Hot Debate Topic pipeline)
 NEWS_API_KEY=your_news_api_key
+# optional, for outbound hot-topic fetches if your local proxy is broken
+# auto | on | off
+HOT_TOPICS_PROXY_MODE=auto
 # required for Google sign-in
 GOOGLE_CLIENT_ID=your_google_client_id
 ```
