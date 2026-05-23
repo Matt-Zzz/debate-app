@@ -66,10 +66,10 @@ export const MINI_GAMES = {
     label: "Speech Polish",
     mode: "rewrite",
   },
-  opponent_read: {
+  CollapseChoice: {
     skillTreeId: "strategy",
-    label: "Opponent Read",
-    mode: "prediction",
+    label: "Collapse Choice",
+    mode: "choice",
   },
 };
 

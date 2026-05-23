@@ -207,7 +207,7 @@ def _game_for_tree(tree_id: str) -> str:
         "rebuttal": "rebuttal_match",
         "weighing": "impact_ranking",
         "expression": "speech_polish",
-        "strategy": "opponent_read",
+        "strategy": "collapse_choice",
     }
     return mapping.get(tree_id, "speech_polish")
 

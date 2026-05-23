@@ -18,6 +18,198 @@ import {
   textareaStyle,
 } from "../../styles/ui";
 
+const RUBRIC_TO_MINIGAME = {
+  structure: {
+    skillTreeId: "strategy",
+    miniGameId:  "collapse_choice",
+    label:       "Collapse Choice",
+    area:        "Structure & Organization",
+  },
+  argQuality: {
+    skillTreeId: "logic",
+    miniGameId:  "fallacy_hunt",
+    label:       "Fallacy Hunt",
+    area:        "Argument Quality",
+  },
+  clash: {
+    skillTreeId: "rebuttal",
+    miniGameId:  "rebuttal_match",
+    label:       "Rebuttal Match",
+    area:        "Clash & Responsiveness",
+  },
+  impact: {
+    skillTreeId: "weighing",
+    miniGameId:  "impact_ranking",
+    label:       "Impact Ranking",
+    area:        "Impact & Weighing",
+  },
+  precision: {
+    skillTreeId: "expression",
+    miniGameId:  "speech_polish",
+    label:       "Speech Polish",
+    area:        "Precision & Commitment",
+  },
+};
+
+function buildRankedPractice(item) {
+  return Object.entries(item.rubric?.breakdown || {})
+    .map(([key, value]) => ({
+      rubricKey: key,
+      score:     value.score,
+      max:       value.max,
+      pct:       value.max ? value.score / value.max : 0,
+      ...RUBRIC_TO_MINIGAME[key],
+    }))
+    .filter((x) => x.miniGameId)
+    .sort((a, b) => a.pct - b.pct);
+}
+
+function buildPracticeSeed(item, practice) {
+  const firstUserTurn = (item.transcript || []).find((t) => t.role === "user");
+  return {
+    id:              `history-${item.id}-${practice.miniGameId}`,
+    sourceSessionId: item.id,
+    miniGameId:      practice.miniGameId,
+    skillTreeId:     practice.skillTreeId,
+    coachNote:       item.feedback?.gaps || "",
+    prompt:          `Practice your ${practice.area.toLowerCase()} from this round.`,
+    excerpt:         firstUserTurn?.text?.slice(0, 220) || "",
+    status:          "new",
+  };
+}
+
+function ScoreBar({ score, max }) {
+  const pct   = max > 0 ? (score / max) * 100 : 0;
+  const color = pct >= 70 ? "#2e7d32" : pct >= 40 ? "#e65100" : "#c62828";
+  return (
+    <div style={{ height: "3px", background: "#eee", borderRadius: "2px", overflow: "hidden", marginTop: "3px" }}>
+      <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: "2px", transition: "width 0.5s ease" }} />
+    </div>
+  );
+}
+
+function PracticeRow({ practice, rank, onLaunch }) {
+  const pct   = practice.max > 0 ? practice.score / practice.max : 0;
+  const color = pct >= 0.7 ? "#2e7d32" : pct < 0.4 ? "#c62828" : "#e65100";
+ 
+  return (
+    <button
+      onClick={onLaunch}
+      style={{
+        width: "100%",
+        padding: "10px 12px",
+        background: "#fff",
+        border: "1px solid #eee",
+        borderRadius: "8px",
+        cursor: "pointer",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        gap: "12px",
+        textAlign: "left",
+        fontFamily: "'DM Sans', sans-serif",
+        transition: "border-color 0.15s, background 0.15s",
+      }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "#c7d2fe"; e.currentTarget.style.background = "#f8faff"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = "#eee";    e.currentTarget.style.background = "#fff"; }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "2px" }}>
+          <span style={{
+            width: "18px", height: "18px", borderRadius: "5px",
+            background: rank === 0 ? "rgba(220,38,38,0.10)" : rank === 1 ? "rgba(230,81,0,0.10)" : "rgba(15,23,42,0.05)",
+            color: rank === 0 ? "#c62828" : rank === 1 ? "#e65100" : "#667085",
+            fontSize: "10px", fontWeight: 800, fontFamily: "'DM Mono', monospace",
+            display: "grid", placeItems: "center", flexShrink: 0,
+          }}>
+            {rank + 1}
+          </span>
+          <span style={{ fontSize: "13px", fontWeight: 600, color: "#111827" }}>
+            {practice.area}
+          </span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", paddingLeft: "24px" }}>
+          <span style={{ fontSize: "11px", color, fontFamily: "'DM Mono', monospace", fontWeight: 700 }}>
+            {practice.score}/{practice.max}
+          </span>
+          <div style={{ flex: 1 }}>
+            <ScoreBar score={practice.score} max={practice.max} />
+          </div>
+        </div>
+      </div>
+      <div style={{
+        fontSize: "12px",
+        fontWeight: 700,
+        color: "#4f46e5",
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+      }}>
+        {practice.label} →
+      </div>
+    </button>
+  );
+}
+ 
+// ── History session card ──────────────────────────────────────────────────────
+ 
+function HistoryCard({ item, onLaunchPractice }) {
+  const [expanded, setExpanded] = useState(false);
+  const rankedPractice = buildRankedPractice(item);
+ 
+  return (
+    <div style={{
+      padding: "14px 16px",
+      background: "#fafafa",
+      border: "1px solid #eee",
+      borderRadius: "10px",
+    }}>
+      {/* Session header */}
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", marginBottom: "4px" }}>
+        <div style={{ fontSize: "14px", fontWeight: 600, fontFamily: "'Playfair Display', serif", flex: 1 }}>
+          {item.topicTitle}
+        </div>
+        <div style={{ fontSize: "13px", fontFamily: "'DM Mono', monospace", flexShrink: 0 }}>
+          {item.rubric?.total ?? 0}/100
+        </div>
+      </div>
+      <div style={{ fontSize: "12px", color: "#666", marginBottom: "10px" }}>
+        {item.characterName} · Side {item.side} · {new Date(item.createdAt).toLocaleDateString()}
+      </div>
+ 
+      {/* Feedback section */}
+      <details onToggle={e => setExpanded(e.target.open)}>
+        <summary style={{ cursor: "pointer", fontSize: "12px", color: "#444", userSelect: "none" }}>
+          {expanded ? "Hide feedback" : "View feedback"}
+        </summary>
+        <div style={{ fontSize: "12px", color: "#444", whiteSpace: "pre-wrap", marginTop: "8px", lineHeight: 1.6, marginBottom: "10px" }}>
+          {item.feedback?.strengths ? `STRENGTHS:\n${item.feedback.strengths}\n\n` : ""}
+          {item.feedback?.gaps      ? `GAPS:\n${item.feedback.gaps}\n\n`           : ""}
+          {item.feedback?.nextDrill ? `NEXT DRILL:\n${item.feedback.nextDrill}`    : ""}
+        </div>
+      </details>
+ 
+      {/* Ranked practice recommendations */}
+      {rankedPractice.length > 0 && (
+        <div style={{ marginTop: "12px" }}>
+          <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>
+            Recommended practice, weakest first
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            {rankedPractice.slice(0, 5).map((practice, index) => (
+              <PracticeRow
+                key={practice.miniGameId}
+                practice={practice}
+                rank={index}
+                onLaunch={() => onLaunchPractice(item, practice)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 const ACCEPTED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/jpg", "image/webp", "image/gif"]);
 const PROFILE_UI_PREFS_KEY = "debate-profile-ui-prefs";
 const DEFAULT_NOTIFICATION_PREFS = {

@@ -12,6 +12,8 @@ import { LEVEL_UP_MESSAGES, pickEncouragement } from "../../lib/coach/uiText";
 import ClashGame from "../minigames/ClashGame";
 import FallacyHunt from "../minigames/FallacyHunt";
 import SpeechPolish from "../minigames/SpeechPolish";
+import ImpactRanking from "../minigames/ImpactRanking";
+import CollapseChoice from "../minigames/CollapseChoice";
 
 import {
   eyebrow,
@@ -122,15 +124,17 @@ function getWeakestTree(trees) {
 function buildCoachLead(userName, newSeeds, weakestTree, recentGames) {
   const prefix = userName ? `${userName}, ` : "";
   if (newSeeds.length > 0) {
-    return `${prefix}${newSeeds.length} personalized rep${newSeeds.length === 1 ? "" : "s"} ready.`;
+    return `${prefix}I pulled ${newSeeds.length} personalized rep${
+      newSeeds.length === 1 ? "" : "s"
+    } from your latest round so you can practice the exact spots that slipped.`;
   }
   if (weakestTree) {
-    return `${prefix}Focus: ${weakestTree.name}.`;
+    return `${prefix}${weakestTree.name} is still your thinnest area. Stay deliberate here and the rest of the skill map will feel easier.`;
   }
   if (recentGames.length > 0) {
-    return `${prefix}Momentum is up. Log another focused rep.`;
+    return `${prefix}you already have momentum. Keep the reps tight and stack another focused game before the streak cools off.`;
   }
-  return `${prefix}Coach builds reps from your latest debates.`;
+  return `${prefix}Coach Mode turns your debate history into deliberate reps so you can train the right weakness instead of guessing.`;
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
@@ -152,7 +156,7 @@ function SectionHeader({ label, title, description }) {
         <div style={sectionTitle}>{title}</div>
       </div>
       {description && (
-        <div style={{ fontSize: "12px", color: theme.muted, lineHeight: 1.45, maxWidth: "320px" }}>
+        <div style={{ fontSize: "13px", color: theme.muted, lineHeight: 1.6, maxWidth: "360px" }}>
           {description}
         </div>
       )}
@@ -231,7 +235,9 @@ function GameResultPanel({ result, onContinue }) {
           >
             {resultTitle}
           </div>
-          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>Queue updated.</p>
+          <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
+            Your coach queue is updated and the next best reps are ready.
+          </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "16px" }}>
             <div style={{ padding: "10px 12px", borderRadius: "16px", background: "rgba(255,255,255,0.14)", fontSize: "13px", fontWeight: 700 }}>
               +{treeXPEarned} tree XP
@@ -261,7 +267,7 @@ function GameResultPanel({ result, onContinue }) {
         <SectionHeader
           label="Next Move"
           title="Coach update"
-          description="Progress refreshed."
+          description="Your tree progress and next recommendations are already refreshed."
         />
         <div
           style={{
@@ -301,8 +307,8 @@ function GameResultPanel({ result, onContinue }) {
             ) : (
               <div style={emptyCard}>
                 <div style={{ fontSize: "16px", fontWeight: 800, color: theme.ink }}>Queue cleared</div>
-                  <div style={{ ...subheadline, marginTop: "6px" }}>
-                  No immediate follow-up recommendations.
+                <div style={{ ...subheadline, marginTop: "6px" }}>
+                  No immediate follow-up recommendations. Head back to Coach and pick the next tree manually.
                 </div>
               </div>
             )}
@@ -358,6 +364,12 @@ function renderActiveGame({ activeGame, activeSeed, activeRecommendation, onFini
 
     case "speech_polish":
       return <SpeechPolish onFinish={(score, maxScore, durationMs) => finish({ score, maxScore, durationMs })} context={context} />;
+
+    case "collapse_choice":
+        return <CollapseChoice onFinish={(score, maxScore, durationMs) => finish({ score, maxScore, durationMs })} context={context} />;
+
+    case "impact_ranking":
+        return <ImpactRanking onFinish={(score, maxScore, durationMs) => finish({ score, maxScore, durationMs })} context={context} />;
 
     default:
       // Placeholder for games not yet wired
@@ -488,7 +500,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
         <div style={{ ...heroCard, marginBottom: "18px" }}>
           <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Coach Mode</div>
           <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
-            Loading coach...
+            Loading your training map...
           </div>
           <div style={{ marginTop: "18px" }}>
             <Skeleton h="70px" />
@@ -670,7 +682,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
           <SectionHeader
             label="From Your Last Round"
             title="Personalized reps"
-            description="Built from your last round."
+            description="These drills were generated from the exact moments your last debate exposed."
           />
           <div style={cardGrid}>
             {newSeeds.slice(0, 2).map((seed) => (
@@ -699,7 +711,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
           <SectionHeader
             label="Suggested Next"
             title="Coach queue"
-            description="Priority picks."
+            description="Priority picks based on your weakest trees, recent seeds, and the games you have already been playing."
           />
           <div style={cardGrid}>
             {recommendations.map((rec, i) => (
@@ -727,7 +739,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
         <SectionHeader
           label="Skill Trees"
           title="Your training map"
-          description="Tap a tree to inspect."
+          description="Tap a tree to inspect its current level, XP runway, and the specific coaching note behind it."
         />
         <div style={skillGrid}>
           {skillTrees.map((tree) => (
@@ -768,7 +780,9 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
             </div>
           </div>
         ) : (
-          <div style={{ ...subheadline, marginTop: "14px" }}>Select a tree to inspect.</div>
+          <div style={{ ...subheadline, marginTop: "14px" }}>
+            Select a tree to inspect its coaching note and progression details.
+          </div>
         )}
       </div>
 
@@ -777,7 +791,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
         <SectionHeader
           label="Recent Games"
           title="Latest reps"
-          description="Recent XP gains."
+          description="A quick read on what you have played most recently and where the XP landed."
         />
         {recentGames.length > 0 ? (
           <div style={{ display: "grid", gap: "10px" }}>
@@ -840,7 +854,7 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
               <div>
                 <div style={{ fontSize: "16px", fontWeight: 800, color: theme.ink }}>No reps logged yet</div>
                 <div style={{ ...subheadline, marginTop: "6px" }}>
-                  Start a suggested or personalized rep to log history.
+                  Start from a suggested game or a personalized round excerpt and this section will begin tracking your coach history.
                 </div>
               </div>
             </div>

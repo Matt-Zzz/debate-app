@@ -21,6 +21,9 @@ export default function App() {
   const [config, setConfig] = useState(null);
   const [transcript, setTranscript] = useState([]);
   const [coachSeeds, setCoachSeeds] = useState([]);
+  const [coachLaunchSeed, setCoachLaunchSeed] = useState(null);
+
+  const resolvedCoachSeeds = coachLaunchSeed ? [coachLaunchSeed] : coachSeeds;
 
   useEffect(() => {
     const token = getAuthToken();

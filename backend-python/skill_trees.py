@@ -57,7 +57,7 @@ MINI_GAME_TREE_XP: dict[str, dict] = {
     "rebuttal_match": {"base": 16, "bonus": 20, "global": 5},
     "impact_ranking": {"base": 14, "bonus": 18, "global": 4},
     "speech_polish": {"base": 20, "bonus": 15, "global": 6},
-    "opponent_read": {"base": 12, "bonus": 15, "global": 4},
+    "collapse_choice": {"base": 12, "bonus": 15, "global": 4},
 }
 
 MINI_GAME_REGISTRY: dict[str, dict] = {
@@ -91,11 +91,11 @@ MINI_GAME_REGISTRY: dict[str, dict] = {
         "contentSource": "static_or_generated",
         "label": "Speech Polish",
     },
-    "opponent_read": {
+    "collapse_choice": {
         "skillTreeId": "strategy",
-        "mode": "prediction",
+        "mode": "choice",
         "contentSource": "static_or_generated",
-        "label": "Opponent Read",
+        "label": "Collapse Choice",
     },
 }
 
