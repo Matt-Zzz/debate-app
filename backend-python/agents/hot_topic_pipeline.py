@@ -28,7 +28,7 @@ def _draft_usable(topic_text: str) -> bool:
         return False
     if any(fragment in lower for fragment in ("live updates", "breaking:", "hours after", "minutes after", "cbs news")):
         return False
-    if re.search(r"\b(what|who|where|when|how many)\b", lower):
+    if re.match(r"^\s*(what|who|where|when|how many)\b", lower):
         return False
     if not re.search(r"\b(should|can|must|ought|allow|ban|regulate|require|prioritize)\b", lower):
         return False

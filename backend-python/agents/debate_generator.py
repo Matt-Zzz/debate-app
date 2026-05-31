@@ -25,6 +25,8 @@ BAD_QUESTION_FRAGMENTS = (
     "minutes after",
 )
 
+POLICY_QUESTION_PREFIX = "Should governments regulate "
+
 ARGUMENT_BANK: list[tuple[list[str], dict[str, list[str] | str]]] = [
     (
         ["ai", "exam", "university", "school", "student"],
@@ -102,6 +104,33 @@ def _normalize_title(raw_title: str) -> str:
     return re.sub(r"\s+", " ", text).strip(" .?!")
 
 
+def _trim_to_words(text: str, max_len: int) -> str:
+    value = " ".join((text or "").split()).strip()
+    if len(value) <= max_len:
+        return value
+    clipped = value[:max_len].rsplit(" ", 1)[0].strip()
+    return clipped or value[:max_len].strip()
+
+
+def _safe_policy_question(raw_title: str, summary: str) -> str:
+    seed = _normalize_title(raw_title) or _normalize_title(summary)
+    phrase = seed.lower()
+    phrase = re.sub(r"^\s*(live updates?|breaking|watch)\s*[:\-]\s*", "", phrase, flags=re.I)
+    phrase = re.sub(r"\b(cbs news|fox news|bbc|cnn|reuters|associated press)\b", "", phrase, flags=re.I)
+    phrase = re.sub(r"^\s*(what|who|where|when|how many)\b", "", phrase, flags=re.I)
+    phrase = phrase.replace(":", " ")
+    phrase = re.sub(r"[\"'`]", "", phrase)
+    phrase = re.sub(r"\s+", " ", phrase).strip(" .?!,-")
+    if not phrase:
+        phrase = "major public issues"
+
+    max_phrase_len = 130 - len(POLICY_QUESTION_PREFIX) - 1
+    phrase = _trim_to_words(phrase, max_phrase_len)
+    if len(phrase) < 8:
+        phrase = "major public issues"
+    return f"{POLICY_QUESTION_PREFIX}{phrase}?"
+
+
 def _rewrite_as_question(raw_title: str, summary: str) -> str:
     title = _normalize_title(raw_title)
     lower = title.lower()
@@ -126,7 +155,7 @@ def _rewrite_as_question(raw_title: str, summary: str) -> str:
                 sentence = after[0].upper() + after[1:]
                 return sentence if sentence.endswith("?") else f"{sentence}?"
 
-    return f"Should society adopt this policy: {title}?"
+    return _safe_policy_question(raw_title, summary)
 
 
 def _to_motion(question: str) -> str:
@@ -266,6 +295,8 @@ def generate_debate_draft(topic: RawTopic) -> DebateDraft:
             repaired = f"{repaired.rstrip('.')}?"
         if repaired:
             question = repaired
+    if not _question_quality_ok(question):
+        question = _safe_policy_question(topic.raw_title, topic.summary)
 
     motion = " ".join(str(payload.get("motion", fallback.motion)).split()).strip() or _to_motion(question)
     if not motion.lower().startswith("this house believes"):

@@ -22,8 +22,11 @@ def fetch_json_detailed(
     url: str,
     headers: dict[str, str] | None = None,
     timeout: float = 8.0,
+    *,
+    method: str = "GET",
+    body: bytes | None = None,
 ) -> tuple[dict | list | None, str | None]:
-    req = Request(url, headers=headers or {})
+    req = Request(url, headers=headers or {}, data=body, method=(method or "GET").upper())
 
     mode = os.environ.get("HOT_TOPICS_PROXY_MODE", "auto").strip().lower()
     if mode not in {"auto", "on", "off"}:

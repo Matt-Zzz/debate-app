@@ -79,6 +79,11 @@ GEMINI_MODEL=gemini-2.5-flash-lite
 GEMINI_AGENT_MODEL=gemini-2.5-flash-lite
 # optional (enables NewsAPI source in Hot Debate Topic pipeline)
 NEWS_API_KEY=your_news_api_key
+# optional (recommended; enables authenticated Reddit source to avoid HTTP 403)
+REDDIT_CLIENT_ID=your_reddit_client_id
+REDDIT_CLIENT_SECRET=your_reddit_client_secret
+# optional override for Reddit requests
+REDDIT_USER_AGENT=python:debate-app.hot-topics:v1.0(by/u/your_reddit_username)
 # optional, for outbound hot-topic fetches if your local proxy is broken
 # auto | on | off
 HOT_TOPICS_PROXY_MODE=auto
