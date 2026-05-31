@@ -1,8 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-
-// Static scenario bank
-// Each scenario has a late round context, 4 argument cards, the ideal pair
-// (indices), a reasonable pair, and explanations for the feedback panel.
+import { mg, solidBtn, secondaryBtn } from "../../styles/minigameStyles";
 
 const DEFAULT_SCENARIOS = [
   {
@@ -189,309 +186,68 @@ const DEFAULT_SCENARIOS = [
 
 function pickScenario(context) {
   if (context?.seedId != null) {
-    return DEFAULT_SCENARIOS[
-      Number(context.seedId) % DEFAULT_SCENARIOS.length
-    ];
+    return DEFAULT_SCENARIOS[Number(context.seedId) % DEFAULT_SCENARIOS.length];
   }
   return DEFAULT_SCENARIOS[0];
 }
-
-// Scoring
 
 function computeScore(selected, scenario) {
   const { idealPair, reasonablePair } = scenario;
   const idealSet = new Set(idealPair);
   const reasonableSet = new Set(reasonablePair);
-
   const idealHits = selected.filter((id) => idealSet.has(id)).length;
 
   if (idealHits === 2) return 3;
-
   if (idealHits === 1) {
     const otherChoice = selected.find((id) => !idealSet.has(id));
     if (reasonableSet.has(otherChoice)) return 2;
     return 1;
   }
-
-  const reasonableHits = selected.filter((id) =>
-    reasonableSet.has(id)
-  ).length;
-
-  if (reasonableHits === 2) return 1;
-
+  if (selected.filter((id) => reasonableSet.has(id)).length === 2) return 1;
   return 0;
 }
 
-// Styles
+function feedbackVerdict(score) {
+  if (score === 3) return "correct";
+  if (score >= 1) return "partial";
+  return "wrong";
+}
 
-const S = {
-  prompt: {
-    fontSize: "13px",
-    color: "rgba(15,23,42,0.55)",
-    fontFamily: "'JetBrains Mono', monospace",
-    fontWeight: 700,
-    letterSpacing: "0.12em",
-    textTransform: "uppercase",
-    marginBottom: "6px",
-  },
-  seedBox: {
-    padding: "12px 15px",
-    borderRadius: "16px",
-    background: "rgba(79,70,229,0.06)",
-    border: "1px solid rgba(99,102,241,0.14)",
-    fontSize: "13px",
-    color: "#374151",
-    lineHeight: 1.65,
-    fontStyle: "italic",
-    marginBottom: "18px",
-  },
-  situationCard: {
-    padding: "16px 18px",
-    borderRadius: "18px",
-    background: "rgba(15,23,42,0.04)",
-    border: "1px solid rgba(15,23,42,0.09)",
-    marginBottom: "18px",
-  },
-  situationLabel: {
-    fontSize: "10px",
-    fontWeight: 700,
-    color: "rgba(15,23,42,0.42)",
-    letterSpacing: "0.14em",
-    textTransform: "uppercase",
-    fontFamily: "'JetBrains Mono', monospace",
-    marginBottom: "8px",
-  },
-  situationText: {
-    fontSize: "14px",
-    color: "#111827",
-    lineHeight: 1.65,
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-  },
-  instruction: {
-    fontSize: "13px",
-    color: "rgba(15,23,42,0.48)",
-    lineHeight: 1.6,
-    marginBottom: "16px",
-  },
-  selectionCount: (full) => ({
-    display: "inline-block",
-    padding: "6px 12px",
-    borderRadius: "999px",
-    background: full ? "rgba(79,70,229,0.10)" : "rgba(15,23,42,0.05)",
-    color: full ? "#4338ca" : "rgba(15,23,42,0.42)",
-    fontSize: "12px",
-    fontWeight: 700,
-    fontFamily: "'JetBrains Mono', monospace",
-    border: `1px solid ${
-      full ? "rgba(99,102,241,0.22)" : "rgba(15,23,42,0.08)"
-    }`,
-    marginBottom: "14px",
-    transition: "all 0.2s",
-  }),
-  argCard: (state) => ({
-    width: "100%",
-    padding: "14px 16px",
-    borderRadius: "18px",
-    textAlign: "left",
-    cursor: state === "disabled" ? "default" : "pointer",
-    border: "1px solid",
-    borderColor:
-      state === "selected"
-        ? "rgba(99,102,241,0.38)"
-        : state === "correct-chosen"
-        ? "rgba(22,163,74,0.28)"
-        : state === "correct-missed"
-        ? "rgba(22,163,74,0.18)"
-        : state === "wrong"
-        ? "rgba(220,38,38,0.22)"
-        : "rgba(99,102,241,0.12)",
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    transition: "all 0.15s",
-    marginBottom: "10px",
-    display: "block",
-    background:
-      state === "selected"
-        ? "rgba(79,70,229,0.08)"
-        : state === "correct-chosen"
-        ? "rgba(22,163,74,0.07)"
-        : state === "correct-missed"
-        ? "rgba(22,163,74,0.04)"
-        : state === "wrong"
-        ? "rgba(220,38,38,0.06)"
-        : "#fff",
-    boxShadow:
-      state === "selected"
-        ? "0 6px 18px rgba(79,70,229,0.12)"
-        : state === "idle"
-        ? "0 2px 8px rgba(15,23,42,0.05)"
-        : "none",
-    opacity: state === "disabled" ? 0.55 : 1,
-  }),
-  argHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: "10px",
-    marginBottom: "6px",
-  },
-  argLabel: (state) => ({
-    fontSize: "15px",
-    fontWeight: 700,
-    lineHeight: 1.3,
-    color:
-      state === "selected"
-        ? "#4338ca"
-        : state === "correct-chosen"
-        ? "#15803d"
-        : state === "correct-missed"
-        ? "#166534"
-        : state === "wrong"
-        ? "#dc2626"
-        : "#111827",
-    fontFamily: "'Fraunces', serif",
-  }),
-  checkMark: (state) => ({
-    width: "22px",
-    height: "22px",
-    borderRadius: "7px",
-    flexShrink: 0,
-    display: "grid",
-    placeItems: "center",
-    fontSize: "13px",
-    fontWeight: 800,
-    background:
-      state === "selected"
-        ? "rgba(79,70,229,0.15)"
-        : state === "correct-chosen"
-        ? "rgba(22,163,74,0.15)"
-        : state === "correct-missed"
-        ? "rgba(22,163,74,0.10)"
-        : state === "wrong"
-        ? "rgba(220,38,38,0.12)"
-        : "rgba(15,23,42,0.06)",
-    color:
-      state === "selected"
-        ? "#4338ca"
-        : state === "correct-chosen"
-        ? "#15803d"
-        : state === "correct-missed"
-        ? "#166534"
-        : state === "wrong"
-        ? "#dc2626"
-        : "rgba(15,23,42,0.28)",
-  }),
-  argBody: {
-    fontSize: "13px",
-    color: "#475467",
-    lineHeight: 1.65,
-    marginBottom: "8px",
-  },
-  argTag: (state) => ({
-    fontSize: "10px",
-    fontWeight: 700,
-    color:
-      state === "selected"
-        ? "#4338ca"
-        : state === "correct-chosen"
-        ? "#15803d"
-        : state === "correct-missed"
-        ? "#166534"
-        : state === "wrong"
-        ? "#dc2626"
-        : "rgba(15,23,42,0.38)",
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    fontFamily: "'JetBrains Mono', monospace",
-  }),
-  submitBtn: {
-    padding: "13px 22px",
-    background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-    color: "#fff",
-    border: "none",
-    borderRadius: "16px",
-    fontSize: "14px",
-    fontWeight: 700,
-    cursor: "pointer",
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    letterSpacing: "0.01em",
-    boxShadow: "0 16px 28px rgba(79,70,229,0.22)",
-    marginTop: "6px",
-  },
-  feedbackBox: (score) => ({
-    marginTop: "18px",
-    padding: "18px 20px",
-    borderRadius: "18px",
-    background:
-      score === 3
-        ? "rgba(22,163,74,0.07)"
-        : score >= 1
-        ? "rgba(234,179,8,0.07)"
-        : "rgba(220,38,38,0.06)",
-    border:
-      score === 3
-        ? "1px solid rgba(22,163,74,0.22)"
-        : score >= 1
-        ? "1px solid rgba(234,179,8,0.22)"
-        : "1px solid rgba(220,38,38,0.18)",
-  }),
-  feedbackTitle: (score) => ({
-    fontSize: "16px",
-    fontWeight: 800,
-    fontFamily: "'Fraunces', serif",
-    color:
-      score === 3 ? "#15803d" : score >= 1 ? "#a16207" : "#dc2626",
-    marginBottom: "10px",
-  }),
-  feedbackText: {
-    fontSize: "13px",
-    color: "#475467",
-    lineHeight: 1.7,
-    marginBottom: "16px",
-  },
-  idealPairRow: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "6px",
-    marginBottom: "16px",
-  },
-  idealItem: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    padding: "8px 12px",
-    borderRadius: "12px",
-    background: "rgba(22,163,74,0.07)",
-    border: "1px solid rgba(22,163,74,0.18)",
-    fontSize: "13px",
-    fontWeight: 600,
-    color: "#15803d",
-  },
-  continueBtn: {
-    padding: "12px 22px",
-    background: "#fff",
-    color: "#4f46e5",
-    border: "1px solid rgba(79,70,229,0.18)",
-    borderRadius: "16px",
-    fontSize: "14px",
-    fontWeight: 700,
-    cursor: "pointer",
-    fontFamily: "'Plus Jakarta Sans', sans-serif",
-    boxShadow: "0 10px 22px rgba(15,23,42,0.06)",
-  },
-};
-
-// Component
+function feedbackTitle(score) {
+  if (score === 3) return "Ideal collapse. Both arguments chosen.";
+  if (score === 2) return "One strong pick, one reasonable.";
+  if (score === 1) return "One ideal argument identified.";
+  return "Neither ideal argument chosen.";
+}
 
 const MAX_SELECTIONS = 2;
 const MAX_SCORE = 3;
 
+function SeedBox({ context }) {
+  if (context?.type !== "seed" || (!context.excerpt && !context.coachNote)) return null;
+  return (
+    <div style={mg.seedBox}>
+      {context.excerpt && (
+        <div style={{ marginBottom: context.coachNote ? "8px" : 0 }}>
+          &ldquo;{context.excerpt}&rdquo;
+        </div>
+      )}
+      {context.coachNote && (
+        <div style={{ fontStyle: "normal", fontWeight: 600, color: "#374151" }}>
+          {context.coachNote}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function CollapseChoice({ context, onFinish }) {
   const scenario = pickScenario(context);
   const startTime = useRef(Date.now());
-
   const [selected, setSelected] = useState([]);
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(null);
+  const isPersonalized = context?.type === "seed";
 
   useEffect(() => {
     setSelected([]);
@@ -502,41 +258,31 @@ export default function CollapseChoice({ context, onFinish }) {
 
   const toggleSelect = (id) => {
     if (submitted) return;
-
     setSelected((prev) => {
-      if (prev.includes(id)) {
-        return prev.filter((x) => x !== id);
-      }
-      if (prev.length >= MAX_SELECTIONS) {
-        return prev;
-      }
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_SELECTIONS) return prev;
       return [...prev, id];
     });
   };
 
   const handleSubmit = () => {
     if (selected.length < MAX_SELECTIONS || submitted) return;
-    const finalScore = computeScore(selected, scenario);
-    setScore(finalScore);
+    setScore(computeScore(selected, scenario));
     setSubmitted(true);
   };
 
   const handleContinue = () => {
-    const finalScore = computeScore(selected, scenario);
-    const durationMs = Date.now() - startTime.current;
-    onFinish(finalScore, MAX_SCORE, durationMs);
+    onFinish(computeScore(selected, scenario), MAX_SCORE, Date.now() - startTime.current);
   };
 
   const getCardState = (arg) => {
     const isSelected = selected.includes(arg.id);
     const isIdeal = scenario.idealPair.includes(arg.id);
-
     if (!submitted) {
       if (isSelected) return "selected";
       if (selected.length >= MAX_SELECTIONS) return "disabled";
       return "idle";
     }
-
     if (isIdeal && isSelected) return "correct-chosen";
     if (isIdeal && !isSelected) return "correct-missed";
     if (!isIdeal && isSelected) return "wrong";
@@ -544,83 +290,56 @@ export default function CollapseChoice({ context, onFinish }) {
   };
 
   const checkGlyph = (state) => {
-    if (state === "selected") return "✓";
-    if (state === "correct-chosen") return "✓";
+    if (state === "selected" || state === "correct-chosen") return "✓";
     if (state === "correct-missed") return "→";
     if (state === "wrong") return "✗";
     return "";
   };
 
-  const isPersonalized = context?.type === "seed";
   const canSubmit = selected.length === MAX_SELECTIONS && !submitted;
 
   return (
     <div>
-      {isPersonalized && (context.excerpt || context.coachNote) && (
-        <div style={S.seedBox}>
-          {context.excerpt && (
-            <div style={{ marginBottom: context.coachNote ? "8px" : 0 }}>
-              "{context.excerpt}"
-            </div>
-          )}
-          {context.coachNote && (
-            <div
-              style={{
-                fontStyle: "normal",
-                fontWeight: 600,
-                color: "#374151",
-              }}
-            >
-              {context.coachNote}
-            </div>
-          )}
-        </div>
-      )}
-
-      <div style={S.prompt}>
-        {isPersonalized
-          ? "Choose the 2 arguments this round should have collapsed to"
-          : "Collapse choice · strategy"}
+      <div style={mg.eyebrow}>
+        {isPersonalized ? "Personalized rep" : "Collapse choice"}
+      </div>
+      <div style={mg.title}>Pick the two arguments to collapse to</div>
+      <div style={mg.support}>
+        Select the pair most likely to win the round given the opponent&apos;s best offense and the time left.
       </div>
 
-      <div style={S.situationCard}>
-        <div style={S.situationLabel}>Round situation</div>
-        <div style={S.situationText}>{scenario.situation}</div>
-      </div>
+      <SeedBox context={context} />
 
-      <div style={S.instruction}>
-        You have four arguments still in play. <strong>Select exactly 2</strong>{" "}
-        to collapse to in your final summary, the pair that is most likely to
-        win the round given the opponent's best offense and the round context.
+      <div style={mg.contentCard()}>
+        <div style={mg.metaLabel}>Round situation</div>
+        <div style={mg.cardBodyMuted}>{scenario.situation}</div>
       </div>
 
       {!submitted && (
-        <div style={S.selectionCount(selected.length === MAX_SELECTIONS)}>
+        <div style={mg.counterPill(selected.length === MAX_SELECTIONS)}>
           {selected.length} / {MAX_SELECTIONS} selected
         </div>
       )}
 
       {scenario.arguments.map((arg) => {
         const state = getCardState(arg);
-
         return (
           <button
             key={arg.id}
             onClick={() => toggleSelect(arg.id)}
-            disabled={
-              submitted ||
-              (selected.length >= MAX_SELECTIONS &&
-                !selected.includes(arg.id))
-            }
-            style={S.argCard(state)}
+            disabled={submitted || (selected.length >= MAX_SELECTIONS && !selected.includes(arg.id))}
+            style={mg.choiceBtn(state)}
           >
-            <div style={S.argHeader}>
-              <div style={S.argLabel(state)}>{arg.label}</div>
-              <div style={S.checkMark(state)}>{checkGlyph(state)}</div>
-            </div>
-
-            <div style={S.argBody}>{arg.body}</div>
-            <div style={S.argTag(state)}>{arg.tag}</div>
+            <span style={mg.choicePrefix(state)}>{checkGlyph(state) || "·"}</span>
+            <span style={{ flex: 1 }}>
+              <div style={{ fontFamily: "'Fraunces', serif", fontWeight: 700, fontSize: "15px", marginBottom: "6px" }}>
+                {arg.label}
+              </div>
+              <div style={mg.cardBodyMuted}>{arg.body}</div>
+              <div style={{ ...mg.metaLabel, marginTop: "8px", marginBottom: 0, fontSize: "10px" }}>
+                {arg.tag}
+              </div>
+            </span>
           </button>
         );
       })}
@@ -629,47 +348,39 @@ export default function CollapseChoice({ context, onFinish }) {
         <button
           onClick={handleSubmit}
           disabled={!canSubmit}
-          style={{ ...S.submitBtn, opacity: canSubmit ? 1 : 0.4 }}
+          style={{ ...solidBtn, opacity: canSubmit ? 1 : 0.4 }}
         >
           Lock in collapse →
         </button>
       )}
 
       {submitted && score !== null && (
-        <div style={S.feedbackBox(score)}>
-          <div style={S.feedbackTitle(score)}>
-            {score === 3
-              ? "Ideal collapse. Both arguments chosen."
-              : score === 2
-              ? "One strong pick, one reasonable."
-              : score === 1
-              ? "One ideal argument identified."
-              : "Neither ideal argument chosen."}{" "}
-            ({score}/{MAX_SCORE})
+        <div style={mg.feedbackBox(feedbackVerdict(score))}>
+          <div style={mg.feedbackTitle(feedbackVerdict(score))}>
+            {feedbackTitle(score)} ({score}/{MAX_SCORE})
           </div>
+          <div style={mg.feedbackText}>{scenario.explanation}</div>
 
-          <div style={S.feedbackText}>{scenario.explanation}</div>
-
-          <div
-            style={{
-              fontSize: "10px",
-              fontWeight: 700,
-              color: "rgba(15,23,42,0.42)",
-              letterSpacing: "0.12em",
-              textTransform: "uppercase",
-              fontFamily: "'JetBrains Mono', monospace",
-              marginBottom: "8px",
-            }}
-          >
-            Ideal collapse pair
-          </div>
-
-          <div style={S.idealPairRow}>
+          <div style={mg.metaLabel}>Ideal collapse pair</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "14px" }}>
             {scenario.idealPair.map((id) => {
               const arg = scenario.arguments.find((a) => a.id === id);
-
               return (
-                <div key={id} style={S.idealItem}>
+                <div
+                  key={id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "8px 12px",
+                    borderRadius: "12px",
+                    background: "rgba(22,163,74,0.07)",
+                    border: "1px solid rgba(22,163,74,0.18)",
+                    fontSize: "13px",
+                    fontWeight: 600,
+                    color: "#15803d",
+                  }}
+                >
                   <span>✓</span>
                   <span>{arg?.label}</span>
                 </div>
@@ -677,7 +388,7 @@ export default function CollapseChoice({ context, onFinish }) {
             })}
           </div>
 
-          <button onClick={handleContinue} style={S.continueBtn}>
+          <button onClick={handleContinue} style={secondaryBtn}>
             {score === 3 ? "Clean, back to coach →" : "Noted, back to coach →"}
           </button>
         </div>

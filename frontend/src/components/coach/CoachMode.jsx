@@ -14,6 +14,7 @@ import FallacyHunt from "../minigames/FallacyHunt";
 import SpeechPolish from "../minigames/SpeechPolish";
 import ImpactRanking from "../minigames/ImpactRanking";
 import CollapseChoice from "../minigames/CollapseChoice";
+import RebuttalMatch from "../minigames/Rebuttalmatch";
 
 import {
   eyebrow,
@@ -370,7 +371,13 @@ function renderActiveGame({ activeGame, activeSeed, activeRecommendation, onFini
 
     case "impact_ranking":
         return <ImpactRanking onFinish={(score, maxScore, durationMs) => finish({ score, maxScore, durationMs })} context={context} />;
-
+        
+    case "rebuttal_match":
+        return <RebuttalMatch
+            onFinish={(score, maxScore, durationMs) => finish({ score, maxScore, durationMs })}
+            context={context}
+          />;
+        
     default:
       // Placeholder for games not yet wired
       return (
