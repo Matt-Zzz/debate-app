@@ -400,7 +400,7 @@ export default function HomeScreen({ user, onNavigate }) {
                 </div>
 
                 <div style={{ display: "flex", gap: "6px", marginTop: "8px", flexWrap: "wrap" }}>
-                  <button onClick={() => onNavigate("training")} style={{ ...solidBtn, padding: "8px 10px", fontSize: "11px" }}>
+                  <button onClick={() => onNavigate({ screen: "training", topic: item })} style={{ ...solidBtn, padding: "8px 10px", fontSize: "11px" }}>
                     Start Debate
                   </button>
                   <button

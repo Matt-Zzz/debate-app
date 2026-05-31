@@ -14,11 +14,39 @@ import { appSurface, baseStyles, loadingSurface } from "./styles/ui";
 
 const NAV_SCREENS = ["home", "training", "coach", "pvp", "profile"];
 
+function normalizeTrendingTopic(topic) {
+  if (!topic || typeof topic !== "object") return null;
+
+  const proArgs = Array.isArray(topic.proArguments)
+    ? topic.proArguments.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+  const conArgs = Array.isArray(topic.conArguments)
+    ? topic.conArguments.map((item) => String(item || "").trim()).filter(Boolean)
+    : [];
+
+  return {
+    id: String(topic.id || `trending-${Date.now()}`),
+    title: String(topic.title || "Trending topic").trim() || "Trending topic",
+    description: String(topic.classificationReason || topic.motionTitle || "").trim(),
+    tag: String(topic.category || "Trending").trim() || "Trending",
+    difficulty: String(topic.difficulty || "Medium").trim() || "Medium",
+    sideA: {
+      position: String(topic.proPosition || "Support").trim() || "Support",
+      args: proArgs.length ? proArgs : ["Support this policy based on likely public benefits."],
+    },
+    sideB: {
+      position: String(topic.conPosition || "Oppose").trim() || "Oppose",
+      args: conArgs.length ? conArgs : ["Oppose this policy based on fairness and implementation risks."],
+    },
+  };
+}
+
 export default function App() {
   const [authLoading, setAuthLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [screen, setScreen] = useState("home");
   const [config, setConfig] = useState(null);
+  const [trainingSeedTopic, setTrainingSeedTopic] = useState(null);
   const [transcript, setTranscript] = useState([]);
   const [coachSeeds, setCoachSeeds] = useState([]);
   const [coachLaunchSeed, setCoachLaunchSeed] = useState(null);
@@ -46,6 +74,7 @@ export default function App() {
     setUser(null);
     setScreen("home");
     setConfig(null);
+    setTrainingSeedTopic(null);
     setTranscript([]);
     setCoachSeeds([]);
   };
@@ -62,6 +91,7 @@ export default function App() {
     setUser(nextUser);
     setScreen("home");
     setConfig(null);
+    setTrainingSeedTopic(null);
     setTranscript([]);
     setCoachSeeds([]);
   };
@@ -69,6 +99,22 @@ export default function App() {
   const goCoach = (seeds = []) => {
     setCoachSeeds(seeds);
     setScreen("coach");
+  };
+
+  const handleNavigate = (target) => {
+    if (typeof target === "string") {
+      setTrainingSeedTopic(null);
+      setScreen(target);
+      return;
+    }
+    if (!target || typeof target !== "object") return;
+    const nextScreen = typeof target.screen === "string" ? target.screen : "home";
+    if (nextScreen === "training") {
+      setTrainingSeedTopic(normalizeTrendingTopic(target.topic));
+    } else {
+      setTrainingSeedTopic(null);
+    }
+    setScreen(nextScreen);
   };
 
   const showBottomNav = NAV_SCREENS.includes(screen);
@@ -110,7 +156,7 @@ export default function App() {
       <style>{baseStyles}</style>
 
       {screen === "home" && (
-        <HomeScreen user={user} onNavigate={setScreen} />
+        <HomeScreen user={user} onNavigate={handleNavigate} />
       )}
 
       {screen === "pvp" && (
@@ -120,8 +166,10 @@ export default function App() {
       {screen === "training" && (
         <SetupScreen
           user={user}
+          seedTopic={trainingSeedTopic}
           onStart={(nextConfig) => {
             setConfig(nextConfig);
+            setTrainingSeedTopic(null);
             setScreen("debate");
           }}
         />
@@ -143,6 +191,7 @@ export default function App() {
           transcript={transcript}
           onNew={() => {
             setConfig(null);
+            setTrainingSeedTopic(null);
             setTranscript([]);
             setScreen("training");
           }}
@@ -170,7 +219,7 @@ export default function App() {
       )}
 
       {showBottomNav && (
-        <BottomNav screen={screen} onNavigate={setScreen} />
+        <BottomNav screen={screen} onNavigate={handleNavigate} />
       )}
     </div>
   );

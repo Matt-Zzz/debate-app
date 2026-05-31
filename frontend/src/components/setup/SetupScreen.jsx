@@ -57,7 +57,7 @@ function SummaryPill({ label, value, tint }) {
   );
 }
 
-export default function SetupScreen({ onStart, user }) {
+export default function SetupScreen({ onStart, user, seedTopic = null }) {
   const [topics, setTopics] = useState([]);
   const [characters, setCharacters] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,11 +80,17 @@ export default function SetupScreen({ onStart, user }) {
       .then(([nextTopics, nextCharacters]) => {
         setTopics(nextTopics);
         setCharacters(nextCharacters);
-        assignRandomRound(nextTopics, nextCharacters);
+        if (seedTopic) {
+          setTopic(seedTopic);
+          setChar(pickRandomCharacter(nextCharacters));
+          setSide(pickRandomSide());
+        } else {
+          assignRandomRound(nextTopics, nextCharacters);
+        }
         setLoading(false);
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [seedTopic]);
 
   const refreshTopic = () => {
     if (refreshesLeft <= 0) return;
