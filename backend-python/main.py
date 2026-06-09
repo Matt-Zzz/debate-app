@@ -899,7 +899,8 @@ class TrendingRefreshRequest(BaseModel):
     targetCount: int = 10
     maxPerSource: int = 12
 
-
+class TutorialSkipRequest(BaseModel):
+    sessionId: int
 # ── Auth routes ───────────────────────────────────────────────────────────────
 
 @app.post("/api/auth/register")
@@ -1850,4 +1851,81 @@ def complete_mini_game(
         "leveledUp":         leveled_up,
         "user":              public_user(fresh),
         "nextRecommendations": next_recs,
+    }
+
+@app.post("/api/tutorial/skip")
+def skip_tutorial(req: TutorialSkipRequest, user: dict = Depends(get_current_user)):
+    if user["tutorialCompleted"]:
+        api_error(400, "Tutorial placement is already complete")
+
+    with db_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM tutorial_sessions WHERE id=? AND user_id=?",
+            (req.sessionId, user["id"]),
+        ).fetchone()
+
+        if row is None:
+            api_error(404, "Tutorial session not found")
+
+        if row["status"] != "started":
+            api_error(409, "Tutorial session is not active")
+
+        assigned_lvl = 1
+        total_score = 0
+        placement = {
+            "scores": {},
+            "totalScore": total_score,
+            "assignedLevel": assigned_lvl,
+            "assignedLevelName": level_name(assigned_lvl),
+        }
+
+        user_row = fetch_user_row(conn, user["id"])
+        placed_xp = max(
+            int(user_row["total_xp"] or 0),
+            baseline_xp_for_level(assigned_lvl),
+        )
+        completed_at = now_iso()
+        expected = json.loads(row["question_ids_json"])
+
+        conn.execute(
+            "UPDATE tutorial_sessions "
+            "SET answers_json=?, scores_json=?, total_score=?, assigned_level=?, "
+            "status='skipped', completed_at=? "
+            "WHERE id=?",
+            (
+                json.dumps({}),
+                json.dumps(placement["scores"]),
+                placement["totalScore"],
+                assigned_lvl,
+                completed_at,
+                req.sessionId,
+            ),
+        )
+
+        conn.execute(
+            "UPDATE users SET tutorial_completed=1, placement_score=?, "
+            "current_level=?, total_xp=?, updated_at=? WHERE id=?",
+            (
+                placement["totalScore"],
+                assigned_lvl,
+                placed_xp,
+                completed_at,
+                user["id"],
+            ),
+        )
+
+        fresh = fetch_user_row(conn, user["id"])
+
+    return {
+        "session": {
+            "id": req.sessionId,
+            "status": "skipped",
+            "questionIds": expected,
+            "scores": placement["scores"],
+            "totalScore": placement["totalScore"],
+            "assignedLevel": placement["assignedLevel"],
+            "assignedLevelName": placement["assignedLevelName"],
+        },
+        "placement": placement,
+        "user": public_user(fresh),
     }
