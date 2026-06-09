@@ -622,6 +622,65 @@ def get_or_404(collection: list[dict], item_id: str, label: str) -> dict:
     return obj
 
 
+def _decode_args(value: str | None) -> list[str]:
+    if not value:
+        return []
+    try:
+        payload = json.loads(value)
+    except (TypeError, json.JSONDecodeError):
+        return []
+    if not isinstance(payload, list):
+        return []
+    return [str(item).strip() for item in payload if str(item).strip()][:6]
+
+
+def _topic_from_trending_row(topic_id: str) -> dict | None:
+    with db_conn() as conn:
+        row = conn.execute(
+            """
+            SELECT
+                id, title, category, difficulty, raw_summary,
+                pro_position, pro_arguments_json,
+                con_position, con_arguments_json
+            FROM debate_topics
+            WHERE id=? AND status='approved'
+            LIMIT 1
+            """,
+            (topic_id,),
+        ).fetchone()
+    if row is None:
+        return None
+
+    pro_args = _decode_args(row["pro_arguments_json"])
+    con_args = _decode_args(row["con_arguments_json"])
+
+    return {
+        "id": row["id"],
+        "title": row["title"] or "Untitled debate",
+        "description": row["raw_summary"] or "",
+        "tag": row["category"] or "Trending",
+        "difficulty": row["difficulty"] or "Medium",
+        "sideA": {
+            "position": row["pro_position"] or "Support",
+            "args": pro_args or ["Support this policy based on likely public benefits."],
+        },
+        "sideB": {
+            "position": row["con_position"] or "Oppose",
+            "args": con_args or ["Oppose this policy based on fairness and implementation risks."],
+        },
+    }
+
+
+def get_topic_or_404(topic_id: str) -> dict:
+    static_topic = next((x for x in TOPICS if x["id"] == topic_id), None)
+    if static_topic is not None:
+        return static_topic
+    trending_topic = _topic_from_trending_row(topic_id)
+    if trending_topic is not None:
+        return trending_topic
+    raise HTTPException(404, f"Topic '{topic_id}' not found")
+
+
 def build_opponent_system(character: dict, topic: dict, side: str) -> str:
     """Builds the AI system prompt for the opponent character.
     Fixed: removed character['settings'] KeyError; added convincedBy + crossExamQuestions.
@@ -1450,7 +1509,7 @@ async def post_opponent_speech(req: OpponentRequest):
             raise HTTPException(400, detail=check)
 
     character = get_or_404(CHARACTERS, req.characterId, "Character")
-    topic     = get_or_404(TOPICS,     req.topicId,     "Topic")
+    topic     = get_topic_or_404(req.topicId)
     g_client  = get_gemini_client()
     system    = build_opponent_system(character, topic, req.side)
     user_msg  = (
@@ -1502,7 +1561,7 @@ def post_coach_report(req: ReportRequest, user: dict | None = Depends(get_option
         require_tutorial_completed(user)
 
     character = get_or_404(CHARACTERS, req.characterId, "Character")
-    topic     = get_or_404(TOPICS,     req.topicId,     "Topic")
+    topic     = get_topic_or_404(req.topicId)
     g_client  = get_gemini_client()
     rubric    = compute_rubric(req.transcript)
     side_data = topic["sideA"] if req.side == "A" else topic["sideB"]
