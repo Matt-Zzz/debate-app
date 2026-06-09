@@ -1,9 +1,16 @@
-// report screen component
-
-import { useEffect, useState } from "react";
+// report screen componentimport { useEffect, useState } from "react";
 import { DIFF_COLOR } from "../../constants/debate";
 import { apiFetch } from "../../lib/api";
-import { cardBtn, eyebrow, eyebrowSmall, heroCard, pageWrap, sectionCard, solidBtn, textareaStyle } from "../../styles/ui";
+import {
+  cardBtn,
+  eyebrow,
+  eyebrowSmall,
+  heroCard,
+  pageWrap,
+  sectionCard,
+  solidBtn,
+  textareaStyle,
+} from "../../styles/ui";
 
 function Skeleton({ width = "100%", height = "14px", style = {} }) {
   return (
@@ -44,11 +51,20 @@ function RubricSkeleton() {
 function FeedbackSkeleton() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
-      {[["#edf7ee", ["100%", "88%", "60%"]], ["#fdecea", ["100%", "75%"]], ["#e8f2fd", ["100%", "55%"]]].map(([bg, widths], index) => (
+      {[
+        ["#edf7ee", ["100%", "88%", "60%"]],
+        ["#fdecea", ["100%", "75%"]],
+        ["#e8f2fd", ["100%", "55%"]],
+      ].map(([bg, widths], index) => (
         <div key={index} style={{ padding: "16px 20px", background: bg, borderRadius: "8px" }}>
           <Skeleton width="60px" height="10px" style={{ marginBottom: "12px" }} />
           {widths.map((width, widthIndex) => (
-            <Skeleton key={widthIndex} width={width} height="13px" style={{ marginBottom: widthIndex < widths.length - 1 ? "6px" : "0" }} />
+            <Skeleton
+              key={widthIndex}
+              width={width}
+              height="13px"
+              style={{ marginBottom: widthIndex < widths.length - 1 ? "6px" : "0" }}
+            />
           ))}
         </div>
       ))}
@@ -58,8 +74,10 @@ function FeedbackSkeleton() {
 
 function RubricDisplay({ rubric }) {
   if (!rubric) return null;
+
   const { total, breakdown } = rubric;
-  const scoreColor = total >= 80 ? "#2e7d32" : total >= 60 ? "#e65100" : total >= 40 ? "#b8860b" : "#c62828";
+  const scoreColor =
+    total >= 80 ? "#2e7d32" : total >= 60 ? "#e65100" : total >= 40 ? "#b8860b" : "#c62828";
 
   return (
     <div style={{ ...sectionCard, padding: "20px 24px", marginBottom: "16px" }}>
@@ -70,16 +88,41 @@ function RubricDisplay({ rubric }) {
           <span style={{ fontSize: "1rem", color: "#aaa" }}>/100</span>
         </div>
       </div>
+
       {Object.values(breakdown).map((category) => (
         <div key={category.label} style={{ marginBottom: "10px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "3px" }}>
             <div style={{ fontSize: "12px", color: "#555" }}>{category.label}</div>
-            <div style={{ fontSize: "12px", fontFamily: "'DM Mono', monospace", color: category.score >= category.max * 0.7 ? "#2e7d32" : category.score >= category.max * 0.4 ? "#e65100" : "#c62828" }}>
+            <div
+              style={{
+                fontSize: "12px",
+                fontFamily: "'DM Mono', monospace",
+                color:
+                  category.score >= category.max * 0.7
+                    ? "#2e7d32"
+                    : category.score >= category.max * 0.4
+                      ? "#e65100"
+                      : "#c62828",
+              }}
+            >
               {category.score}/{category.max}
             </div>
           </div>
           <div style={{ height: "5px", background: "#eee", borderRadius: "3px", overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${(category.score / category.max) * 100}%`, background: category.score >= category.max * 0.7 ? "#2e7d32" : category.score >= category.max * 0.4 ? "#e65100" : "#c62828", borderRadius: "3px", transition: "width 0.6s ease" }} />
+            <div
+              style={{
+                height: "100%",
+                width: `${(category.score / category.max) * 100}%`,
+                background:
+                  category.score >= category.max * 0.7
+                    ? "#2e7d32"
+                    : category.score >= category.max * 0.4
+                      ? "#e65100"
+                      : "#c62828",
+                borderRadius: "3px",
+                transition: "width 0.6s ease",
+              }}
+            />
           </div>
         </div>
       ))}
@@ -99,7 +142,11 @@ function DrillPanel({ drill, sessionId, onComplete }) {
     try {
       await apiFetch(`/drills/${drill.id}/complete`, {
         method: "POST",
-        body: JSON.stringify({ sessionId, answers, score: Object.keys(answers).length }),
+        body: JSON.stringify({
+          sessionId,
+          answers,
+          score: Object.keys(answers).length,
+        }),
       });
       setSubmitted(true);
       onComplete({ drill, answers });
@@ -111,39 +158,88 @@ function DrillPanel({ drill, sessionId, onComplete }) {
 
   if (submitted) {
     return (
-      <div style={{ padding: "20px 24px", background: "#edf7ee", borderRadius: "10px", border: "1px solid #c8e6c9" }}>
-        <div style={{ ...eyebrowSmall, marginBottom: "8px", color: "#2e7d32" }}>✓ Drill Completed</div>
-        <div style={{ fontSize: "14px", color: "#1a5c20", lineHeight: 1.6 }}>{drill.completionPrompt}</div>
+      <div
+        style={{
+          padding: "20px 24px",
+          background: "#edf7ee",
+          borderRadius: "10px",
+          border: "1px solid #c8e6c9",
+        }}
+      >
+        <div style={{ ...eyebrowSmall, marginBottom: "8px", color: "#2e7d32" }}>
+          ✓ Drill Completed
+        </div>
+        <div style={{ fontSize: "14px", color: "#1a5c20", lineHeight: 1.6 }}>
+          {drill.completionPrompt}
+        </div>
       </div>
     );
   }
 
   return (
     <div style={{ ...sectionCard, padding: "20px 24px" }}>
-      <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>{drill.tag} · Next Drill</div>
-      <div style={{ fontSize: "20px", fontWeight: 700, fontFamily: "'Fraunces', serif", marginBottom: "6px" }}>{drill.name}</div>
-      <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.55, marginBottom: "16px" }}>{drill.instructions}</div>
+      <div style={{ ...eyebrowSmall, marginBottom: "4px" }}>
+        {drill.tag} · Next Drill
+      </div>
+      <div style={{ fontSize: "20px", fontWeight: 700, fontFamily: "'Fraunces', serif", marginBottom: "6px" }}>
+        {drill.name}
+      </div>
+      <div style={{ fontSize: "13px", color: "#666", lineHeight: 1.55, marginBottom: "16px" }}>
+        {drill.instructions}
+      </div>
+
       {drill.questions.map((question, index) => (
         <div key={index} style={{ marginBottom: "12px" }}>
-          <div style={{ fontSize: "12px", color: "#888", marginBottom: "4px", fontFamily: "'JetBrains Mono', monospace" }}>Q{index + 1}. {question}</div>
+          <div
+            style={{
+              fontSize: "12px",
+              color: "#888",
+              marginBottom: "4px",
+              fontFamily: "'JetBrains Mono', monospace",
+            }}
+          >
+            Q{index + 1}. {question}
+          </div>
           <textarea
             value={answers[index] || ""}
-            onChange={(e) => setAnswers((prev) => ({ ...prev, [index]: e.target.value }))}
+            onChange={(e) =>
+              setAnswers((prev) => ({
+                ...prev,
+                [index]: e.target.value,
+              }))
+            }
             placeholder="Your answer…"
             style={{ ...textareaStyle, minHeight: "64px", background: "#fff" }}
           />
         </div>
       ))}
+
       <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-        <button onClick={handleSubmit} disabled={saving} style={{ ...solidBtn, opacity: saving ? 0.6 : 1 }}>{saving ? "Saving…" : "Submit Drill"}</button>
-        <div style={{ fontSize: "12px", color: "#aaa" }}>Rubric: {drill.rubric}</div>
+        <button
+          onClick={handleSubmit}
+          disabled={saving}
+          style={{ ...solidBtn, opacity: saving ? 0.6 : 1 }}
+        >
+          {saving ? "Saving…" : "Submit Drill"}
+        </button>
+        <div style={{ fontSize: "12px", color: "#aaa" }}>
+          Rubric: {drill.rubric}
+        </div>
       </div>
     </div>
   );
 }
 
-export default function ReportScreen({ config, transcript, onNew, onUserUpdated }) {
-  const { topic, character, side, sessionId } = config;
+export default function ReportScreen({
+  config,
+  sessionId,
+  transcript,
+  onNew,
+  onCoach,
+  onUserUpdated,
+}) {
+  const { topic, character, side } = config;
+
   const [rubric, setRubric] = useState(null);
   const [feedback, setFeedback] = useState(null);
   const [drills, setDrills] = useState([]);
@@ -152,47 +248,124 @@ export default function ReportScreen({ config, transcript, onNew, onUserUpdated 
   const [fetchError, setFetchError] = useState(false);
   const [savedToProfile, setSavedToProfile] = useState(false);
   const [earnedXP, setEarnedXP] = useState(0);
+  const [practiceSeeds, setPracticeSeeds] = useState([]);
 
   useEffect(() => {
-    apiFetch("/drills").then(setDrills).catch(() => {});
-    apiFetch("/coach-report", {
-      method: "POST",
-      body: JSON.stringify({ topicId: topic.id, characterId: character.id, side, sessionId, transcript }),
-    })
-      .then((response) => {
-        setRubric(response.rubric);
-        setFeedback(response.feedback);
+    let cancelled = false;
+
+    const loadReport = async () => {
+      setFetchError(false);
+
+      try {
+        const [allDrills, response] = await Promise.all([
+          apiFetch("/drills").catch(() => []),
+          apiFetch("/coach-report", {
+            method: "POST",
+            body: JSON.stringify({
+              topicId: topic.id,
+              characterId: character.id,
+              side,
+              sessionId,
+              transcript,
+            }),
+          }),
+        ]);
+
+        if (cancelled) return;
+
+        setDrills(allDrills);
+        setRubric(response.rubric || null);
+        setFeedback(response.feedback || null);
         setSavedToProfile(!!response.savedToProfile);
         setEarnedXP(response.earnedXP || 0);
-        if (response.user && onUserUpdated) onUserUpdated(response.user);
-        if (response.rubric?.breakdown) {
-          const drillMap = { structure: "d10", argQuality: "d6", clash: "d9", impact: "d2", precision: "d1" };
-          const weakestKey = Object.entries(response.rubric.breakdown).sort((a, b) => (a[1].score / a[1].max) - (b[1].score / b[1].max))[0]?.[0];
-          apiFetch("/drills")
-            .then((allDrills) => {
-              setDrills(allDrills);
-              setSelectedDrill(allDrills.find((drill) => drill.id === (drillMap[weakestKey] || "d1")) || allDrills[0]);
-            })
-            .catch(() => {});
+        setPracticeSeeds(Array.isArray(response.practiceSeeds) ? response.practiceSeeds : []);
+
+        if (response.user && onUserUpdated) {
+          onUserUpdated(response.user);
         }
-      })
-      .catch(() => setFetchError(true));
-  }, []);
+
+        if (allDrills.length > 0) {
+          const drillMap = {
+            structure: "d10",
+            argQuality: "d6",
+            clash: "d9",
+            impact: "d2",
+            precision: "d1",
+          };
+
+          const weakestKey = response.rubric?.breakdown
+            ? Object.entries(response.rubric.breakdown).sort(
+                (a, b) => a[1].score / a[1].max - (b[1].score / b[1].max)
+              )[0]?.[0]
+            : null;
+
+          const fallbackDrill = allDrills[0];
+          const matchedDrill = allDrills.find(
+            (drill) => drill.id === (drillMap[weakestKey] || fallbackDrill?.id)
+          );
+
+          setSelectedDrill(matchedDrill || fallbackDrill || null);
+        }
+      } catch (err) {
+        if (cancelled) return;
+        setFetchError(true);
+      }
+    };
+
+    loadReport();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [topic.id, character.id, side, sessionId, transcript, onUserUpdated]);
 
   const sideData = side === "A" ? topic.sideA : topic.sideB;
-  const feedbackBg = { STRENGTHS: "#edf7ee", GAPS: "#fdecea", "NEXT DRILL": "#e8f2fd" };
+
+  const feedbackBg = {
+    STRENGTHS: "#edf7ee",
+    GAPS: "#fdecea",
+    "NEXT DRILL": "#e8f2fd",
+  };
 
   return (
     <div style={pageWrap}>
       <div style={{ ...heroCard, marginBottom: "18px" }}>
-        <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Session Complete</div>
-        <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>Coach Report</div>
-        <div style={{ fontSize: "13px", color: "rgba(255,255,255,0.84)", marginTop: "10px", lineHeight: 1.7 }}>
-          {topic.title.slice(0, 55)}… · <span style={{ color: DIFF_COLOR[topic.difficulty] }}>{topic.difficulty}</span> · {sideData.position} · vs {character.name}
+        <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>
+          Session Complete
+        </div>
+        <div
+          style={{
+            fontSize: "clamp(2rem, 7vw, 3rem)",
+            lineHeight: 0.98,
+            fontWeight: 800,
+            fontFamily: "'Fraunces', serif",
+            marginTop: "10px",
+          }}
+        >
+          Coach Report
+        </div>
+        <div
+          style={{
+            fontSize: "13px",
+            color: "rgba(255,255,255,0.84)",
+            marginTop: "10px",
+            lineHeight: 1.7,
+          }}
+        >
+          {topic.title.slice(0, 55)}… ·{" "}
+          <span style={{ color: DIFF_COLOR[topic.difficulty] }}>
+            {topic.difficulty}
+          </span>{" "}
+          · {sideData.position} · vs {character.name}
         </div>
       </div>
 
-      {fetchError && <div style={{ color: "#c62828", fontSize: "13px", marginBottom: "16px" }}>Could not generate report. Check your backend connection.</div>}
+      {fetchError && (
+        <div style={{ color: "#c62828", fontSize: "13px", marginBottom: "16px" }}>
+          Could not generate report. Check your backend connection.
+        </div>
+      )}
+
       {!fetchError && savedToProfile && (
         <div style={{ color: "#2e7d32", fontSize: "13px", marginBottom: "14px" }}>
           {earnedXP
@@ -204,22 +377,65 @@ export default function ReportScreen({ config, transcript, onNew, onUserUpdated 
       {rubric ? <RubricDisplay rubric={rubric} /> : !fetchError && <RubricSkeleton />}
 
       {feedback ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "20px" }}>
-          {[["STRENGTHS", feedback.strengths], ["GAPS", feedback.gaps], ["NEXT DRILL", feedback.nextDrill]].map(([label, content]) => (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+            marginBottom: "20px",
+          }}
+        >
+          {[
+            ["STRENGTHS", feedback.strengths],
+            ["GAPS", feedback.gaps],
+            ["NEXT DRILL", feedback.nextDrill],
+          ].map(([label, content]) =>
             content ? (
-              <div key={label} style={{ padding: "16px 20px", background: feedbackBg[label] || "#f5f5f0", borderRadius: "8px" }}>
+              <div
+                key={label}
+                style={{
+                  padding: "16px 20px",
+                  background: feedbackBg[label] || "#f5f5f0",
+                  borderRadius: "8px",
+                }}
+              >
                 <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>{label}</div>
-                <div style={{ fontSize: "14px", color: "#1a1a1a", lineHeight: 1.75, whiteSpace: "pre-wrap" }}>{content}</div>
+                <div
+                  style={{
+                    fontSize: "14px",
+                    color: "#1a1a1a",
+                    lineHeight: 1.75,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {content}
+                </div>
               </div>
             ) : null
-          ))}
+          )}
         </div>
       ) : !fetchError && <FeedbackSkeleton />}
 
+      {!!practiceSeeds.length && !!onCoach && (
+        <div style={{ marginBottom: "20px" }}>
+          <button
+            onClick={() => onCoach(practiceSeeds)}
+            style={solidBtn}
+          >
+            Practice in Coach Mode
+          </button>
+        </div>
+      )}
+
       <div style={{ ...sectionCard, padding: "14px 18px", marginBottom: "20px" }}>
-        <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>{character.avatar} What convinces {character.name}</div>
+        <div style={{ ...eyebrowSmall, marginBottom: "6px" }}>
+          {character.avatar} What convinces {character.name}
+        </div>
         {character.convincedBy.map((item, index) => (
-          <div key={index} style={{ fontSize: "12px", color: "#555", marginBottom: "2px" }}>
+          <div
+            key={index}
+            style={{ fontSize: "12px", color: "#555", marginBottom: "2px" }}
+          >
             · {item}
           </div>
         ))}
@@ -228,13 +444,27 @@ export default function ReportScreen({ config, transcript, onNew, onUserUpdated 
       {!drillDone && selectedDrill && (
         <div style={{ marginBottom: "20px" }}>
           <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Assigned Drill</div>
-          <DrillPanel drill={selectedDrill} sessionId={sessionId} onComplete={() => setDrillDone(true)} />
+          <DrillPanel
+            drill={selectedDrill}
+            sessionId={sessionId}
+            onComplete={() => setDrillDone(true)}
+          />
         </div>
       )}
 
       {drillDone && (
-        <div style={{ padding: "14px 18px", background: "#edf7ee", border: "1px solid #c8e6c9", borderRadius: "8px", marginBottom: "20px" }}>
-          <div style={{ fontSize: "13px", color: "#2e7d32" }}>✓ Drill completed. Good work - bring this to your next session.</div>
+        <div
+          style={{
+            padding: "14px 18px",
+            background: "#edf7ee",
+            border: "1px solid #c8e6c9",
+            borderRadius: "8px",
+            marginBottom: "20px",
+          }}
+        >
+          <div style={{ fontSize: "13px", color: "#2e7d32" }}>
+            ✓ Drill completed. Good work - bring this to your next session.
+          </div>
         </div>
       )}
 
@@ -254,10 +484,24 @@ export default function ReportScreen({ config, transcript, onNew, onUserUpdated 
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <div style={{ fontSize: "13px", fontWeight: 500 }}>{drill.name}</div>
-                    <div style={{ fontSize: "11px", opacity: 0.6 }}>{drill.description.slice(0, 70)}…</div>
+                    <div style={{ fontSize: "13px", fontWeight: 500 }}>
+                      {drill.name}
+                    </div>
+                    <div style={{ fontSize: "11px", opacity: 0.6 }}>
+                      {drill.description.slice(0, 70)}…
+                    </div>
                   </div>
-                  <div style={{ fontSize: "10px", fontFamily: "'DM Mono', monospace", opacity: 0.5, marginLeft: "12px", flexShrink: 0 }}>{drill.tag}</div>
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      fontFamily: "'DM Mono', monospace",
+                      opacity: 0.5,
+                      marginLeft: "12px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {drill.tag}
+                  </div>
                 </div>
               </button>
             ))}
@@ -268,14 +512,29 @@ export default function ReportScreen({ config, transcript, onNew, onUserUpdated 
       <div style={{ marginBottom: "28px" }}>
         <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Full Transcript</div>
         {transcript.map((entry, index) => (
-          <div key={index} style={{ padding: "9px 13px", marginBottom: "5px", borderLeft: `3px solid ${entry.role === "user" ? "#1a1a1a" : "#ddd"}`, background: "#fafafa", borderRadius: "0 6px 6px 0" }}>
-            <div style={{ ...eyebrowSmall, marginBottom: "2px" }}>{entry.stageName} · {entry.role === "user" ? "YOU" : character.name.toUpperCase()}</div>
-            <div style={{ fontSize: "13px", color: "#444", lineHeight: 1.6 }}>{entry.text}</div>
+          <div
+            key={index}
+            style={{
+              padding: "9px 13px",
+              marginBottom: "5px",
+              borderLeft: `3px solid ${entry.role === "user" ? "#1a1a1a" : "#ddd"}`,
+              background: "#fafafa",
+              borderRadius: "0 6px 6px 0",
+            }}
+          >
+            <div style={{ ...eyebrowSmall, marginBottom: "2px" }}>
+              {entry.stageName} · {entry.role === "user" ? "YOU" : character.name.toUpperCase()}
+            </div>
+            <div style={{ fontSize: "13px", color: "#444", lineHeight: 1.6 }}>
+              {entry.text}
+            </div>
           </div>
         ))}
       </div>
 
-      <button onClick={onNew} style={solidBtn}>← Start New Session</button>
+      <button onClick={onNew} style={solidBtn}>
+        ← Start New Session
+      </button>
     </div>
   );
 }

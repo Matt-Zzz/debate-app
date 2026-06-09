@@ -104,7 +104,7 @@ function MicButton({ listening, supported, toggle, permError, permState, onReque
   );
 }
 
-export default function DebateScreen({ config, onComplete }) {
+export default function DebateScreen({ config, onComplete, onExit }) {
   const { topic, character, side } = config;
   const [idx, setIdx] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
@@ -120,6 +120,10 @@ export default function DebateScreen({ config, onComplete }) {
   const transcriptRef = useRef([]);
   const [safetyWarning, setSafetyWarning] = useState(null);
   const [showMicModal, setShowMicModal] = useState(false);
+  const [exiting, setExiting] = useState(false);
+  const sessionIdRef = useRef(
+    globalThis.crypto?.randomUUID?.() || `debate_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  );
 
   const { listening, supported, toggle: toggleMic, stop: stopMic, permError, permState } = useSpeechToText({
     onAppend: (newText) => {
@@ -183,6 +187,38 @@ export default function DebateScreen({ config, onComplete }) {
     setTimerRunning(true);
   };
 
+  const handleExitTraining = async () => {
+    if (exiting) return;
+  
+    const confirmed = window.confirm("Exit training and save this session?");
+    if (!confirmed) return;
+  
+    setExiting(true);
+  
+    try {
+      if (transcriptRef.current.length > 0) {
+        await apiFetch("/training-sessions/save-draft", {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: sessionIdRef.current,
+            topicId: topic.id,
+            characterId: character.id,
+            side,
+            transcript: transcriptRef.current,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error("Could not save training draft", err);
+      alert(err?.message || "Could not save training draft");
+      setExiting(false);
+      return;
+    }
+  
+    setExiting(false);
+    onExit?.();
+  };
+  
   const submitUser = async () => {
     stopMic();
     if (userText.trim()) {
@@ -211,7 +247,10 @@ export default function DebateScreen({ config, onComplete }) {
   const next = () => {
     stopMic();
     if (isLast) {
-      onComplete(transcriptRef.current);
+      onComplete({
+        sessionId: sessionIdRef.current,
+        transcript: transcriptRef.current,
+      });
       return;
     }
     setIdx((prev) => prev + 1);
@@ -357,6 +396,16 @@ export default function DebateScreen({ config, onComplete }) {
           ))}
         </div>
       )}
+        <button
+          onClick={handleExitTraining}
+          disabled={exiting}
+          style={{
+            ...solidBtn,
+            opacity: exiting ? 0.6 : 1,
+          }}
+        >
+          {exiting ? "Saving..." : "Exit"}
+        </button>
     </div>
   );
 }

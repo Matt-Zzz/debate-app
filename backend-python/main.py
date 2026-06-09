@@ -293,6 +293,8 @@ def init_db() -> None:
         ensure_column(conn, "users", "headline",           "TEXT")
         ensure_column(conn, "users", "bio",                "TEXT")
         ensure_column(conn, "training_history", "session_id", "TEXT")
+        ensure_column(conn, "training_history", "status", "TEXT NOT NULL DEFAULT 'completed'")
+        ensure_column(conn, "training_history", "updated_at", "TEXT")
         conn.execute(
             "CREATE UNIQUE INDEX IF NOT EXISTS idx_training_history_user_session "
             "ON training_history(user_id, session_id)"
@@ -738,6 +740,93 @@ def persist_training_history(
         )
     return True
 
+def upsert_training_history(
+    conn: sqlite3.Connection,
+    user_id: int,
+    session_id: str | None,
+    topic: dict,
+    character: dict,
+    side: str,
+    transcript: list[dict],
+    rubric: dict,
+    feedback: dict[str, Any],
+    status: str,
+) -> tuple[bool, str]:
+    now = now_iso()
+    existing = None
+
+    if session_id:
+        existing = conn.execute(
+            "SELECT id, status FROM training_history WHERE user_id=? AND session_id=?",
+            (user_id, session_id),
+        ).fetchone()
+
+    if existing is not None:
+        previous_status = existing["status"] or "draft"
+        conn.execute(
+            """
+            UPDATE training_history
+            SET topic_id=?,
+                topic_title=?,
+                topic_tag=?,
+                topic_difficulty=?,
+                character_id=?,
+                character_name=?,
+                side=?,
+                rubric_json=?,
+                feedback_json=?,
+                transcript_json=?,
+                status=?,
+                updated_at=?
+            WHERE id=?
+            """,
+            (
+                topic["id"],
+                topic["title"],
+                topic.get("tag"),
+                topic.get("difficulty"),
+                character["id"],
+                character["name"],
+                side,
+                json.dumps(rubric),
+                json.dumps(feedback),
+                json.dumps(transcript),
+                status,
+                now,
+                existing["id"],
+            ),
+        )
+        return previous_status != "completed" and status == "completed", previous_status
+
+    conn.execute(
+        """
+        INSERT INTO training_history(
+            user_id, session_id, topic_id, topic_title, topic_tag, topic_difficulty,
+            character_id, character_name, side,
+            rubric_json, feedback_json, transcript_json,
+            status, created_at, updated_at
+        ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        """,
+        (
+            user_id,
+            session_id,
+            topic["id"],
+            topic["title"],
+            topic.get("tag"),
+            topic.get("difficulty"),
+            character["id"],
+            character["name"],
+            side,
+            json.dumps(rubric),
+            json.dumps(feedback),
+            json.dumps(transcript),
+            status,
+            now,
+            now,
+        ),
+    )
+    return status == "completed", "new"
+
 
 def select_pvp_topic(p1: dict, p2: dict) -> dict:
     shared = set(allowed_difficulties_for_level(p1["currentLevel"])) & set(
@@ -960,6 +1049,14 @@ class TrendingRefreshRequest(BaseModel):
 
 class TutorialSkipRequest(BaseModel):
     sessionId: int
+
+class SaveTrainingDraftRequest(BaseModel):
+    sessionId: str
+    topicId: str
+    characterId: str
+    side: str
+    transcript: list[dict]
+
 # ── Auth routes ───────────────────────────────────────────────────────────────
 
 @app.post("/api/auth/register")
@@ -1143,6 +1240,8 @@ def get_training_history(user: dict = Depends(get_current_user)):
             "feedback": json.loads(r["feedback_json"]),
             "transcript": json.loads(r["transcript_json"]),
             "createdAt": r["created_at"],
+            "status": r["status"],
+            "updatedAt": r["updated_at"],
         }
         for r in rows
     ]
@@ -1622,7 +1721,9 @@ def post_coach_report(req: ReportRequest, user: dict | None = Depends(get_option
     updated_user = None
     earned_xp    = 0
     if user is not None:
-        saved_history = persist_training_history(
+        with db_conn() as conn:
+            newly_completed, _previous_status = upsert_training_history(
+            conn=conn,
             user_id=user["id"],
             session_id=req.sessionId,
             topic=topic,
@@ -1631,22 +1732,22 @@ def post_coach_report(req: ReportRequest, user: dict | None = Depends(get_option
             transcript=req.transcript,
             rubric=rubric,
             feedback=feedback,
+            status="completed",
         )
-        if saved_history:
+
+        if newly_completed:
             training_result = {
-                "sessionId":       req.sessionId or "",
-                "topicId":         topic["id"],
+                "sessionId": req.sessionId or "",
+                "topicId": topic["id"],
                 "topicDifficulty": topic["difficulty"],
-                "rubricTotal":     rubric["total"],
+                "rubricTotal": rubric["total"],
             }
             earned_xp = calculate_training_xp("debate", result=training_result)
-            with db_conn() as conn:
-                save_training_session(conn, user["id"], "debate", earned_xp, training_result)
-                fresh, _ = award_user_xp(conn, user["id"], earned_xp)
-                updated_user = public_user(fresh)
+            save_training_session(conn, user["id"], "debate", earned_xp, training_result)
+            fresh, _ = award_user_xp(conn, user["id"], earned_xp)
+            updated_user = public_user(fresh)
         else:
-            with db_conn() as conn:
-                updated_user = public_user(fetch_user_row(conn, user["id"]))
+            updated_user = public_user(fetch_user_row(conn, user["id"]))
 
     # ── Coach Mode extras — extract seeds, weak trees, and mini-game recs ────
     coach = build_coach_extras(
@@ -1988,3 +2089,32 @@ def skip_tutorial(req: TutorialSkipRequest, user: dict = Depends(get_current_use
         "placement": placement,
         "user": public_user(fresh),
     }
+
+@app.post("/api/training-sessions/save-draft")
+def save_training_draft(req: SaveTrainingDraftRequest, user: dict = Depends(get_current_user)):
+    require_tutorial_completed(user)
+
+    topic = get_topic_or_404(req.topicId)
+    character = get_or_404(CHARACTERS, req.characterId, "Character")
+    rubric = compute_rubric(req.transcript)
+    feedback = {
+        "strengths": "",
+        "gaps": "",
+        "nextDrill": "",
+    }
+
+    with db_conn() as conn:
+        upsert_training_history(
+            conn=conn,
+            user_id=user["id"],
+            session_id=req.sessionId,
+            topic=topic,
+            character=character,
+            side=req.side,
+            transcript=req.transcript,
+            rubric=rubric,
+            feedback=feedback,
+            status="draft",
+        )
+
+    return {"success": True, "status": "draft"}

@@ -48,6 +48,7 @@ export default function App() {
   const [config, setConfig] = useState(null);
   const [trainingSeedTopic, setTrainingSeedTopic] = useState(null);
   const [transcript, setTranscript] = useState([]);
+  const [reportSessionId, setReportSessionId] = useState(null);
   const [coachSeeds, setCoachSeeds] = useState([]);
   const [coachLaunchSeed, setCoachLaunchSeed] = useState(null);
 
@@ -69,14 +70,20 @@ export default function App() {
       .finally(() => setAuthLoading(false));
   }, []);
 
-  const finishSignOut = () => {
-    setAuthToken("");
-    setUser(null);
-    setScreen("home");
+  const resetRoundState = () => {
     setConfig(null);
     setTrainingSeedTopic(null);
     setTranscript([]);
+    setReportSessionId(null);
     setCoachSeeds([]);
+    setCoachLaunchSeed(null);
+  };
+
+  const finishSignOut = () => {
+    setAuthToken("");
+    setUser(null);
+    resetRoundState();
+    setScreen("home");
   };
 
   const signOut = async () => {
@@ -89,14 +96,12 @@ export default function App() {
   const handleAuth = ({ token, user: nextUser }) => {
     setAuthToken(token);
     setUser(nextUser);
+    resetRoundState();
     setScreen("home");
-    setConfig(null);
-    setTrainingSeedTopic(null);
-    setTranscript([]);
-    setCoachSeeds([]);
   };
 
   const goCoach = (seeds = []) => {
+    setCoachLaunchSeed(null);
     setCoachSeeds(seeds);
     setScreen("coach");
   };
@@ -107,13 +112,17 @@ export default function App() {
       setScreen(target);
       return;
     }
+
     if (!target || typeof target !== "object") return;
+
     const nextScreen = typeof target.screen === "string" ? target.screen : "home";
+
     if (nextScreen === "training") {
       setTrainingSeedTopic(normalizeTrendingTopic(target.topic));
     } else {
       setTrainingSeedTopic(null);
     }
+
     setScreen(nextScreen);
   };
 
@@ -170,6 +179,8 @@ export default function App() {
           onStart={(nextConfig) => {
             setConfig(nextConfig);
             setTrainingSeedTopic(null);
+            setTranscript([]);
+            setReportSessionId(null);
             setScreen("debate");
           }}
         />
@@ -178,9 +189,16 @@ export default function App() {
       {screen === "debate" && config && (
         <DebateScreen
           config={config}
-          onComplete={(nextTranscript) => {
-            setTranscript(nextTranscript);
+          onComplete={({ sessionId, transcript: nextTranscript }) => {
+            setReportSessionId(sessionId);
+            setTranscript(Array.isArray(nextTranscript) ? nextTranscript : []);
             setScreen("report");
+          }}
+          onExit={() => {
+            setConfig(null);
+            setTranscript([]);
+            setReportSessionId(null);
+            setScreen("training");
           }}
         />
       )}
@@ -188,11 +206,13 @@ export default function App() {
       {screen === "report" && config && (
         <ReportScreen
           config={config}
+          sessionId={reportSessionId}
           transcript={transcript}
           onNew={() => {
             setConfig(null);
             setTrainingSeedTopic(null);
             setTranscript([]);
+            setReportSessionId(null);
             setScreen("training");
           }}
           onCoach={goCoach}
@@ -204,7 +224,7 @@ export default function App() {
         <CoachMode
           user={user}
           onUserUpdated={setUser}
-          initialSeeds={coachSeeds}
+          initialSeeds={resolvedCoachSeeds}
           onExit={() => setScreen(config ? "report" : "home")}
         />
       )}
