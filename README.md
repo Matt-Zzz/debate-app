@@ -90,6 +90,16 @@ HOT_TOPICS_PROXY_MODE=auto
 # required for Google sign-in
 GOOGLE_CLIENT_ID=your_google_client_id
 ```
+start up backend: 
+cd ~/debate-app/backend-python
+
+python3 -m venv .venv
+source .venv/bin/activate
+
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip install python-dotenv
+
 
 Run backend:
 

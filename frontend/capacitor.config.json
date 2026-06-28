@@ -1,0 +1,12 @@
+{
+  "appId": "com.peterxu.rebutto",
+  "appName": "Rebutto",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "http",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true
+  }
+}

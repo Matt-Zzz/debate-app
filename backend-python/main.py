@@ -53,9 +53,12 @@ from routes.topics import list_hot_topics, refresh_hot_topics, seed_from_static_
 
 app = FastAPI(title="Debate Simulator API")
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
