@@ -647,14 +647,14 @@ export default function CoachMode({ user, onUserUpdated, onExit, initialSeeds = 
       <div style={{ ...heroCard, marginBottom: "18px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", flexWrap: "wrap", alignItems: "flex-start" }}>
           <div style={{ maxWidth: "520px" }}>
-            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Coach Mode</div>
-            <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
+            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.80)" }}>Skills · Focused practice</div>
+            <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 1.06, letterSpacing: "-0.04em", fontWeight: 800, marginTop: "10px" }}>
               Train with intent.
             </div>
             <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>{heroCopy}</p>
           </div>
           {onExit && (
-            <button onClick={onExit} style={heroActionBtn}>Exit Coach</button>
+            <button onClick={onExit} style={heroActionBtn}>Back</button>
           )}
         </div>
 

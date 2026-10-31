@@ -51,7 +51,7 @@ function MicButton({ listening, supported, toggle, permError, permState, onReque
   if (!supported) {
     return (
       <div style={{ fontSize: "11px", color: "#999", fontFamily: "'DM Mono', monospace", padding: "10px 0" }}>
-        Voice input requires Chrome or Edge.
+        Voice input is unavailable on this device. You can type your response below.
       </div>
     );
   }

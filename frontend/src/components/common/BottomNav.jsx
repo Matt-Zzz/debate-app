@@ -1,178 +1,29 @@
-import React from "react";
+import { House, MessageCircleMore, Target, UsersRound, UserRound } from "lucide-react";
+import "./BottomNav.css";
 
-const navWrap = {
-  position: "sticky",
-  bottom: 0,
-  left: 0,
-  right: 0,
-  zIndex: 40,
-  background: "#f7f5f5",
-  borderTop: "1px solid #e7e1e1",
-  padding: "6px 8px 8px",
-};
-
-const navGrid = {
-  maxWidth: "900px",
-  margin: "0 auto",
-  display: "grid",
-  gridTemplateColumns: "repeat(5, 1fr)",
-  gap: "4px",
-  alignItems: "end",
-};
-
-const itemBase = {
-  appearance: "none",
-  background: "transparent",
-  border: 0,
-  cursor: "pointer",
-  padding: "6px 4px",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: "5px",
-  color: "#6b7a90",
-  fontFamily: "'DM Sans', sans-serif",
-};
-
-const activePill = {
-  width: "46px",
-  height: "46px",
-  borderRadius: "14px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "rgba(91, 90, 230, 0.12)",
-};
-
-const inactivePill = {
-  width: "46px",
-  height: "46px",
-  borderRadius: "14px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "transparent",
-};
-
-const activeLabel = {
-  fontSize: "11px",
-  fontWeight: 700,
-  color: "#5b5ae6",
-};
-
-const inactiveLabel = {
-  fontSize: "11px",
-  fontWeight: 700,
-  color: "#6b7a90",
-};
-
-function IconStroke({ children, active = false }) {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={active ? "#5b5ae6" : "#6b7a90"}
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-    >
-      {children}
-    </svg>
-  );
-}
-
-function HomeIcon({ active }) {
-  return (
-    <IconStroke active={active}>
-      <path d="M3 10.5 12 3l9 7.5" />
-      <path d="M5.5 9.5V20h13V9.5" />
-      <path d="M9.5 20v-6h5v6" />
-    </IconStroke>
-  );
-}
-
-function TrainingIcon({ active }) {
-  return (
-    <IconStroke active={active}>
-      <path d="M6 7l2-2" />
-      <path d="M16 17l2-2" />
-      <path d="M4.5 9.5l5 5" />
-      <path d="M14.5 19.5l5-5" />
-      <path d="M10 6l8 8" />
-      <path d="M7 13l4 4" />
-      <path d="M13 7l4-4" />
-      <path d="M7 17l-4 4" />
-    </IconStroke>
-  );
-}
-
-function CoachIcon({ active }) {
-  return (
-    <IconStroke active={active}>
-      <circle cx="12" cy="8" r="3.2" />
-      <path d="M6.5 19c1.1-2.5 3.1-3.8 5.5-3.8s4.4 1.3 5.5 3.8" />
-      <path d="M18.2 6.2l1.8-1.8" />
-      <path d="M18.2 9.8 20 11.6" />
-    </IconStroke>
-  );
-}
-
-function PvPIcon({ active }) {
-  return (
-    <IconStroke active={active}>
-      <path d="M7 7l10 10" />
-      <path d="M17 7 7 17" />
-      <path d="M5.5 5.5 8 8" />
-      <path d="M16 16l2.5 2.5" />
-      <path d="M16 8l2.5-2.5" />
-      <path d="M5.5 18.5 8 16" />
-    </IconStroke>
-  );
-}
-
-function ProfileIcon({ active }) {
-  return (
-    <IconStroke active={active}>
-      <circle cx="12" cy="7.5" r="3.2" />
-      <path d="M5 19c1.4-3.1 4-4.7 7-4.7s5.6 1.6 7 4.7" />
-    </IconStroke>
-  );
-}
-
-const ITEMS = [
-  { id: "home", label: "Home", Icon: HomeIcon },
-  { id: "training", label: "Training", Icon: TrainingIcon },
-  { id: "coach", label: "Coach", Icon: CoachIcon },
-  { id: "pvp", label: "PvP", Icon: PvPIcon },
-  { id: "profile", label: "Profile", Icon: ProfileIcon },
+export const NAV_ITEMS = [
+  { id: "home", label: "Home", detail: "Your overview, progress and debate topics", Icon: House },
+  { id: "training", label: "AI Debate", detail: "Practice a full debate with an AI opponent", Icon: MessageCircleMore },
+  { id: "coach", label: "Skills", detail: "Build debate skills with focused drills and coaching", Icon: Target },
+  { id: "pvp", label: "Live Debate", detail: "Exchange text arguments with another player", Icon: UsersRound },
+  { id: "profile", label: "Profile", detail: "Your history, account and settings", Icon: UserRound },
 ];
 
 export default function BottomNav({ screen, onNavigate }) {
   return (
-    <nav style={navWrap}>
-      <div style={navGrid}>
-        {ITEMS.map(({ id, label, Icon }) => {
-          const active = screen === id;
-
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onNavigate(id)}
-              style={itemBase}
-              aria-current={active ? "page" : undefined}
-            >
-              <div style={active ? activePill : inactivePill}>
-                <Icon active={active} />
-              </div>
-              <div style={active ? activeLabel : inactiveLabel}>{label}</div>
-            </button>
-          );
-        })}
+    <nav className="app-tabbar" aria-label="Main navigation">
+      <div className="app-tabbar__surface">
+        {NAV_ITEMS.map(({ id, label, detail, Icon }) => (
+          <button key={id} type="button" className="app-tabbar__item"
+            aria-label={label}
+            aria-current={screen === id ? "page" : undefined}
+            aria-describedby={`nav-help-${id}`} title={detail}
+            onClick={() => { if (screen !== id) onNavigate(id); }}>
+            <span className="app-tabbar__icon"><Icon size={23} strokeWidth={screen === id ? 2.35 : 1.85} aria-hidden="true" /></span>
+            <span className="app-tabbar__label">{label}</span>
+            <span id={`nav-help-${id}`} className="app-tabbar__help">{detail}</span>
+          </button>
+        ))}
       </div>
     </nav>
   );

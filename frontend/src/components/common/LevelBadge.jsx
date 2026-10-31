@@ -26,7 +26,19 @@ export default function LevelBadge({ level, size = "md", showLabel = true }) {
           fontWeight: 800,
         }}
       >
-        {palette.icon}
+        <span
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            lineHeight: 1,
+          }}
+        >
+          <span style={{ fontSize: `${Math.max(8, scale.icon * 0.42)}px`, letterSpacing: "0.08em", opacity: 0.72 }}>
+            LV
+          </span>
+          <span style={{ fontSize: `${scale.icon}px`, marginTop: "2px" }}>{level}</span>
+        </span>
       </div>
       {showLabel && (
         <div style={{ fontSize: scale.text, fontWeight: 700, color: "#1f2937" }}>

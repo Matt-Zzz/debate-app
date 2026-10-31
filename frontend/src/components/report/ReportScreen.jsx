@@ -1,4 +1,4 @@
-// report screen componentimport { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DIFF_COLOR } from "../../constants/debate";
 import { apiFetch } from "../../lib/api";
 import {
@@ -242,10 +242,12 @@ export default function ReportScreen({
 
   const [rubric, setRubric] = useState(null);
   const [feedback, setFeedback] = useState(null);
+  const [aiFeedbackAvailable, setAiFeedbackAvailable] = useState(true);
   const [drills, setDrills] = useState([]);
   const [selectedDrill, setSelectedDrill] = useState(null);
   const [drillDone, setDrillDone] = useState(false);
-  const [fetchError, setFetchError] = useState(false);
+  const [fetchError, setFetchError] = useState("");
+  const [attempt, setAttempt] = useState(0);
   const [savedToProfile, setSavedToProfile] = useState(false);
   const [earnedXP, setEarnedXP] = useState(0);
   const [practiceSeeds, setPracticeSeeds] = useState([]);
@@ -254,7 +256,7 @@ export default function ReportScreen({
     let cancelled = false;
 
     const loadReport = async () => {
-      setFetchError(false);
+      setFetchError("");
 
       try {
         const [allDrills, response] = await Promise.all([
@@ -276,6 +278,7 @@ export default function ReportScreen({
         setDrills(allDrills);
         setRubric(response.rubric || null);
         setFeedback(response.feedback || null);
+        setAiFeedbackAvailable(response.aiFeedbackAvailable !== false);
         setSavedToProfile(!!response.savedToProfile);
         setEarnedXP(response.earnedXP || 0);
         setPracticeSeeds(Array.isArray(response.practiceSeeds) ? response.practiceSeeds : []);
@@ -308,7 +311,7 @@ export default function ReportScreen({
         }
       } catch (err) {
         if (cancelled) return;
-        setFetchError(true);
+        setFetchError(err.message || "Could not generate report. Check your connection.");
       }
     };
 
@@ -317,7 +320,7 @@ export default function ReportScreen({
     return () => {
       cancelled = true;
     };
-  }, [topic.id, character.id, side, sessionId, transcript, onUserUpdated]);
+  }, [topic.id, character.id, side, sessionId, transcript, onUserUpdated, attempt]);
 
   const sideData = side === "A" ? topic.sideA : topic.sideB;
 
@@ -361,8 +364,9 @@ export default function ReportScreen({
       </div>
 
       {fetchError && (
-        <div style={{ color: "#c62828", fontSize: "13px", marginBottom: "16px" }}>
-          Could not generate report. Check your backend connection.
+        <div role="alert" style={{ color: "#c62828", fontSize: "13px", marginBottom: "16px" }}>
+          <p>{fetchError}</p>
+          <button type="button" onClick={() => setAttempt((value) => value + 1)} style={solidBtn}>Retry report</button>
         </div>
       )}
 
@@ -375,6 +379,8 @@ export default function ReportScreen({
       )}
 
       {rubric ? <RubricDisplay rubric={rubric} /> : !fetchError && <RubricSkeleton />}
+
+      {!aiFeedbackAvailable && rubric && <p role="status" style={{ color: "#667085", lineHeight: 1.6 }}>Gemini feedback is currently unavailable. The rubric below is calculated by Rebutto, not an AI judgment. Your practice result was still saved.</p>}
 
       {feedback ? (
         <div

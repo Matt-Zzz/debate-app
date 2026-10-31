@@ -1,6 +1,7 @@
 // pvp screen component
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import PvPRoom from "./PvPRoom";
 import DifficultyChip from "../common/DifficultyChip";
 import LevelBadge from "../common/LevelBadge";
 import { apiFetch } from "../../lib/api";
@@ -19,6 +20,7 @@ import {
 function statusLabel(status) {
   if (status === "matched") return { text: "Matched", bg: "#dcfce7", color: "#166534" };
   if (status === "completed") return { text: "Completed", bg: "#eef2ff", color: "#4338ca" };
+  if (status === "cancelled") return { text: "Ended", bg: "#eeeef4", color: "#667085" };
   return { text: "Searching", bg: "#fef3c7", color: "#a16207" };
 }
 
@@ -28,7 +30,7 @@ function SessionCard({ session, user }) {
   const status = statusLabel(session.status);
 
   return (
-    <div style={{ ...sectionCard, padding: "18px 20px" }}>
+    <div style={{ ...sectionCard, padding: "16px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", flexWrap: "wrap", marginBottom: "10px" }}>
         <div>
           <div style={eyebrowSmall}>PvP Session</div>
@@ -49,7 +51,7 @@ function SessionCard({ session, user }) {
       </div>
       {session.scores && (
         <div style={{ fontSize: "13px", color: "#475467", lineHeight: 1.7 }}>
-          Score: {session.scores.player1} - {session.scores.player2}
+          {session.winnerId == null ? "Draw" : session.winnerId === user.id ? "You won" : "You lost"} · Score: {session.scores.player1} - {session.scores.player2}
         </div>
       )}
     </div>
@@ -61,9 +63,12 @@ export default function PvPScreen({ user, onUserUpdated }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [player1Score, setPlayer1Score] = useState("");
-  const [player2Score, setPlayer2Score] = useState("");
-  const [notes, setNotes] = useState("");
+  const [selectedId, setSelectedId] = useState(null);
+  const [roomCode, setRoomCode] = useState("");
+  const updateSession = useCallback((session) => {
+    setSessions((prev) => [session, ...prev.filter((item) => item.id !== session.id)]);
+    setSelectedId((prev) => prev || session.id);
+  }, []);
 
   const loadSessions = async () => {
     setLoading(true);
@@ -88,8 +93,9 @@ export default function PvPScreen({ user, onUserUpdated }) {
     setBusy(true);
     setError("");
     try {
-      const response = await apiFetch("/pvp/match", { method: "POST" });
+      const response = await apiFetch("/pvp/match", { method: "POST", body: JSON.stringify({ roomCode }) });
       setSessions((prev) => [response.session, ...prev.filter((item) => item.id !== response.session.id)]);
+      setSelectedId(response.session.id);
     } catch (err) {
       setError(err.message || "Could not find a match");
     } finally {
@@ -97,83 +103,74 @@ export default function PvPScreen({ user, onUserUpdated }) {
     }
   };
 
-  const submitResult = async () => {
-    if (!activeSession) return;
-    setBusy(true);
-    setError("");
-    try {
-      const response = await apiFetch(`/pvp/sessions/${activeSession.id}/complete`, {
-        method: "POST",
-        body: JSON.stringify({
-          player1Score: Number(player1Score),
-          player2Score: Number(player2Score),
-          notes,
-        }),
-      });
-      setPlayer1Score("");
-      setPlayer2Score("");
-      setNotes("");
-      onUserUpdated(response.user);
-      await loadSessions();
-    } catch (err) {
-      setError(err.message || "Could not submit PvP result");
-    } finally {
-      setBusy(false);
-    }
-  };
+  const roomSession = sessions.find((item) => item.id === selectedId) || activeSession;
 
   return (
     <div style={pageWrap}>
-      <div style={{ ...heroCard, marginBottom: "18px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: "18px", alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ ...heroCard, marginBottom: "14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: "14px", alignItems: "start" }}>
           <div>
-            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>PvP Arena</div>
-            <div style={{ fontSize: "clamp(2rem, 7vw, 3rem)", lineHeight: 0.98, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "10px" }}>
-              Challenge a nearby skill band.
+            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.80)" }}>Live Debate · Player vs player</div>
+            <div style={{ fontSize: "clamp(2rem, 9vw, 2.55rem)", lineHeight: 1.03, letterSpacing: "-0.045em", fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif", marginTop: "8px" }}>
+              Two minds. One topic.
             </div>
-            <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
+            <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)", fontSize: "13px", marginBottom: 0 }}>
               Matchmaking uses your level and placement score, then assigns a topic and side automatically.
             </p>
           </div>
-          <LevelBadge level={user.currentLevel} size="lg" />
+          <LevelBadge level={user.currentLevel} size="md" showLabel={false} />
         </div>
       </div>
 
       {error && <div style={{ color: "#dc2626", fontSize: "12px", marginBottom: "12px" }}>{error}</div>}
 
-      <div style={{ ...sectionCard, padding: "22px", marginBottom: "14px" }}>
+      {roomSession && <PvPRoom key={roomSession.id} session={roomSession} user={user} onSessionUpdated={updateSession} onUserUpdated={onUserUpdated} />}
+
+      <details style={{ ...sectionCard, padding: "16px", marginBottom: "14px", fontSize: "14px", lineHeight: 1.6 }}>
+        <summary style={{ minHeight: "44px", cursor: "pointer" }}>Community rules & safety</summary>
+        <p>Challenge ideas, not people. No harassment, hate speech, threats, sexual content, spam or sharing another person's private information. Do not share your own sensitive information.</p>
+        <p>Messages may be filtered. You can leave at any time, or report and block an opponent—even after a debate ends. The operator reviews reports and can suspend PvP access for abuse.</p>
+        <p>Report a safety concern: <a href="mailto:zhanghaoranmatt@gmail.com">zhanghaoranmatt@gmail.com</a>. AI scores are practice feedback, not an objective ranking of people.</p>
+      </details>
+
+      <div style={{ ...sectionCard, padding: "16px", marginBottom: "14px" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", marginBottom: "16px" }}>
-          <div style={{ background: "#eef2ff", borderRadius: "18px", padding: "14px" }}>
+          <div style={{ background: "#eef2ff", borderRadius: "16px", padding: "12px" }}>
             <div style={eyebrowSmall}>Level</div>
             <div style={{ fontSize: "22px", fontWeight: 800, marginTop: "8px" }}>{user.currentLevel}</div>
           </div>
-          <div style={{ background: "#fdf2f8", borderRadius: "18px", padding: "14px" }}>
+          <div style={{ background: "#fdf2f8", borderRadius: "16px", padding: "12px" }}>
             <div style={eyebrowSmall}>Placement</div>
             <div style={{ fontSize: "22px", fontWeight: 800, marginTop: "8px" }}>{user.placementScore}</div>
           </div>
-          <div style={{ background: "#ecfdf3", borderRadius: "18px", padding: "14px" }}>
+          <div style={{ background: "#ecfdf3", borderRadius: "16px", padding: "12px" }}>
             <div style={eyebrowSmall}>Sessions</div>
             <div style={{ fontSize: "22px", fontWeight: 800, marginTop: "8px" }}>{sessions.length}</div>
           </div>
         </div>
 
         <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <button onClick={findMatch} disabled={busy} style={{ ...solidBtn, opacity: busy ? 0.6 : 1 }}>
+          <button onClick={findMatch} disabled={busy} style={{ ...solidBtn, flex: "1 1 145px", opacity: busy ? 0.6 : 1 }}>
             {busy ? "Matching…" : activeSession ? "Refresh Match" : "Find Opponent"}
           </button>
-          <button onClick={loadSessions} style={{ ...solidBtn, background: "linear-gradient(135deg, #64748b 0%, #475569 100%)", boxShadow: "0 12px 24px rgba(71, 85, 105, 0.20)" }}>
+          <button onClick={loadSessions} style={{ ...solidBtn, flex: "1 1 145px", background: "#e9e9ef", color: "#1c1c1e", boxShadow: "none" }}>
             Refresh Sessions
           </button>
         </div>
+        {!activeSession && <div style={{ marginTop: "12px" }}>
+          <label style={{ fontSize: "13px", color: "#667085" }}>Optional friend room code (both players enter the same code)
+            <input aria-label="Friend room code" placeholder="Leave blank for public matchmaking" value={roomCode} onChange={(e) => setRoomCode(e.target.value.replace(/[^a-zA-Z0-9-]/g, "").toUpperCase())} maxLength={32} style={{ ...inputStyle, marginTop: "6px" }} />
+          </label>
+        </div>}
       </div>
 
-      <div style={{ ...sectionCard, padding: "22px", marginBottom: "14px" }}>
+      <div style={{ ...sectionCard, padding: "16px", marginBottom: "14px" }}>
         <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>How PvP works</div>
         <div style={{ display: "grid", gap: "10px" }}>
           {[
             "Get matched with a user near your level and placement score.",
             "Receive a topic, difficulty, and assigned side.",
-            "Report the round result after the debate finishes.",
+            "Exchange text arguments in your shared live debate room.",
             "PvP outcomes can contribute XP to progression.",
           ].map((item, index) => (
             <div key={item} style={{ display: "flex", gap: "10px", alignItems: "flex-start" }}>
@@ -190,33 +187,16 @@ export default function PvPScreen({ user, onUserUpdated }) {
         <div style={{ color: "#667085", fontSize: "13px" }}>Loading PvP sessions…</div>
       ) : (
         <>
-          {activeSession && (
-            <div style={{ marginBottom: "14px" }}>
-              <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Active Session</div>
-              <SessionCard session={activeSession} user={user} />
-            </div>
-          )}
-
-          {activeSession?.status === "matched" && (
-            <div style={{ ...sectionCard, padding: "22px", marginBottom: "14px" }}>
-              <div style={{ ...eyebrowSmall, marginBottom: "10px" }}>Report Result</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-                <input value={player1Score} onChange={(e) => setPlayer1Score(e.target.value)} placeholder="Player 1 score" type="number" style={inputStyle} />
-                <input value={player2Score} onChange={(e) => setPlayer2Score(e.target.value)} placeholder="Player 2 score" type="number" style={inputStyle} />
-              </div>
-              <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional round notes" style={{ ...textareaStyle, minHeight: "92px", marginBottom: "12px" }} />
-              <button onClick={submitResult} disabled={busy || player1Score === "" || player2Score === ""} style={{ ...solidBtn, opacity: busy || player1Score === "" || player2Score === "" ? 0.5 : 1 }}>
-                Submit PvP Result
-              </button>
-            </div>
-          )}
 
           <div>
             <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Recent Sessions</div>
             <div style={{ display: "grid", gap: "10px" }}>
               {sessions.length === 0 && <div style={{ color: "#667085", fontSize: "13px" }}>No PvP sessions yet.</div>}
               {sessions.map((session) => (
-                <SessionCard key={session.id} session={session} user={user} />
+                <div key={session.id}>
+                  <SessionCard session={session} user={user} />
+                  <button onClick={() => setSelectedId(session.id)} style={{ ...solidBtn, marginTop: "8px" }}>Open debate</button>
+                </div>
               ))}
             </div>
           </div>

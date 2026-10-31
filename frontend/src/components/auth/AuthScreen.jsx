@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../../lib/api";
+import PrivacyNotice from "../common/PrivacyNotice";
 import {
   eyebrow,
   heroCard,
@@ -105,7 +106,7 @@ export default function AuthScreen({ onAuth }) {
     <div style={{ ...pageWrap, minHeight: "100vh", display: "flex", alignItems: "center" }}>
       <div style={{ width: "100%", display: "grid", gap: "14px", maxWidth: "560px", margin: "0 auto" }}>
         <div style={heroCard}>
-          <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>DebateHub</div>
+          <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Rebutto</div>
           <h1 style={{ margin: "8px 0 6px", fontSize: "clamp(1.9rem, 8vw, 2.9rem)", lineHeight: 1, fontFamily: "'Fraunces', serif" }}>
             Train debate fast.
           </h1>
@@ -183,6 +184,7 @@ export default function AuthScreen({ onAuth }) {
               <div ref={googleBtnRef} style={{ display: "flex", justifyContent: "center" }} />
             </>
           )}
+          <PrivacyNotice />
         </div>
       </div>
     </div>

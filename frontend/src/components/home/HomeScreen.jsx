@@ -1,6 +1,6 @@
 // home screen component
 
-import { Dumbbell, Swords, Target, User } from "lucide-react";
+import { MessageCircleMore, Flame, UsersRound, Target, UserRound, ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../lib/api";
 import {
@@ -41,30 +41,30 @@ function ActionCard({ icon: Icon, label, value, detail, tint, onClick }) {
     <>
       <div
         style={{
-          width: "34px",
-          height: "34px",
-          borderRadius: "11px",
+          width: "42px",
+          height: "42px",
+          borderRadius: "14px",
           display: "grid",
           placeItems: "center",
-          background: "rgba(255,255,255,0.22)",
-          color: "#fff",
-          marginBottom: "8px",
+          background: tint,
+          color: "#5b4bb4",
+          marginBottom: "14px",
         }}
       >
-        <Icon size={16} />
+        <Icon size={22} strokeWidth={1.8} aria-hidden="true" />
       </div>
-      <div style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.82)" }}>{label}</div>
-      <div style={{ fontSize: "15px", lineHeight: 1.2, fontWeight: 800, color: "#fff", marginTop: "2px" }}>{value}</div>
-      {!!detail && <div style={{ fontSize: "10px", lineHeight: 1.35, color: "rgba(255,255,255,0.84)", marginTop: "4px" }}>{detail}</div>}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "6px" }}><span style={{ fontSize: "15px", fontWeight: 750, color: "#282438" }}>{label}</span><ArrowUpRight size={15} color="#9992b1" aria-hidden="true" /></div>
+      <div style={{ fontSize: "12px", lineHeight: 1.5, color: "#716b82", marginTop: "6px" }}>{value}</div>
+      {!!detail && <div style={{ fontSize: "11px", lineHeight: 1.4, color: "#5c4db1", fontWeight: 600, marginTop: "10px" }}>{detail}</div>}
     </>
   );
 
   const cardStyle = {
     ...sectionCard,
-    padding: "10px 10px 9px",
+    padding: "16px",
     textAlign: "left",
-    background: tint,
-    minHeight: "112px",
+    background: "#fff",
+    minHeight: "160px",
   };
 
   if (!onClick) {
@@ -72,7 +72,7 @@ function ActionCard({ icon: Icon, label, value, detail, tint, onClick }) {
   }
 
   return (
-    <button onClick={onClick} style={{ ...cardStyle, border: "none", cursor: "pointer" }}>
+    <button onClick={onClick} style={{ ...cardStyle, cursor: "pointer" }}>
       {content}
     </button>
   );
@@ -207,7 +207,6 @@ export default function HomeScreen({ user, onNavigate }) {
 
   const recentHistory = history.slice(0, 2);
   const activeMatch = matches.find((item) => item.status === "matched" || item.status === "waiting") || null;
-  const strongestDifficulty = user.unlockedDifficulties[user.unlockedDifficulties.length - 1] || "Easy";
   const categoryChoices = Array.from(
     new Set([...CATEGORY_OPTIONS, ...trendingTopics.map((item) => item.category).filter(Boolean)])
   );
@@ -218,12 +217,12 @@ export default function HomeScreen({ user, onNavigate }) {
       <div style={{ ...heroCard, marginBottom: "12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
           <div style={{ maxWidth: "460px" }}>
-            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Home Dashboard</div>
-            <div style={{ fontSize: "clamp(1.55rem, 6vw, 2.4rem)", lineHeight: 1.02, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "8px" }}>
-              Welcome back, {user.name}.
+            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.78)" }}>Your debate space</div>
+            <div style={{ fontSize: "clamp(1.7rem, 7vw, 2.35rem)", lineHeight: 1.04, letterSpacing: "-0.04em", fontWeight: 800, fontFamily: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif", marginTop: "8px", overflowWrap: "anywhere" }}>
+              Ready to debate?
             </div>
             <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
-              Training tier unlocked: {strongestDifficulty}.
+              Welcome back, {user.name}.
             </p>
           </div>
           <LevelBadge level={user.currentLevel} size="md" showLabel={false} />
@@ -233,7 +232,7 @@ export default function HomeScreen({ user, onNavigate }) {
           <div style={{ fontSize: "12px", fontWeight: 700, marginBottom: "8px" }}>
             Level {user.currentLevel}: {user.levelName}
           </div>
-          <XPProgressBar user={user} showNumbers={!!user.nextLevelXP} />
+          <XPProgressBar user={user} showNumbers={!!user.nextLevelXP} inverted />
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "10px" }}>
             {user.unlockedDifficulties.map((difficulty) => (
               <DifficultyChip key={difficulty} difficulty={difficulty} size="sm" />
@@ -242,53 +241,54 @@ export default function HomeScreen({ user, onNavigate }) {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "8px", marginTop: "10px" }}>
-          <SummaryPill label="Runs" value={history.length} tint="rgba(59, 130, 246, 0.26)" />
-          <SummaryPill label="PvP" value={matches.length} tint="rgba(236, 72, 153, 0.26)" />
-          <SummaryPill label="XP" value={user.totalXP} tint="rgba(16, 185, 129, 0.26)" />
+          <SummaryPill label="Practice" value={history.length} tint="rgba(255,255,255,0.10)" />
+          <SummaryPill label="Debates" value={matches.length} tint="rgba(255,255,255,0.10)" />
+          <SummaryPill label="XP" value={user.totalXP} tint="rgba(255,255,255,0.10)" />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginTop: "10px" }}>
-          <button onClick={() => onNavigate("training")} style={{ ...solidBtn, background: "linear-gradient(135deg, #f97316 0%, #ea580c 100%)", boxShadow: "0 10px 22px rgba(234, 88, 12, 0.24)" }}>
-            Start Training
+          <button onClick={() => onNavigate("training")} style={{ ...solidBtn, background: "#fff", color: "#5141bc", boxShadow: "0 4px 12px rgba(39,28,96,0.10)" }}>
+            Start AI Debate
           </button>
-          <button onClick={() => onNavigate("pvp")} style={{ ...solidBtn, background: "linear-gradient(135deg, #475569 0%, #334155 100%)", boxShadow: "0 10px 22px rgba(51, 65, 85, 0.24)" }}>
-            Open PvP
+          <button onClick={() => onNavigate("pvp")} style={{ ...solidBtn, background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.3)", boxShadow: "none" }}>
+            Live Debate
           </button>
         </div>
       </div>
 
       <div style={{ marginBottom: "12px" }}>
-        <div style={{ ...eyebrowSmall, marginBottom: "8px" }}>Quick Actions</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "8px" }}>
+        <div style={{ fontSize: "18px", fontWeight: 750, letterSpacing: "-0.03em", margin: "24px 2px 12px" }}>Your debate studio</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px" }}>
           <ActionCard
-            icon={Dumbbell}
-            label="Training"
-            value={`${history.length} runs`}
-            detail="Start now"
-            tint="linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%)"
+            icon={MessageCircleMore}
+            label="AI Debate"
+            value="A full debate with an AI opponent."
+            detail={`${history.length} practice sessions`}
+            tint="#eeeafb"
             onClick={() => onNavigate("training")}
           />
           <ActionCard
             icon={Target}
-            label="Difficulty Pool"
-            value={strongestDifficulty}
-            detail={`${user.unlockedDifficulties.length} tier${user.unlockedDifficulties.length === 1 ? "" : "s"} unlocked`}
-            tint="linear-gradient(135deg, #14b8a6 0%, #0f766e 100%)"
+            label="Skills"
+            value="Short drills. Stronger arguments."
+            detail="Explore skill drills"
+            tint="#eaf4ef"
+            onClick={() => onNavigate("coach")}
           />
           <ActionCard
-            icon={Swords}
-            label="PvP Mode"
-            value={activeMatch ? "Live match" : `${matches.length} matches`}
-            detail={activeMatch ? "Match waiting" : "Queue a match"}
-            tint="linear-gradient(135deg, #ec4899 0%, #db2777 100%)"
+            icon={UsersRound}
+            label="Live Debate"
+            value="Text debate with another player."
+            detail={activeMatch ? "Return to your room" : "Find a debate partner"}
+            tint="#edf0fb"
             onClick={() => onNavigate("pvp")}
           />
           <ActionCard
-            icon={User}
+            icon={UserRound}
             label="Profile"
-            value={`${user.totalXP} XP`}
-            detail="View progress"
-            tint="linear-gradient(135deg, #0f172a 0%, #334155 100%)"
+            value="Your progress, history and settings."
+            detail={`${user.totalXP} XP earned`}
+            tint="#f5eef7"
             onClick={() => onNavigate("profile")}
           />
         </div>
@@ -298,7 +298,10 @@ export default function HomeScreen({ user, onNavigate }) {
         <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "center", flexWrap: "wrap" }}>
           <div>
             <div style={eyebrowSmall}>Trending</div>
-            <div style={{ fontSize: "16px", fontWeight: 800, marginTop: "4px", color: "#111827" }}>🔥 Trending Debate Topics</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "7px", fontSize: "16px", fontWeight: 800, marginTop: "4px", color: "#111827" }}>
+              <Flame size={17} color="#ff9500" aria-hidden="true" />
+              Trending Debate Topics
+            </div>
           </div>
           <button
             onClick={refreshTrending}
@@ -307,8 +310,9 @@ export default function HomeScreen({ user, onNavigate }) {
               ...solidBtn,
               padding: "8px 11px",
               fontSize: "11px",
-              background: "linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%)",
-              boxShadow: "0 8px 18px rgba(37, 99, 235, 0.24)",
+              background: "#eeebfb",
+              color: "#5141bc",
+              boxShadow: "none",
               opacity: trendingRefreshing ? 0.7 : 1,
             }}
           >

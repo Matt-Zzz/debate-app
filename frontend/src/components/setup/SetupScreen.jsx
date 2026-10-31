@@ -114,12 +114,12 @@ export default function SetupScreen({ onStart, user, seedTopic = null }) {
       <div style={{ ...heroCard, marginBottom: "12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "center" }}>
           <div style={{ maxWidth: "460px" }}>
-            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.72)" }}>Training Sessions</div>
-            <div style={{ fontSize: "clamp(1.55rem, 6vw, 2.4rem)", lineHeight: 1.02, fontWeight: 800, fontFamily: "'Fraunces', serif", marginTop: "8px" }}>
-              Set your next run.
+            <div style={{ ...eyebrow, color: "rgba(255,255,255,0.80)" }}>AI Debate</div>
+            <div style={{ fontSize: "clamp(1.55rem, 6vw, 2.4rem)", lineHeight: 1.08, letterSpacing: "-0.035em", fontWeight: 800, marginTop: "8px" }}>
+              Make your case.
             </div>
             <p style={{ ...subheadline, color: "rgba(255,255,255,0.86)" }}>
-              Topic and side are assigned automatically.
+              Practice with an AI opponent. A topic and side are assigned; switch sides or refresh your topic below.
             </p>
           </div>
           <LevelBadge level={user.currentLevel} size="md" showLabel={false} />
@@ -129,7 +129,7 @@ export default function SetupScreen({ onStart, user, seedTopic = null }) {
           <div style={{ fontSize: "12px", fontWeight: 700, marginBottom: "8px" }}>
             Level {user.currentLevel}: {user.levelName}
           </div>
-          <XPProgressBar user={user} showNumbers={!!user.nextLevelXP} />
+          <XPProgressBar user={user} showNumbers={!!user.nextLevelXP} inverted />
           <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "10px" }}>
             {user.unlockedDifficulties.map((difficulty) => (
               <DifficultyChip key={difficulty} difficulty={difficulty} size="sm" />

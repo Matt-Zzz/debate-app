@@ -1,0 +1,31 @@
+Rebutto moderation operations
+
+Only run this tool in an authenticated server shell. It reads private reports and
+conversation transcripts. Do not publish its output, put it in client code, or
+expose the database through a public endpoint.
+
+After deploying main.py, restarting the backend applies the additive schema changes.
+List up to 100 oldest pending reports:
+  cd /opt/rebutto
+  .venv/bin/python moderation.py list
+
+Review the transcript and investigate the complaint. Record the actual decision:
+  .venv/bin/python moderation.py review REPORT_ID --decision dismissed --note 'Reason'
+  .venv/bin/python moderation.py review REPORT_ID --decision actioned --note 'Reason' --suspend --redact
+
+Suspension prevents new matches and posting, and cancels active rooms for that
+account. It does not delete the account or prevent access to saved practice data.
+Optional --redact removes that player's message text from the reported room;
+review the evidence first. It does not remove messages in unrelated rooms.
+There is no automated human moderation or email notification. The operator must
+check this queue and the support inbox regularly and respond promptly. Contact:
+zhanghaoranmatt@gmail.com. Keyword filters are only a first layer and will miss
+some abuse; review their false positives/negatives and improve them over time.
+
+Deployment compatibility:
+New clients use /api/v2/opponent-speech and /api/v2/coach-report, which require
+aiConsent:true after the frontend consent prompt. Build 4 already prompts on-device
+but omits this field; its original v1 routes remain compatible during rollout.
+Explicit aiConsent:false is rejected on both versions. Retire v1 only after older
+clients no longer need it. PvP continues requiring both players' recorded consent.
+No Apple review submission, cloud deployment or new archive is performed by tests.

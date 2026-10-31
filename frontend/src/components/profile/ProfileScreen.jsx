@@ -6,6 +6,7 @@ import { apiFetch, setAuthToken } from "../../lib/api";
 import LevelBadge from "../common/LevelBadge";
 import XPProgressBar from "../common/XPProgressBar";
 import DifficultyChip from "../common/DifficultyChip";
+import PrivacyNotice from "../common/PrivacyNotice";
 import {
   eyebrow,
   eyebrowSmall,
@@ -478,6 +479,7 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [profileSaving, setProfileSaving] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
@@ -622,8 +624,12 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
   };
 
   const deleteAccount = async () => {
+    if (deletingAccount) return;
+    if (!window.confirm("Permanently delete your Rebutto account and saved practice data? Active PvP debates will end. This cannot be undone.")) return;
     const pw = window.prompt("Enter your password to delete your account (leave blank for Google-only accounts).");
     if (pw === null) return;
+    setDeletingAccount(true);
+    setProfileError("");
     try {
       await apiFetch("/auth/me", {
         method: "DELETE",
@@ -633,7 +639,7 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
       onSignOut();
     } catch (err) {
       setProfileError(err.message || "Could not delete account");
-    }
+    } finally { setDeletingAccount(false); }
   };
 
   const openImagePicker = () => {
@@ -1105,6 +1111,7 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
     if (activePanel === "settings") {
       return (
         <DetailPanel section="Account" title="Settings" detail="Control profile visibility, history layout, and password updates.">
+          <PrivacyNotice />
           <div style={{ display: "grid", gap: "10px", marginBottom: "18px" }}>
             <ToggleRow
               title="Show location on profile card"
@@ -1160,8 +1167,8 @@ export default function ProfileScreen({ user, onUserUpdated, onBack, onSignOut }
             <div style={{ fontSize: "12px", color: "#667085", lineHeight: 1.6, marginBottom: "14px" }}>
               Signed in as {email || user.email}.
             </div>
-            <button onClick={deleteAccount} style={{ ...secondaryBtn, color: "#dc2626", borderColor: "rgba(220,38,38,0.18)" }}>
-              Delete account
+            <button onClick={deleteAccount} disabled={deletingAccount} style={{ ...secondaryBtn, color: "#dc2626", borderColor: "rgba(220,38,38,0.18)" }}>
+              {deletingAccount ? "Deleting…" : "Delete account"}
             </button>
           </div>
         </DetailPanel>

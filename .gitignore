@@ -13,6 +13,7 @@ __pycache__/
 *.pyo
 *.pyd
 .venv/
+.venv.*/
 venv/
 backend-python/.venv/
 backend-python/__pycache__/
@@ -33,4 +34,13 @@ backend-python/.env
 !backend-python/.env.example
 
 App Development/
+
+# Private credentials and signing material; public .cer files may be tracked.
+*.pem
+*.key
+*.p12
+*.pfx
+*.mobileprovision
+*.xcarchive/
+*.ipa
 
