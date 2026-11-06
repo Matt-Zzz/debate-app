@@ -1,0 +1,20 @@
+Rebutto iOS icon, Build 5
+Created: 2026-11-06
+Generator: built-in imagegen (not CLI).
+Production asset: ../ios/App/App/Assets.xcassets/AppIcon.appiconset/Rebutto-Icon-Build5.png
+Format: opaque RGB PNG, 1024 x 1024. No pre-rounded corners.
+Legacy placeholder preserved as legacy-capacitor-icon.png.
+
+Prompt:
+Use case: logo-brand. Create a polished production iOS app icon for Rebutto,
+an educational debate app featuring thoughtful text debates between two people
+and AI coaching. Square full-bleed 1024x1024 composition, opaque background
+with no baked rounded corners. Existing app palette is rich violet and lavender
+with crisp white. Center one bold memorable sculptural emblem: two interlocking
+opposing conversational quotation/speech forms, suggesting a subtle R through
+negative space. Soft dimensional satin material, restrained luminous violet
+gradient background, excellent contrast and very simple silhouette readable
+at tiny icon size. Refined contemporary Apple-device aesthetic, confident and
+friendly, generous safe margins. No text, no letters explicitly drawn, no
+microphone, no swords, no robot, no device mockup, no border, no grid, no
+watermark. This is the actual icon asset, not a presentation of an icon.
